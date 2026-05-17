@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react"
+import axios from "axios"
 
 import Busqueda from "./components/Busqueda"
 import Botones from "./components/Botones"
@@ -10,47 +11,23 @@ import PlanillaElevacion from "./components/PlanillaElevacion"
 export default function App() {
   const [dniBusqueda, setDniBusqueda] = useState("")
   const [apellidoBusqueda, setApellidoBusqueda] = useState("")
-
-  const estudiantesIniciales = [
-    {
-      nombre: "Pérez Ana",
-      dni: "40111222",
-      estado: "Para entregar",
-      carpeta: "Carpeta 2",
-      seleccionado: false
-    },
-    {
-      nombre: "Gómez Luis",
-      dni: "39888777",
-      estado: "En Jefatura",
-      carpeta: "Carpeta 1",
-      seleccionado: false
-    },
-    {
-      nombre: "Martínez Carla",
-      dni: "41222333",
-      estado: "Pendiente",
-      carpeta: "---",
-      seleccionado: false
-    }
-  ]
-
-  const [estudiantes, setEstudiantes] = useState(() => {
-    const datosGuardados = localStorage.getItem("estudiantes")
-
-    if (datosGuardados) {
-      return JSON.parse(datosGuardados)
-    }
-
-    return estudiantesIniciales
-  })
-
-  useEffect(() => {
-    localStorage.setItem("estudiantes", JSON.stringify(estudiantes))
-  }, [estudiantes])
+  const [estudiantes, setEstudiantes] = useState([])
 
   const formularioRef = useRef(null)
   const tablaRef = useRef(null)
+
+  useEffect(() => {
+    obtenerAlumnos()
+  }, [])
+
+  async function obtenerAlumnos() {
+    try {
+      const respuesta = await axios.get("http://localhost:3001/alumnos")
+      setEstudiantes(respuesta.data)
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
   function irAFormulario() {
     formularioRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -66,11 +43,13 @@ export default function App() {
     tablaRef.current?.scrollIntoView({ behavior: "smooth" })
   }
 
-  function agregarEstudiante(nuevoEstudiante) {
-    setEstudiantes([
-      ...estudiantes,
-      nuevoEstudiante
-    ])
+  async function agregarEstudiante(nuevoEstudiante) {
+    try {
+      await axios.post("http://localhost:3001/alumnos", nuevoEstudiante)
+      obtenerAlumnos()
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   function actualizarEstado(dni, nuevoEstado) {
@@ -110,19 +89,6 @@ export default function App() {
 
     setEstudiantes(estudiantesFiltrados)
   }
-  function generarPlanillaElevacion() {
-  const seleccionados = estudiantes.filter(
-    (alumno) => alumno.seleccionado
-  )
-
-  if (seleccionados.length === 0) {
-    alert("Seleccioná al menos un alumno para generar la planilla.")
-    return
-  }
-
-  console.log("Alumnos seleccionados:", seleccionados)
-  alert("Planilla de elevación preparada. Próximo paso: diseñarla en pantalla.")
-}
 
   function seleccionarAlumno(dni) {
     const estudiantesActualizados = estudiantes.map((alumno) => {
@@ -137,6 +103,19 @@ export default function App() {
     })
 
     setEstudiantes(estudiantesActualizados)
+  }
+
+  function generarPlanillaElevacion() {
+    const seleccionados = estudiantes.filter(
+      (alumno) => alumno.seleccionado
+    )
+
+    if (seleccionados.length === 0) {
+      alert("Seleccioná al menos un alumno para generar la planilla.")
+      return
+    }
+
+    alert("Planilla de elevación preparada.")
   }
 
   return (
@@ -162,9 +141,8 @@ export default function App() {
             marginBottom: "5px"
           }}
         >
-          Sistema de Gestión de Analíticos 
-         
-        </h1> <br />
+          Sistema de Gestión de Analíticos
+        </h1>
 
         <p
           style={{
@@ -189,14 +167,10 @@ export default function App() {
           generarPlanillaElevacion={generarPlanillaElevacion}
         />
 
-        <Estadisticas
-          estudiantes={estudiantes}
-        />
+        <Estadisticas estudiantes={estudiantes} />
 
         <div ref={formularioRef}>
-          <FormularioNuevo
-            agregarEstudiante={agregarEstudiante}
-          />
+          <FormularioNuevo agregarEstudiante={agregarEstudiante} />
         </div>
 
         <div ref={tablaRef}>
@@ -210,9 +184,8 @@ export default function App() {
             seleccionarAlumno={seleccionarAlumno}
           />
         </div>
-        <PlanillaElevacion
-           estudiantes={estudiantes}
-        />
+
+        <PlanillaElevacion estudiantes={estudiantes} />
       </div>
     </div>
   )
