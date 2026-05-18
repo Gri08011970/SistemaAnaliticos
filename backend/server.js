@@ -53,6 +53,20 @@ app.post("/alumnos", async (req, res) => {
   }
 })
 
+app.post("/alumnos/importar", async (req, res) => {
+  try {
+    const alumnos = req.body.alumnos
+
+    const alumnosGuardados = await Alumno.insertMany(alumnos)
+
+    res.json(alumnosGuardados)
+  } catch (error) {
+    res.status(500).json({
+      mensaje: "Error al importar alumnos"
+    })
+  }
+})
+
 app.delete("/alumnos/:id", async (req, res) => {
   try {
     await Alumno.findByIdAndDelete(req.params.id)

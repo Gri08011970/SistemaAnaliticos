@@ -1,8 +1,7 @@
 import * as XLSX from "xlsx"
 
 export default function ImportarExcel({
-  setEstudiantes,
-  estudiantes
+  importarEstudiantes
 }) {
 
   function importarArchivo(evento) {
@@ -41,12 +40,9 @@ export default function ImportarExcel({
         seleccionado: false
       }))
 
-      setEstudiantes([
-        ...estudiantes,
-        ...nuevosEstudiantes
-      ])
+importarEstudiantes(nuevosEstudiantes)
 
-      alert("Excel importado correctamente 🎉")
+alert("Excel importado y guardado correctamente 🎉")
     }
   }
 

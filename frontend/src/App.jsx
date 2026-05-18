@@ -47,6 +47,18 @@ export default function App() {
     tablaRef.current?.scrollIntoView({ behavior: "smooth" })
   }
 
+  async function importarEstudiantes(alumnosImportados) {
+    try {
+      await axios.post("/alumnos/importar", {
+        alumnos: alumnosImportados
+      })
+
+      obtenerAlumnos()
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   async function agregarEstudiante(nuevoEstudiante) {
     try {
       await axios.post("/alumnos", nuevoEstudiante)
@@ -195,8 +207,7 @@ export default function App() {
           generarPlanillaElevacion={generarPlanillaElevacion}
         />
         <ImportarExcel
-          estudiantes={estudiantes}
-          setEstudiantes={setEstudiantes}
+          importarEstudiantes={importarEstudiantes}
         />
         <Estadisticas estudiantes={estudiantes} />
 
