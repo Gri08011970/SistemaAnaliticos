@@ -25,10 +25,15 @@ export default function TablaEstudiantes({
   })
 
   return (
-    <div style={{ marginTop: "40px" }}>
+    <div
+      className="lista-impresion"
+      style={{ marginTop: "40px" }}
+    >
+
       <h2 style={{ color: "#1e3a5f", marginBottom: "20px" }}>
         Últimos analíticos cargados
       </h2>
+
       <div style={{ marginBottom: "15px" }}>
         <label
           style={{
@@ -56,6 +61,14 @@ export default function TablaEstudiantes({
           <option>Entregado</option>
         </select>
       </div>
+
+      <button
+        onClick={() => window.print()}
+        style={botonImprimirLista}
+      >
+        Imprimir lista filtrada
+      </button>
+
       {estudiantesFiltrados.length === 0 && (
         <p style={mensajeNoEncontrado}>
           No se encontró ningún alumno con ese DNI o apellido.
@@ -73,18 +86,23 @@ export default function TablaEstudiantes({
             <th style={estiloCelda}>Seleccionar</th>
             <th style={estiloCelda}>Apellido y Nombre</th>
             <th style={estiloCelda}>DNI</th>
+
             <th style={{ ...estiloCelda, ...columnaChica }}>
               Libro
             </th>
+
             <th style={{ ...estiloCelda, ...columnaChica }}>
-              FoliO
+              Folio
             </th>
+
             <th style={{ ...estiloCelda, ...columnaChica }}>
               Último año
             </th>
+
             <th style={{ ...estiloCelda, ...columnaChica }}>
               Fecha
             </th>
+
             <th style={estiloCelda}>Estado</th>
             <th style={estiloCelda}>Carpeta</th>
             <th style={estiloCelda}>Acciones</th>
@@ -95,6 +113,7 @@ export default function TablaEstudiantes({
         <tbody>
           {estudiantesFiltrados.map((alumno) => (
             <tr key={alumno._id}>
+
               <td style={estiloCelda}>
                 <input
                   type="checkbox"
@@ -103,20 +122,30 @@ export default function TablaEstudiantes({
                 />
               </td>
 
-              <td style={estiloCelda}>{alumno.nombre}</td>
+              <td style={estiloCelda}>
+                {alumno.nombre}
+              </td>
 
-              <td style={estiloCelda}>{alumno.dni}</td>
+              <td style={estiloCelda}>
+                {alumno.dni}
+              </td>
 
-              <td style={estiloCelda}>{alumno.libro}</td>
+              <td style={estiloCelda}>
+                {alumno.libro}
+              </td>
 
-              <td style={estiloCelda}>{alumno.folio}</td>
+              <td style={estiloCelda}>
+                {alumno.folio}
+              </td>
 
               <td style={estiloCelda}>
                 {alumno.ultimoAnio ? alumno.ultimoAnio : "---"}
               </td>
+
               <td style={estiloCelda}>
                 {alumno.fecha ? alumno.fecha : "---"}
               </td>
+
               <td style={estiloCelda}>
                 <select
                   value={alumno.estado}
@@ -149,6 +178,7 @@ export default function TablaEstudiantes({
               </td>
 
               <td style={estiloCelda}>
+
                 <button
                   onClick={() => editarEstudiante(alumno)}
                   style={botonEditar}
@@ -164,6 +194,7 @@ export default function TablaEstudiantes({
                 </button>
 
               </td>
+
             </tr>
           ))}
         </tbody>
@@ -178,18 +209,12 @@ const estiloTabla = {
   backgroundColor: "white"
 }
 
-const encabezadoTabla = {
-  backgroundColor: "#1e3a5f",
-  color: "white"
-}
-
 const estiloCelda = {
   border: "1px solid #ddd",
   padding: "8px",
   textAlign: "center",
   fontSize: "14px"
 }
-
 
 const mensajeNoEncontrado = {
   backgroundColor: "#fff3cd",
@@ -233,7 +258,18 @@ const botonEditar = {
   marginBottom: "4px"
 }
 
+const botonImprimirLista = {
+  backgroundColor: "#1e3a5f",
+  color: "white",
+  border: "none",
+  padding: "8px 12px",
+  borderRadius: "8px",
+  cursor: "pointer",
+  marginBottom: "15px"
+}
+
 function obtenerColorEstado(estado) {
+
   if (estado === "Pendiente") {
     return "#d4a017"
   }
