@@ -3,10 +3,15 @@ import mongoose from "mongoose"
 import cors from "cors"
 import dotenv from "dotenv"
 import Alumno from "./models/Alumno.js"
+import path from "path"
+import { fileURLToPath } from "url"
 
 dotenv.config()
 
 const app = express()
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 app.use(cors())
 app.use(express.json())
@@ -19,45 +24,88 @@ mongoose.connect(process.env.MONGO_URI)
     console.log("Error al conectar Mongo:", error)
   })
 
-app.get("/", (req, res) => {
-  res.send("Servidor funcionando 🚀")
-})
+// ======================
+// RUTAS API
+// ======================
+
 app.get("/alumnos", async (req, res) => {
-
-  const alumnos = await Alumno.find()
-
-  res.json(alumnos)
-
+  try {
+    const alumnos = await Alumno.find()
+    res.json(alumnos)
+  } catch (error) {
+    res.status(500).json({
+      mensaje: "Error al obtener alumnos"
+    })
+  }
 })
 
 app.post("/alumnos", async (req, res) => {
+  try {
+    const nuevoAlumno = new Alumno(req.body)
 
-  const nuevoAlumno = new Alumno(req.body)
+    await nuevoAlumno.save()
 
-  await nuevoAlumno.save()
-
-  res.json(nuevoAlumno)
-
+    res.json(nuevoAlumno)
+  } catch (error) {
+    res.status(500).json({
+      mensaje: "Error al guardar alumno"
+    })
+  }
 })
 
 app.delete("/alumnos/:id", async (req, res) => {
-  await Alumno.findByIdAndDelete(req.params.id)
+  try {
+    await Alumno.findByIdAndDelete(req.params.id)
 
-  res.json({
-    mensaje: "Alumno eliminado correctamente"
-  })
+    res.json({
+      mensaje: "Alumno eliminado correctamente"
+    })
+  } catch (error) {
+    res.status(500).json({
+      mensaje: "Error al eliminar alumno"
+    })
+  }
 })
 
 app.put("/alumnos/:id", async (req, res) => {
-  const alumnoActualizado = await Alumno.findByIdAndUpdate(
-    req.params.id,
-    req.body,
-    { new: true }
-  )
+  try {
+    const alumnoActualizado = await Alumno.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    )
 
-  res.json(alumnoActualizado)
+    res.json(alumnoActualizado)
+  } catch (error) {
+    res.status(500).json({
+      mensaje: "Error al actualizar alumno"
+    })
+  }
 })
 
-app.listen(3001, () => {
-  console.log("Servidor corriendo en puerto 3001")
+// ======================
+// FRONTEND REACT
+// ======================
+
+app.use(
+  express.static(
+    path.join(__dirname, "../frontend/dist")
+  )
+)
+
+app.use((req, res) => {
+  res.sendFile(
+    path.join(
+      __dirname,
+      "../frontend/dist/index.html"
+    )
+  )
+})
+
+// ======================
+
+const PORT = process.env.PORT || 3001
+
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en puerto ${PORT}`)
 })
