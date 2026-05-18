@@ -27,12 +27,90 @@ return coincideDni && coincideApellido && coincideEstado
 })
 
 function imprimirLista() {
-  setModoImprimirLista(true)
+  const filas = estudiantesFiltrados.map((alumno, index) => `
+    <tr>
+      <td>${index + 1}</td>
+      <td>${alumno.nombre || ""}</td>
+      <td>${alumno.dni || ""}</td>
+      <td>${alumno.libro || ""}</td>
+      <td>${alumno.folio || ""}</td>
+      <td>${alumno.ultimoAnio || "---"}</td>
+      <td>${alumno.fecha || "---"}</td>
+      <td>${alumno.estado || ""}</td>
+      <td>${alumno.carpeta || "---"}</td>
+    </tr>
+  `).join("")
 
-  setTimeout(() => {
-    window.print()
-    setModoImprimirLista(false)
-  }, 300)
+  const ventana = window.open("", "_blank")
+
+  ventana.document.write(`
+    <html>
+      <head>
+        <title>Lista de analíticos filtrada</title>
+        <style>
+          body {
+            font-family: Arial;
+            padding: 20px;
+          }
+
+          h2 {
+            text-align: center;
+            color: #1e3a5f;
+          }
+
+          p {
+            text-align: center;
+            font-weight: bold;
+          }
+
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+          }
+
+          th, td {
+            border: 1px solid black;
+            padding: 6px;
+            text-align: center;
+          }
+
+          th {
+            background-color: #1e3a5f;
+            color: white;
+          }
+        </style>
+      </head>
+
+      <body>
+        <h2>Lista de analíticos</h2>
+        <p>Filtro aplicado: ${estadoFiltro}</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>N°</th>
+              <th>Apellido y Nombre</th>
+              <th>DNI</th>
+              <th>Libro</th>
+              <th>Folio</th>
+              <th>Último año</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+              <th>Carpeta</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            ${filas}
+          </tbody>
+        </table>
+      </body>
+    </html>
+  `)
+
+  ventana.document.close()
+  ventana.print()
 }
 
 return (
