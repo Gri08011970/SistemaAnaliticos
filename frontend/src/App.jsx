@@ -7,6 +7,7 @@ import TablaEstudiantes from "./components/TablaEstudiantes"
 import Estadisticas from "./components/Estadisticas"
 import FormularioNuevo from "./components/FormularioNuevo"
 import PlanillaElevacion from "./components/PlanillaElevacion"
+import ImportarExcel from "./components/ImportarExcel"
 
 export default function App() {
   const [dniBusqueda, setDniBusqueda] = useState("")
@@ -193,7 +194,10 @@ export default function App() {
           verListaCompleta={verListaCompleta}
           generarPlanillaElevacion={generarPlanillaElevacion}
         />
-
+        <ImportarExcel
+          estudiantes={estudiantes}
+          setEstudiantes={setEstudiantes}
+        />
         <Estadisticas estudiantes={estudiantes} />
 
         <div ref={formularioRef}>
