@@ -1,8 +1,7 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import axios from "axios"
 
 import Busqueda from "./components/Busqueda"
-import Botones from "./components/Botones"
 import TablaEstudiantes from "./components/TablaEstudiantes"
 import Estadisticas from "./components/Estadisticas"
 import FormularioNuevo from "./components/FormularioNuevo"
@@ -16,10 +15,7 @@ export default function App() {
   const [estudiantes, setEstudiantes] = useState([])
   const [alumnoEditando, setAlumnoEditando] = useState(null)
   const [modoImprimirLista, setModoImprimirLista] = useState(false)
-
-  const formularioRef = useRef(null)
-  const tablaRef = useRef(null)
-  const planillaRef = useRef(null)
+  const [seccionActiva, setSeccionActiva] = useState("formulario")
 
   useEffect(() => {
     obtenerAlumnos()
@@ -34,20 +30,6 @@ export default function App() {
     }
   }
 
-  function irAFormulario() {
-    formularioRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
-
-  function irATabla() {
-    tablaRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
-
-  function verListaCompleta() {
-    setDniBusqueda("")
-    setApellidoBusqueda("")
-    tablaRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
-
   async function importarEstudiantes(alumnosImportados) {
     try {
       await axios.post("/alumnos/importar", {
@@ -55,6 +37,7 @@ export default function App() {
       })
 
       obtenerAlumnos()
+      setSeccionActiva("lista")
     } catch (error) {
       console.log(error)
     }
@@ -64,6 +47,7 @@ export default function App() {
     try {
       await axios.post("/alumnos", nuevoEstudiante)
       obtenerAlumnos()
+      setSeccionActiva("lista")
     } catch (error) {
       console.log(error)
     }
@@ -71,45 +55,43 @@ export default function App() {
 
   async function actualizarEstudianteEditado(id, datosActualizados) {
     try {
-      await axios.put(
-        `/alumnos/${id}`,
-        datosActualizados
-      )
+      await axios.put(`/alumnos/${id}`, datosActualizados)
 
       obtenerAlumnos()
       setAlumnoEditando(null)
+      setSeccionActiva("lista")
     } catch (error) {
       console.log(error)
     }
   }
 
   async function actualizarEstado(id, nuevoEstado) {
-  try {
-    await axios.put(`/alumnos/${id}`, {
-      estado: nuevoEstado
-    })
+    try {
+      await axios.put(`/alumnos/${id}`, {
+        estado: nuevoEstado
+      })
 
-    obtenerAlumnos()
-  } catch (error) {
-    console.log(error)
+      obtenerAlumnos()
+    } catch (error) {
+      console.log(error)
+    }
   }
-}
 
- async function actualizarCarpeta(id, nuevaCarpeta) {
-  try {
-    await axios.put(`/alumnos/${id}`, {
-      carpeta: nuevaCarpeta
-    })
+  async function actualizarCarpeta(id, nuevaCarpeta) {
+    try {
+      await axios.put(`/alumnos/${id}`, {
+        carpeta: nuevaCarpeta
+      })
 
-    obtenerAlumnos()
-  } catch (error) {
-    console.log(error)
+      obtenerAlumnos()
+    } catch (error) {
+      console.log(error)
+    }
   }
-}
+
   async function eliminarEstudiante(id) {
     try {
       await axios.delete(`/alumnos/${id}`)
-
       obtenerAlumnos()
     } catch (error) {
       console.log(error)
@@ -118,10 +100,7 @@ export default function App() {
 
   function editarEstudiante(alumno) {
     setAlumnoEditando(alumno)
-
-    formularioRef.current?.scrollIntoView({
-      behavior: "smooth"
-    })
+    setSeccionActiva("formulario")
   }
 
   function seleccionarAlumno(id) {
@@ -149,7 +128,7 @@ export default function App() {
       return
     }
 
-    planillaRef.current?.scrollIntoView({ behavior: "smooth" })
+    setSeccionActiva("eleve")
   }
 
   return (
@@ -176,7 +155,7 @@ export default function App() {
           }}
         >
           Sistema de Gestión de Analíticos
-        </h1> <br />
+        </h1>
 
         <p
           style={{
@@ -192,29 +171,68 @@ export default function App() {
           setDniBusqueda={setDniBusqueda}
           apellidoBusqueda={apellidoBusqueda}
           setApellidoBusqueda={setApellidoBusqueda}
-          irATabla={irATabla}
+          irATabla={() => setSeccionActiva("lista")}
         />
 
-        <Botones
-          irAFormulario={irAFormulario}
-          verListaCompleta={verListaCompleta}
-          generarPlanillaElevacion={generarPlanillaElevacion}
-        />
-        <ImportarExcel
-          importarEstudiantes={importarEstudiantes}
-        />
-        <Estadisticas estudiantes={estudiantes} />
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+            flexWrap: "wrap",
+            marginTop: "25px",
+            marginBottom: "20px"
+          }}
+        >
+          <button
+            onClick={() => setSeccionActiva("formulario")}
+            style={botonMenu}
+          >
+            Nuevo Analítico
+          </button>
 
-        <div ref={formularioRef}>
-          <FormularioNuevo
-            agregarEstudiante={agregarEstudiante}
-            actualizarEstudianteEditado={actualizarEstudianteEditado}
-            alumnoEditando={alumnoEditando}
-            setAlumnoEditando={setAlumnoEditando}
-          />
+          <button
+            onClick={() => {
+              setDniBusqueda("")
+              setApellidoBusqueda("")
+              setEstadoFiltro("Todos")
+              setSeccionActiva("lista")
+            }}
+            style={botonMenu}
+          >
+            Ver Lista
+          </button>
+
+          <button
+            onClick={generarPlanillaElevacion}
+            style={botonMenu}
+          >
+            Planilla de Eleve
+          </button>
+
+          <button
+            onClick={() => setSeccionActiva("estadisticas")}
+            style={botonMenu}
+          >
+            Estadísticas
+          </button>
         </div>
 
-        <div ref={tablaRef}>
+        {seccionActiva === "formulario" && (
+          <>
+            <ImportarExcel
+              importarEstudiantes={importarEstudiantes}
+            />
+
+            <FormularioNuevo
+              agregarEstudiante={agregarEstudiante}
+              actualizarEstudianteEditado={actualizarEstudianteEditado}
+              alumnoEditando={alumnoEditando}
+              setAlumnoEditando={setAlumnoEditando}
+            />
+          </>
+        )}
+
+        {seccionActiva === "lista" && (
           <TablaEstudiantes
             dniBusqueda={dniBusqueda}
             apellidoBusqueda={apellidoBusqueda}
@@ -229,12 +247,30 @@ export default function App() {
             modoImprimirLista={modoImprimirLista}
             setModoImprimirLista={setModoImprimirLista}
           />
-        </div>
+        )}
 
-        <div ref={planillaRef}>
-          <PlanillaElevacion estudiantes={estudiantes} />
-        </div>
+        {seccionActiva === "eleve" && (
+          <PlanillaElevacion
+            estudiantes={estudiantes}
+          />
+        )}
+
+        {seccionActiva === "estadisticas" && (
+          <Estadisticas
+            estudiantes={estudiantes}
+          />
+        )}
       </div>
     </div>
   )
+}
+
+const botonMenu = {
+  backgroundColor: "#1e3a5f",
+  color: "white",
+  border: "none",
+  padding: "10px 15px",
+  borderRadius: "10px",
+  cursor: "pointer",
+  fontWeight: "bold"
 }
