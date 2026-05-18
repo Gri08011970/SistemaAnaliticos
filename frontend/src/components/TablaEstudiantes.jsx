@@ -8,6 +8,8 @@ export default function TablaEstudiantes({
   actualizarCarpeta,
   eliminarEstudiante,
   editarEstudiante,
+  modoImprimirLista,
+  setModoImprimirLista,
   seleccionarAlumno
 }) {
 
@@ -20,6 +22,14 @@ export default function TablaEstudiantes({
 
     const coincideEstado =
       estadoFiltro === "Todos" || alumno.estado === estadoFiltro
+    function imprimirLista() {
+      setModoImprimirLista(true)
+
+      setTimeout(() => {
+        window.print()
+        setModoImprimirLista(false)
+      }, 300)
+    }
 
     return coincideDni && coincideApellido && coincideEstado
   })
@@ -63,7 +73,7 @@ export default function TablaEstudiantes({
       </div>
 
       <button
-        onClick={() => window.print()}
+        onClick={imprimirLista}
         style={botonImprimirLista}
       >
         Imprimir lista filtrada
@@ -83,7 +93,9 @@ export default function TablaEstudiantes({
               color: "white"
             }}
           >
-            <th style={estiloCelda}>Seleccionar</th>
+            {!modoImprimirLista && (
+              <th style={estiloCelda}>Seleccionar</th>
+            )}
             <th style={estiloCelda}>Apellido y Nombre</th>
             <th style={estiloCelda}>DNI</th>
 
@@ -105,7 +117,9 @@ export default function TablaEstudiantes({
 
             <th style={estiloCelda}>Estado</th>
             <th style={estiloCelda}>Carpeta</th>
-            <th style={estiloCelda}>Acciones</th>
+            {!modoImprimirLista && (
+              <th style={estiloCelda}>Acciones</th>
+            )}
 
           </tr>
         </thead>
@@ -114,13 +128,15 @@ export default function TablaEstudiantes({
           {estudiantesFiltrados.map((alumno) => (
             <tr key={alumno._id}>
 
-              <td style={estiloCelda}>
-                <input
-                  type="checkbox"
-                  checked={alumno.seleccionado}
-                  onChange={() => seleccionarAlumno(alumno._id)}
-                />
-              </td>
+              {!modoImprimirLista && (
+                <td style={estiloCelda}>
+                  <input
+                    type="checkbox"
+                    checked={alumno.seleccionado}
+                    onChange={() => seleccionarAlumno(alumno._id)}
+                  />
+                </td>
+              )}
 
               <td style={estiloCelda}>
                 {alumno.nombre}
@@ -177,25 +193,25 @@ export default function TablaEstudiantes({
                 />
               </td>
 
-              <td style={estiloCelda}>
+              {!modoImprimirLista && (
+                <td style={estiloCelda}>
+                  <button
+                    onClick={() => editarEstudiante(alumno)}
+                    style={botonEditar}
+                  >
+                    ✏️
+                  </button>
 
-                <button
-                  onClick={() => editarEstudiante(alumno)}
-                  style={botonEditar}
-                >
-                  ✏️
-                </button>
-
-                <button
-                  onClick={() => eliminarEstudiante(alumno._id)}
-                  style={botonEliminar}
-                >
-                  🗑️
-                </button>
-
-              </td>
-
-            </tr>
+                  <button
+                    onClick={() => eliminarEstudiante(alumno._id)}
+                    style={botonEliminar}
+                  >
+                    🗑️
+                  </button>
+                </td>
+              )}
+            
+          </tr>
           ))}
         </tbody>
       </table>

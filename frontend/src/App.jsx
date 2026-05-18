@@ -15,6 +15,7 @@ export default function App() {
   const [estadoFiltro, setEstadoFiltro] = useState("Todos")
   const [estudiantes, setEstudiantes] = useState([])
   const [alumnoEditando, setAlumnoEditando] = useState(null)
+  const [modoImprimirLista, setModoImprimirLista] = useState(false)
 
   const formularioRef = useRef(null)
   const tablaRef = useRef(null)
@@ -225,6 +226,8 @@ export default function App() {
             eliminarEstudiante={eliminarEstudiante}
             editarEstudiante={editarEstudiante}
             seleccionarAlumno={seleccionarAlumno}
+            modoImprimirLista={modoImprimirLista}
+            setModoImprimirLista={setModoImprimirLista}
           />
         </div>
 

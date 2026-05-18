@@ -205,3 +205,27 @@
     display: none !important;
   }
 }
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .lista-impresion,
+  .lista-impresion * {
+    visibility: visible;
+  }
+
+  .lista-impresion {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: white;
+  }
+
+  button,
+  input,
+  select {
+    display: none !important;
+  }
+}
