@@ -155,7 +155,7 @@ export default function App() {
           }}
         >
           Sistema de Gestión de Analíticos
-        </h1>
+        </h1> <br />
 
         <p
           style={{
