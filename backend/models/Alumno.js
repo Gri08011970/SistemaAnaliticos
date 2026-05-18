@@ -22,6 +22,16 @@ const alumnoSchema = new mongoose.Schema({
     default: ""
   },
 
+  ultimoAnio: {
+  type: String,
+  default: ""
+ },
+
+  fecha: {
+  type: String,
+  default: ""
+ },
+
   estado: {
     type: String,
     default: "Pendiente"

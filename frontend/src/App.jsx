@@ -11,10 +11,13 @@ import PlanillaElevacion from "./components/PlanillaElevacion"
 export default function App() {
   const [dniBusqueda, setDniBusqueda] = useState("")
   const [apellidoBusqueda, setApellidoBusqueda] = useState("")
+  const [estadoFiltro, setEstadoFiltro] = useState("Todos")
   const [estudiantes, setEstudiantes] = useState([])
+  const [alumnoEditando, setAlumnoEditando] = useState(null)
 
   const formularioRef = useRef(null)
   const tablaRef = useRef(null)
+  const planillaRef = useRef(null)
 
   useEffect(() => {
     obtenerAlumnos()
@@ -52,6 +55,20 @@ export default function App() {
     }
   }
 
+  async function actualizarEstudianteEditado(id, datosActualizados) {
+    try {
+      await axios.put(
+        `http://localhost:3001/alumnos/${id}`,
+        datosActualizados
+      )
+
+      obtenerAlumnos()
+      setAlumnoEditando(null)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   function actualizarEstado(dni, nuevoEstado) {
     const estudiantesActualizados = estudiantes.map((alumno) => {
       if (alumno.dni === dni) {
@@ -82,17 +99,27 @@ export default function App() {
     setEstudiantes(estudiantesActualizados)
   }
 
-  function eliminarEstudiante(dni) {
-    const estudiantesFiltrados = estudiantes.filter(
-      (alumno) => alumno.dni !== dni
-    )
+  async function eliminarEstudiante(id) {
+    try {
+      await axios.delete(`http://localhost:3001/alumnos/${id}`)
 
-    setEstudiantes(estudiantesFiltrados)
+      obtenerAlumnos()
+    } catch (error) {
+      console.log(error)
+    }
   }
 
-  function seleccionarAlumno(dni) {
+  function editarEstudiante(alumno) {
+    setAlumnoEditando(alumno)
+
+    formularioRef.current?.scrollIntoView({
+      behavior: "smooth"
+    })
+  }
+
+  function seleccionarAlumno(id) {
     const estudiantesActualizados = estudiantes.map((alumno) => {
-      if (alumno.dni === dni) {
+      if (alumno._id === id) {
         return {
           ...alumno,
           seleccionado: !alumno.seleccionado
@@ -115,7 +142,7 @@ export default function App() {
       return
     }
 
-    alert("Planilla de elevación preparada.")
+    planillaRef.current?.scrollIntoView({ behavior: "smooth" })
   }
 
   return (
@@ -142,7 +169,7 @@ export default function App() {
           }}
         >
           Sistema de Gestión de Analíticos
-        </h1>
+        </h1> <br />
 
         <p
           style={{
@@ -170,22 +197,32 @@ export default function App() {
         <Estadisticas estudiantes={estudiantes} />
 
         <div ref={formularioRef}>
-          <FormularioNuevo agregarEstudiante={agregarEstudiante} />
+          <FormularioNuevo
+            agregarEstudiante={agregarEstudiante}
+            actualizarEstudianteEditado={actualizarEstudianteEditado}
+            alumnoEditando={alumnoEditando}
+            setAlumnoEditando={setAlumnoEditando}
+          />
         </div>
 
         <div ref={tablaRef}>
           <TablaEstudiantes
             dniBusqueda={dniBusqueda}
             apellidoBusqueda={apellidoBusqueda}
+            estadoFiltro={estadoFiltro}
+            setEstadoFiltro={setEstadoFiltro}
             estudiantes={estudiantes}
             actualizarEstado={actualizarEstado}
             actualizarCarpeta={actualizarCarpeta}
             eliminarEstudiante={eliminarEstudiante}
+            editarEstudiante={editarEstudiante}
             seleccionarAlumno={seleccionarAlumno}
           />
         </div>
 
-        <PlanillaElevacion estudiantes={estudiantes} />
+        <div ref={planillaRef}>
+          <PlanillaElevacion estudiantes={estudiantes} />
+        </div>
       </div>
     </div>
   )

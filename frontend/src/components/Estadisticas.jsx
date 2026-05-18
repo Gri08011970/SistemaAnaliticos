@@ -1,6 +1,9 @@
+import { useState } from "react"
+
 export default function Estadisticas({
   estudiantes
 }) {
+  const [mostrar, setMostrar] = useState(false)
 
   const pendientes = estudiantes.filter(
     (alumno) => alumno.estado === "Pendiente"
@@ -19,37 +22,56 @@ export default function Estadisticas({
   ).length
 
   return (
-    <div
-      style={{
-        display: "flex",
-        gap: "20px",
-        marginTop: "40px",
-        flexWrap: "wrap"
-      }}
-    >
+    <div style={{ marginTop: "25px" }}>
+      <button
+        onClick={() => setMostrar(!mostrar)}
+        style={boton}
+      >
+        {mostrar ? "Ocultar estadísticas" : "Ver estadísticas"}
+      </button>
 
-      <div style={tarjeta}>
-        <h3>Pendientes</h3>
-        <p style={numero}>{pendientes}</p>
-      </div>
+      {mostrar && (
+        <div
+          style={{
+            display: "flex",
+            gap: "20px",
+            marginTop: "20px",
+            flexWrap: "wrap"
+          }}
+        >
+          <div style={tarjeta}>
+            <h3>Pendientes</h3>
+            <p style={numero}>{pendientes}</p>
+          </div>
 
-      <div style={tarjeta}>
-        <h3>En Jefatura</h3>
-        <p style={numero}>{jefatura}</p>
-      </div>
+          <div style={tarjeta}>
+            <h3>En Jefatura</h3>
+            <p style={numero}>{jefatura}</p>
+          </div>
 
-      <div style={tarjeta}>
-        <h3>Para entregar</h3>
-        <p style={numero}>{paraEntregar}</p>
-      </div>
+          <div style={tarjeta}>
+            <h3>Para entregar</h3>
+            <p style={numero}>{paraEntregar}</p>
+          </div>
 
-      <div style={tarjeta}>
-        <h3>Entregados</h3>
-        <p style={numero}>{entregados}</p>
-      </div>
-
+          <div style={tarjeta}>
+            <h3>Entregados</h3>
+            <p style={numero}>{entregados}</p>
+          </div>
+        </div>
+      )}
     </div>
   )
+}
+
+const boton = {
+  backgroundColor: "#e9eef5",
+  color: "#1e3a5f",
+  border: "1px solid #cfd8e3",
+  padding: "10px 16px",
+  borderRadius: "10px",
+  cursor: "pointer",
+  fontWeight: "bold"
 }
 
 const tarjeta = {

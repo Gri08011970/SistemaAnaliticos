@@ -1,12 +1,16 @@
 export default function TablaEstudiantes({
   dniBusqueda,
   apellidoBusqueda,
+  estadoFiltro,
+  setEstadoFiltro,
   estudiantes,
   actualizarEstado,
   actualizarCarpeta,
   eliminarEstudiante,
+  editarEstudiante,
   seleccionarAlumno
 }) {
+
   const estudiantesFiltrados = estudiantes.filter((alumno) => {
     const coincideDni = alumno.dni.includes(dniBusqueda)
 
@@ -14,7 +18,10 @@ export default function TablaEstudiantes({
       .toLowerCase()
       .includes(apellidoBusqueda.toLowerCase())
 
-    return coincideDni && coincideApellido
+    const coincideEstado =
+      estadoFiltro === "Todos" || alumno.estado === estadoFiltro
+
+    return coincideDni && coincideApellido && coincideEstado
   })
 
   return (
@@ -22,7 +29,33 @@ export default function TablaEstudiantes({
       <h2 style={{ color: "#1e3a5f", marginBottom: "20px" }}>
         Últimos analíticos cargados
       </h2>
+      <div style={{ marginBottom: "15px" }}>
+        <label
+          style={{
+            marginRight: "10px",
+            color: "#1e3a5f",
+            fontWeight: "bold"
+          }}
+        >
+          Filtrar por estado:
+        </label>
 
+        <select
+          value={estadoFiltro}
+          onChange={(evento) => setEstadoFiltro(evento.target.value)}
+          style={{
+            padding: "8px",
+            borderRadius: "8px",
+            border: "1px solid #ccc"
+          }}
+        >
+          <option>Todos</option>
+          <option>Pendiente</option>
+          <option>En Jefatura</option>
+          <option>Para entregar</option>
+          <option>Entregado</option>
+        </select>
+      </div>
       {estudiantesFiltrados.length === 0 && (
         <p style={mensajeNoEncontrado}>
           No se encontró ningún alumno con ese DNI o apellido.
@@ -31,24 +64,42 @@ export default function TablaEstudiantes({
 
       <table style={estiloTabla}>
         <thead>
-          <tr style={encabezadoTabla}>
+          <tr
+            style={{
+              backgroundColor: "#1e3a5f",
+              color: "white"
+            }}
+          >
             <th style={estiloCelda}>Seleccionar</th>
             <th style={estiloCelda}>Apellido y Nombre</th>
             <th style={estiloCelda}>DNI</th>
+            <th style={{ ...estiloCelda, ...columnaChica }}>
+              Libro
+            </th>
+            <th style={{ ...estiloCelda, ...columnaChica }}>
+              FoliO
+            </th>
+            <th style={{ ...estiloCelda, ...columnaChica }}>
+              Último año
+            </th>
+            <th style={{ ...estiloCelda, ...columnaChica }}>
+              Fecha
+            </th>
             <th style={estiloCelda}>Estado</th>
             <th style={estiloCelda}>Carpeta</th>
             <th style={estiloCelda}>Acciones</th>
+
           </tr>
         </thead>
 
         <tbody>
           {estudiantesFiltrados.map((alumno) => (
-            <tr key={alumno.dni}>
+            <tr key={alumno._id}>
               <td style={estiloCelda}>
                 <input
                   type="checkbox"
                   checked={alumno.seleccionado}
-                  onChange={() => seleccionarAlumno(alumno.dni)}
+                  onChange={() => seleccionarAlumno(alumno._id)}
                 />
               </td>
 
@@ -56,6 +107,16 @@ export default function TablaEstudiantes({
 
               <td style={estiloCelda}>{alumno.dni}</td>
 
+              <td style={estiloCelda}>{alumno.libro}</td>
+
+              <td style={estiloCelda}>{alumno.folio}</td>
+
+              <td style={estiloCelda}>
+                {alumno.ultimoAnio ? alumno.ultimoAnio : "---"}
+              </td>
+              <td style={estiloCelda}>
+                {alumno.fecha ? alumno.fecha : "---"}
+              </td>
               <td style={estiloCelda}>
                 <select
                   value={alumno.estado}
@@ -89,11 +150,19 @@ export default function TablaEstudiantes({
 
               <td style={estiloCelda}>
                 <button
-                  onClick={() => eliminarEstudiante(alumno.dni)}
+                  onClick={() => editarEstudiante(alumno)}
+                  style={botonEditar}
+                >
+                  ✏️
+                </button>
+
+                <button
+                  onClick={() => eliminarEstudiante(alumno._id)}
                   style={botonEliminar}
                 >
-                  Eliminar
+                  🗑️
                 </button>
+
               </td>
             </tr>
           ))}
@@ -116,9 +185,11 @@ const encabezadoTabla = {
 
 const estiloCelda = {
   border: "1px solid #ddd",
-  padding: "12px",
-  textAlign: "left"
+  padding: "8px",
+  textAlign: "center",
+  fontSize: "14px"
 }
+
 
 const mensajeNoEncontrado = {
   backgroundColor: "#fff3cd",
@@ -132,16 +203,34 @@ const estiloInputCarpeta = {
   padding: "8px",
   borderRadius: "8px",
   border: "1px solid #ccc",
-  width: "120px"
+  width: "70px"
+}
+
+const columnaChica = {
+  width: "60px"
 }
 
 const botonEliminar = {
   backgroundColor: "#c62828",
   color: "white",
   border: "none",
-  padding: "8px 12px",
+  width: "36px",
+  height: "36px",
   borderRadius: "8px",
-  cursor: "pointer"
+  cursor: "pointer",
+  fontSize: "16px"
+}
+
+const botonEditar = {
+  backgroundColor: "#1e3a5f",
+  color: "white",
+  border: "none",
+  width: "36px",
+  height: "36px",
+  borderRadius: "8px",
+  cursor: "pointer",
+  fontSize: "16px",
+  marginBottom: "4px"
 }
 
 function obtenerColorEstado(estado) {

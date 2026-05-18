@@ -39,6 +39,25 @@ app.post("/alumnos", async (req, res) => {
   res.json(nuevoAlumno)
 
 })
+
+app.delete("/alumnos/:id", async (req, res) => {
+  await Alumno.findByIdAndDelete(req.params.id)
+
+  res.json({
+    mensaje: "Alumno eliminado correctamente"
+  })
+})
+
+app.put("/alumnos/:id", async (req, res) => {
+  const alumnoActualizado = await Alumno.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    { new: true }
+  )
+
+  res.json(alumnoActualizado)
+})
+
 app.listen(3001, () => {
   console.log("Servidor corriendo en puerto 3001")
 })
