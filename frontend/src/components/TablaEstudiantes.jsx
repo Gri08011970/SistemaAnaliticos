@@ -150,7 +150,7 @@ export default function TablaEstudiantes({
                 <select
                   value={alumno.estado}
                   onChange={(evento) =>
-                    actualizarEstado(alumno.dni, evento.target.value)
+                    actualizarEstado(alumno._id, evento.target.value)
                   }
                   style={{
                     padding: "8px",
@@ -171,7 +171,7 @@ export default function TablaEstudiantes({
                   type="text"
                   value={alumno.carpeta}
                   onChange={(evento) =>
-                    actualizarCarpeta(alumno.dni, evento.target.value)
+                    actualizarCarpeta(alumno._id, evento.target.value)
                   }
                   style={estiloInputCarpeta}
                 />

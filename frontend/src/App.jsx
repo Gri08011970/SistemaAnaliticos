@@ -82,36 +82,29 @@ export default function App() {
     }
   }
 
-  function actualizarEstado(dni, nuevoEstado) {
-    const estudiantesActualizados = estudiantes.map((alumno) => {
-      if (alumno.dni === dni) {
-        return {
-          ...alumno,
-          estado: nuevoEstado
-        }
-      }
-
-      return alumno
+  async function actualizarEstado(id, nuevoEstado) {
+  try {
+    await axios.put(`/alumnos/${id}`, {
+      estado: nuevoEstado
     })
 
-    setEstudiantes(estudiantesActualizados)
+    obtenerAlumnos()
+  } catch (error) {
+    console.log(error)
   }
+}
 
-  function actualizarCarpeta(dni, nuevaCarpeta) {
-    const estudiantesActualizados = estudiantes.map((alumno) => {
-      if (alumno.dni === dni) {
-        return {
-          ...alumno,
-          carpeta: nuevaCarpeta
-        }
-      }
-
-      return alumno
+ async function actualizarCarpeta(id, nuevaCarpeta) {
+  try {
+    await axios.put(`/alumnos/${id}`, {
+      carpeta: nuevaCarpeta
     })
 
-    setEstudiantes(estudiantesActualizados)
+    obtenerAlumnos()
+  } catch (error) {
+    console.log(error)
   }
-
+}
   async function eliminarEstudiante(id) {
     try {
       await axios.delete(`/alumnos/${id}`)
