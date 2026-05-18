@@ -25,7 +25,7 @@ export default function App() {
 
   async function obtenerAlumnos() {
     try {
-      const respuesta = await axios.get("http://localhost:3001/alumnos")
+      const respuesta = await axios.get("/alumnos")
       setEstudiantes(respuesta.data)
     } catch (error) {
       console.log(error)
@@ -48,7 +48,7 @@ export default function App() {
 
   async function agregarEstudiante(nuevoEstudiante) {
     try {
-      await axios.post("http://localhost:3001/alumnos", nuevoEstudiante)
+      await axios.post("/alumnos", nuevoEstudiante)
       obtenerAlumnos()
     } catch (error) {
       console.log(error)
@@ -58,7 +58,7 @@ export default function App() {
   async function actualizarEstudianteEditado(id, datosActualizados) {
     try {
       await axios.put(
-        `http://localhost:3001/alumnos/${id}`,
+        `/alumnos/${id}`,
         datosActualizados
       )
 
@@ -101,7 +101,7 @@ export default function App() {
 
   async function eliminarEstudiante(id) {
     try {
-      await axios.delete(`http://localhost:3001/alumnos/${id}`)
+      await axios.delete(`/alumnos/${id}`)
 
       obtenerAlumnos()
     } catch (error) {
