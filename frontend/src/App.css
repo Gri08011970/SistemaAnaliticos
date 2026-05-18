@@ -182,3 +182,26 @@
     border-right-color: var(--border);
   }
 }
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .solo-impresion,
+  .solo-impresion * {
+    visibility: visible;
+  }
+
+  .solo-impresion {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+
+  button {
+    display: none !important;
+  }
+}

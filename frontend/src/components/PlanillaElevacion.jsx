@@ -10,66 +10,81 @@ export default function PlanillaElevacion({
   }
 
   return (
-    <div style={contenedor}>
-      <div style={encabezadoSuperior}>
-        <div>
-          <p style={textoChico}>DIRECCIÓN GENERAL DE CULTURA Y EDUCACIÓN</p>
-          <p style={textoChico}>PROVINCIA DE BUENOS AIRES</p>
-          <p style={textoChico}>INSPECCIÓN DE EDUCACIÓN SECUNDARIA</p>
-          <p style={textoNegrita}>E.E.S. N° 140</p>
-          <p style={textoNegrita}>LOCALIDAD: RAFAEL CASTILLO, DISTRITO LA MATANZA</p>
+    <div className="solo-impresion">
+      <div style={contenedor}>
+
+        <div style={encabezadoSuperior}>
+          <div>
+            <p style={textoChico}>DIRECCIÓN GENERAL DE CULTURA Y EDUCACIÓN</p>
+            <p style={textoChico}>PROVINCIA DE BUENOS AIRES</p>
+            <p style={textoChico}>INSPECCIÓN DE EDUCACIÓN SECUNDARIA</p>
+            <p style={textoNegrita}>E.E.S. N° 140</p>
+            <p style={textoNegrita}>
+              LOCALIDAD: RAFAEL CASTILLO, DISTRITO LA MATANZA
+            </p>
+          </div>
+
+          <div>
+            <p style={textoChico}>FECHA DE ENTREGA: ____ / ____ / ______</p>
+            <p style={textoChico}>FECHA DE LEGALIZACIÓN: ____ / ____ / ______</p>
+          </div>
         </div>
 
-        <div>
-          <p style={textoChico}>FECHA DE ENTREGA: ____ / ____ / ______</p>
-          <p style={textoChico}>FECHA DE LEGALIZACIÓN: ____ / ____ / ______</p>
+        <p style={textoChico}>
+          JEFATURA DISTRITAL - LA MATANZA - REGIÓN 3°
+        </p>
+
+        <div style={textoCentral}>
+          <p>
+            LA DIRECCIÓN DE LA ESCUELA DE EDUCACIÓN SECUNDARIA N° 140 DE LA MATANZA
+          </p>
+
+          <p>
+            ELEVA A USTED, ANALÍTICOS PARCIALES PARA SU LEGALIZACIÓN,
+            QUE A CONTINUACIÓN SE DETALLAN
+          </p>
         </div>
-      </div>
 
-      <p style={textoChico}>
-        JEFATURA DISTRITAL - LA MATANZA - REGIÓN 3°
-      </p>
+        <button
+          onClick={() => window.print()}
+          style={botonImprimir}
+        >
+          Imprimir / Guardar PDF
+        </button>
 
-      <div style={textoCentral}>
-        <p>
-          LA DIRECCIÓN DE LA ESCUELA DE EDUCACIÓN SECUNDARIA N° 140 DE LA MATANZA
-        </p>
-        <p>
-          ELEVA A USTED, ANALÍTICOS PARCIALES PARA SU LEGALIZACIÓN, QUE A CONTINUACIÓN SE DETALLAN
-        </p>
-      </div>
-
-      <table style={tabla}>
-        <thead>
-          <tr>
-            <th style={celda}>N°</th>
-            <th style={celda}>APELLIDO Y NOMBRE</th>
-            <th style={celda}>DNI</th>
-            <th style={celda}>Último Año Cursado</th>
-            <th style={celda}>MODALIDAD</th>
-            <th style={celda}>RESOLUCIÓN N°</th>
-            <th style={celda}>FIRMA Y ACLARACIÓN</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {seleccionados.map((alumno, index) => (
-            <tr key={alumno._id}>
-              <td style={celda}>{index + 1}</td>
-              <td style={celda}>{alumno.nombre}</td>
-              <td style={celda}>{alumno.dni}</td>
-              <td style={celda}>{alumno.ultimoAnio}</td>
-              <td style={celda}>SECUNDARIA</td>
-              <td style={celda}>302/12</td>
-              <td style={celda}></td>
+        <table style={tabla}>
+          <thead>
+            <tr>
+              <th style={celda}>N°</th>
+              <th style={celda}>APELLIDO Y NOMBRE</th>
+              <th style={celda}>DNI</th>
+              <th style={celda}>Último Año Cursado</th>
+              <th style={celda}>MODALIDAD</th>
+              <th style={celda}>RESOLUCIÓN N°</th>
+              <th style={celda}>FIRMA Y ACLARACIÓN</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
 
-      <div style={firmas}>
-        <p>ESTABLECIMIENTO</p>
-        <p>DIRECTIVO</p>
+          <tbody>
+            {seleccionados.map((alumno, index) => (
+              <tr key={alumno._id}>
+                <td style={celda}>{index + 1}</td>
+                <td style={celda}>{alumno.nombre}</td>
+                <td style={celda}>{alumno.dni}</td>
+                <td style={celda}>{alumno.ultimoAnio}</td>
+                <td style={celda}>SECUNDARIA</td>
+                <td style={celda}>302/12</td>
+                <td style={celda}></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <div style={firmas}>
+          <p>ESTABLECIMIENTO</p>
+          <p>DIRECTIVO</p>
+        </div>
+
       </div>
     </div>
   )
@@ -124,4 +139,14 @@ const firmas = {
   justifyContent: "space-around",
   marginTop: "50px",
   fontWeight: "bold"
+}
+
+const botonImprimir = {
+  backgroundColor: "#1e3a5f",
+  color: "white",
+  border: "none",
+  padding: "10px 15px",
+  borderRadius: "8px",
+  cursor: "pointer",
+  marginBottom: "15px"
 }
