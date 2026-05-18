@@ -20,21 +20,22 @@ export default function TablaEstudiantes({
       .toLowerCase()
       .includes(apellidoBusqueda.toLowerCase())
 
-    const coincideEstado =
-      estadoFiltro === "Todos" || alumno.estado === estadoFiltro
-    function imprimirLista() {
-      setModoImprimirLista(true)
+   const coincideEstado =
+  estadoFiltro === "Todos" || alumno.estado === estadoFiltro
 
-      setTimeout(() => {
-        window.print()
-        setModoImprimirLista(false)
-      }, 300)
-    }
+return coincideDni && coincideApellido && coincideEstado
+})
 
-    return coincideDni && coincideApellido && coincideEstado
-  })
+function imprimirLista() {
+  setModoImprimirLista(true)
 
-  return (
+  setTimeout(() => {
+    window.print()
+    setModoImprimirLista(false)
+  }, 300)
+}
+
+return (
     <div
       className="lista-impresion"
       style={{ marginTop: "40px" }}
