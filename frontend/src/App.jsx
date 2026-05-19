@@ -160,7 +160,7 @@ export default function App() {
             marginBottom: "5px"
           }}
         >
-          Sistema de Gestión de pedidos de Analíticos
+          Sistema de Gestión de pedidos de <br /> Analíticos
         </h1> <br />
 
         <p
