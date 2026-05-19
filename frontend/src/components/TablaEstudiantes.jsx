@@ -16,6 +16,8 @@ export default function TablaEstudiantes({
   const estudiantesFiltrados = estudiantes
   .filter((alumno) => {
 
+    const coincideDni = alumno.dni.includes(dniBusqueda)
+
     const coincideApellido =
       alumno.nombre
         .toLowerCase()
@@ -35,6 +37,7 @@ export default function TablaEstudiantes({
       { sensitivity: "base" }
     )
   )
+  
 function imprimirLista() {
   const filas = estudiantesFiltrados.map((alumno, index) => `
     <tr>
