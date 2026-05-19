@@ -7,6 +7,7 @@ import Estadisticas from "./components/Estadisticas"
 import FormularioNuevo from "./components/FormularioNuevo"
 import PlanillaElevacion from "./components/PlanillaElevacion"
 import ImportarExcel from "./components/ImportarExcel"
+import Login from "./components/Login"
 
 export default function App() {
   const [dniBusqueda, setDniBusqueda] = useState("")
@@ -16,6 +17,7 @@ export default function App() {
   const [alumnoEditando, setAlumnoEditando] = useState(null)
   const [modoImprimirLista, setModoImprimirLista] = useState(false)
   const [seccionActiva, setSeccionActiva] = useState("formulario")
+  const [logueado, setLogueado] = useState(false)
 
   useEffect(() => {
     obtenerAlumnos()
@@ -129,6 +131,10 @@ export default function App() {
     }
 
     setSeccionActiva("eleve")
+  }
+
+  if (!logueado) {
+    return <Login setLogueado={setLogueado} />
   }
 
   return (
