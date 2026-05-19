@@ -160,7 +160,7 @@ export default function App() {
             marginBottom: "5px"
           }}
         >
-          Sistema de Gestión de Analíticos
+          Sistema de Gestión de pedidos de Analíticos
         </h1> <br />
 
         <p
@@ -193,7 +193,7 @@ export default function App() {
             onClick={() => setSeccionActiva("formulario")}
             style={botonMenu}
           >
-            Nuevo Analítico
+            Nuevo Pedido de Analítico
           </button>
 
           <button
@@ -205,7 +205,7 @@ export default function App() {
             }}
             style={botonMenu}
           >
-            Ver Lista
+            Ver Lista Completa
           </button>
 
           <button

@@ -19,7 +19,7 @@ export default function Login({
   return (
     <div style={contenedor}>
       <div style={tarjeta}>
-        <h1 style={titulo}>Sistema de Gestión de Analíticos</h1>
+        <h1 style={titulo}>Sistema de Gestión de pedidos de Analíticos</h1>
         <p style={subtitulo}>E.E.S. N° 140</p>
 
         <input

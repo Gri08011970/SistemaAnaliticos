@@ -62,7 +62,7 @@ export default function FormularioNuevo({
       }}
     >
       <h2 style={{ color: "#1e3a5f" }}>
-        {alumnoEditando ? "Editar analítico" : "Cargar nuevo analítico"}
+        {alumnoEditando ? "Editar analítico" : "Cargar nuevo pedido de  analítico"}
       </h2>
 
       <input
@@ -122,7 +122,7 @@ export default function FormularioNuevo({
         onClick={manejarEnvio}
         style={botonGuardar}
       >
-        {alumnoEditando ? "Guardar cambios" : "Guardar Analítico"}
+        {alumnoEditando ? "Guardar cambios" : "Guardar pedido de Analítico"}
       </button>
     </div>
   )
