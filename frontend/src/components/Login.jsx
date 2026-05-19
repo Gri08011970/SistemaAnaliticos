@@ -8,7 +8,7 @@ export default function Login({
   const [error, setError] = useState("")
 
   function ingresar() {
-    if (usuario === "admin" && contrasena === "140") {
+    if (usuario.trim().toLowerCase() === "admin" && contrasena.trim() === "140") {
       setLogueado(true)
       setError("")
     } else {

@@ -13,19 +13,28 @@ export default function TablaEstudiantes({
   seleccionarAlumno
 }) {
 
-  const estudiantesFiltrados = estudiantes.filter((alumno) => {
-    const coincideDni = alumno.dni.includes(dniBusqueda)
+  const estudiantesFiltrados = estudiantes
+  .filter((alumno) => {
 
-    const coincideApellido = alumno.nombre
-      .toLowerCase()
-      .includes(apellidoBusqueda.toLowerCase())
+    const coincideApellido =
+      alumno.nombre
+        .toLowerCase()
+        .includes(apellidoBusqueda.toLowerCase())
 
-   const coincideEstado =
-  estadoFiltro === "Todos" || alumno.estado === estadoFiltro
+    const coincideEstado =
+      estadoFiltro === "Todos" ||
+      alumno.estado === estadoFiltro
 
-return coincideDni && coincideApellido && coincideEstado
-})
+    return coincideDni && coincideApellido && coincideEstado
+  })
 
+  .sort((a, b) =>
+    a.nombre.localeCompare(
+      b.nombre,
+      "es",
+      { sensitivity: "base" }
+    )
+  )
 function imprimirLista() {
   const filas = estudiantesFiltrados.map((alumno, index) => `
     <tr>
