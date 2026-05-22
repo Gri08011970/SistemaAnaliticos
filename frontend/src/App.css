@@ -229,3 +229,38 @@
     display: none !important;
   }
 }
+@media print {
+
+  body * {
+    visibility: hidden;
+  }
+
+  .area-impresion,
+  .area-impresion * {
+    visibility: visible;
+  }
+
+  .area-impresion {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 20px;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  th, td {
+    border: 1px solid #ccc;
+    padding: 6px;
+    text-align: center;
+  }
+}

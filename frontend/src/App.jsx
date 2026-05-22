@@ -8,6 +8,7 @@ import FormularioNuevo from "./components/FormularioNuevo"
 import PlanillaElevacion from "./components/PlanillaElevacion"
 import ImportarExcel from "./components/ImportarExcel"
 import Login from "./components/Login"
+import Matricula from "./components/Matricula"
 
 export default function App() {
   const [dniBusqueda, setDniBusqueda] = useState("")
@@ -16,7 +17,7 @@ export default function App() {
   const [estudiantes, setEstudiantes] = useState([])
   const [alumnoEditando, setAlumnoEditando] = useState(null)
   const [modoImprimirLista, setModoImprimirLista] = useState(false)
-  const [seccionActiva, setSeccionActiva] = useState("formulario")
+  const [seccionActiva, setSeccionActiva] = useState("inicio")
   const [logueado, setLogueado] = useState(false)
 
   useEffect(() => {
@@ -26,7 +27,7 @@ export default function App() {
   async function obtenerAlumnos() {
     try {
       const respuesta = await axios.get("/alumnos")
-      setEstudiantes(respuesta.data)
+      setEstudiantes(Array.isArray(respuesta.data) ? respuesta.data : [])
     } catch (error) {
       console.log(error)
     }
@@ -121,7 +122,9 @@ export default function App() {
   }
 
   function generarPlanillaElevacion() {
-    const seleccionados = estudiantes.filter(
+    const listaEstudiantes = Array.isArray(estudiantes) ? estudiantes : []
+
+    const seleccionados = listaEstudiantes.filter(
       (alumno) => alumno.seleccionado
     )
 
@@ -154,14 +157,14 @@ export default function App() {
           boxShadow: "0 0 10px rgba(0,0,0,0.1)"
         }}
       >
-        <h1
-          style={{
-            color: "#1e3a5f",
-            marginBottom: "5px"
-          }}
-        >
-           Gestión de pedidos de  Analíticos
+        <h1 style={{ color: "#1e3a5f", marginBottom: "5px" }}>
+          {seccionActiva === "inicio" && "Gestión: Pedidos de analíticos - Matrícula"}
+          {seccionActiva === "matricula" && "Gestión de Matrícula"}
+          {seccionActiva !== "inicio" &&
+            seccionActiva !== "matricula" &&
+            "Gestión de pedidos de Analíticos"}
         </h1> <br />
+        
 
         <p
           style={{
@@ -171,7 +174,38 @@ export default function App() {
         >
           Escuela Educación Secundaria N°140 "Florencio Molina Campos"
         </p>
+        {seccionActiva === "inicio" && (
+          <div style={contenedorInicio}>
+            <div style={tarjetaInicio}>
+              <h3>Gestión de peddos de analíticos</h3>
+              <p>Carga, seguimiento, estados y planilla de eleve.</p>
 
+              <button
+                style={botonMenu}
+                onClick={() => setSeccionActiva("nuevo")}
+              >
+                Entrar
+              </button>
+            </div>
+
+            <div style={tarjetaInicio}>
+              <h3>Gestión de Matrícula</h3>
+              <p>Cursos, turnos, estudiantes, previas y movimientos.</p>
+
+              <button
+                style={botonMenu}
+                onClick={() => setSeccionActiva("matricula")}
+              >
+                Entrar
+              </button>
+            </div>
+          </div>
+        )}
+
+       {seccionActiva !== "inicio" && (
+  <>
+    {seccionActiva !== "matricula" && (
+      <>
         <Busqueda
           dniBusqueda={dniBusqueda}
           setDniBusqueda={setDniBusqueda}
@@ -221,62 +255,115 @@ export default function App() {
           >
             Estadísticas
           </button>
+
+          <button
+            onClick={() => setSeccionActiva("inicio")}
+            style={botonVolver}
+          >
+            Volver al inicio
+          </button>
         </div>
+      </>
+    )}
 
-        {seccionActiva === "formulario" && (
-          <>
-            <ImportarExcel
-              importarEstudiantes={importarEstudiantes}
-            />
+    {seccionActiva === "matricula" && (
+      <div style={{ marginBottom: "20px" }}>
+        <button
+          onClick={() => setSeccionActiva("inicio")}
+          style={botonMenu}
+        >
+          Volver al inicio
+        </button>
+      </div>
+    )}
 
-            <FormularioNuevo
-              agregarEstudiante={agregarEstudiante}
-              actualizarEstudianteEditado={actualizarEstudianteEditado}
-              alumnoEditando={alumnoEditando}
-              setAlumnoEditando={setAlumnoEditando}
-            />
-          </>
-        )}
+    {seccionActiva === "formulario" && (
+      <>
+        <ImportarExcel
+          importarEstudiantes={importarEstudiantes}
+        />
 
-        {seccionActiva === "lista" && (
-          <TablaEstudiantes
-            dniBusqueda={dniBusqueda}
-            apellidoBusqueda={apellidoBusqueda}
-            estadoFiltro={estadoFiltro}
-            setEstadoFiltro={setEstadoFiltro}
-            estudiantes={estudiantes}
-            actualizarEstado={actualizarEstado}
-            actualizarCarpeta={actualizarCarpeta}
-            eliminarEstudiante={eliminarEstudiante}
-            editarEstudiante={editarEstudiante}
-            seleccionarAlumno={seleccionarAlumno}
-            modoImprimirLista={modoImprimirLista}
-            setModoImprimirLista={setModoImprimirLista}
-          />
-        )}
+        <FormularioNuevo
+          agregarEstudiante={agregarEstudiante}
+          actualizarEstudianteEditado={actualizarEstudianteEditado}
+          alumnoEditando={alumnoEditando}
+          setAlumnoEditando={setAlumnoEditando}
+        />
+      </>
+    )}
 
-        {seccionActiva === "eleve" && (
-          <PlanillaElevacion
-            estudiantes={estudiantes}
-          />
-        )}
+    {seccionActiva === "lista" && (
+      <TablaEstudiantes
+        dniBusqueda={dniBusqueda}
+        apellidoBusqueda={apellidoBusqueda}
+        estadoFiltro={estadoFiltro}
+        setEstadoFiltro={setEstadoFiltro}
+        estudiantes={estudiantes}
+        actualizarEstado={actualizarEstado}
+        actualizarCarpeta={actualizarCarpeta}
+        eliminarEstudiante={eliminarEstudiante}
+        editarEstudiante={editarEstudiante}
+        seleccionarAlumno={seleccionarAlumno}
+        modoImprimirLista={modoImprimirLista}
+        setModoImprimirLista={setModoImprimirLista}
+      />
+    )}
 
-        {seccionActiva === "estadisticas" && (
-          <Estadisticas
-            estudiantes={estudiantes}
-          />
-        )}
+    {seccionActiva === "eleve" && (
+      <PlanillaElevacion estudiantes={estudiantes} />
+    )}
+
+    {seccionActiva === "estadisticas" && (
+      <Estadisticas estudiantes={estudiantes} />
+    )}
+
+    {seccionActiva === "matricula" && (
+      <Matricula />
+    )}
+  </>
+)} 
       </div>
     </div>
   )
 }
 
 const botonMenu = {
-  backgroundColor: "#1e3a5f",
+  backgroundColor: "#4cb3aa",
   color: "white",
   border: "none",
-  padding: "10px 15px",
+  padding: "10px 16px",
   borderRadius: "10px",
   cursor: "pointer",
-  fontWeight: "bold"
+  fontWeight: "bold",
+  fontSize: "13px",
+  transition: "0.2s",
+  boxShadow: "0 2px 6px rgba(0,0,0,0.08)"
+}
+
+const botonVolver = {
+  backgroundColor: "#3f886b",
+  color: "white",
+  border: "none",
+  padding: "10px 16px",
+  borderRadius: "10px",
+  cursor: "pointer",
+  fontWeight: "bold",
+  fontSize: "13px",
+  boxShadow: "0 2px 6px rgba(0,0,0,0.08)"
+}
+
+const contenedorInicio = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+  gap: "25px",
+  marginTop: "35px"
+}
+
+const tarjetaInicio = {
+  backgroundColor: "#f8fafc",
+  border: "1px solid #dbe4ee",
+  borderRadius: "18px",
+  padding: "28px",
+  boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+  textAlign: "center"
 }

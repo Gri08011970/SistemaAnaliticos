@@ -1,25 +1,31 @@
 import { useState } from "react"
 
 export default function Estadisticas({
-  estudiantes
+  estudiantes = []
 }) {
-  const [mostrar, setMostrar] = useState(false)
+  const [mostrar, setMostrar] = useState(true)
 
-  const pendientes = estudiantes.filter(
+  const listaEstudiantes = Array.isArray(estudiantes)
+    ? estudiantes
+    : []
+
+  const pendientes = listaEstudiantes.filter(
     (alumno) => alumno.estado === "Pendiente"
   ).length
 
-  const jefatura = estudiantes.filter(
+  const jefatura = listaEstudiantes.filter(
     (alumno) => alumno.estado === "En Jefatura"
   ).length
 
-  const paraEntregar = estudiantes.filter(
+  const paraEntregar = listaEstudiantes.filter(
     (alumno) => alumno.estado === "Para entregar"
   ).length
 
-  const entregados = estudiantes.filter(
+  const entregados = listaEstudiantes.filter(
     (alumno) => alumno.estado === "Entregado"
   ).length
+
+  const total = listaEstudiantes.length
 
   return (
     <div style={{ marginTop: "25px" }}>
@@ -39,6 +45,11 @@ export default function Estadisticas({
             flexWrap: "wrap"
           }}
         >
+          <div style={tarjeta}>
+            <h3>Total</h3>
+            <p style={numero}>{total}</p>
+          </div>
+
           <div style={tarjeta}>
             <h3>Pendientes</h3>
             <p style={numero}>{pendientes}</p>

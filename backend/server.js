@@ -5,6 +5,7 @@ import dotenv from "dotenv"
 import Alumno from "./models/Alumno.js"
 import path from "path"
 import { fileURLToPath } from "url"
+import MatriculaAlumno from "./models/MatriculaAlumno.js"
 
 dotenv.config()
 
@@ -93,6 +94,90 @@ app.put("/alumnos/:id", async (req, res) => {
   } catch (error) {
     res.status(500).json({
       mensaje: "Error al actualizar alumno"
+    })
+  }
+})
+
+// OBTENER MATRÍCULA
+app.get("/api/matricula", async (req, res) => {
+  try {
+    const alumnos = await MatriculaAlumno.find()
+
+    res.json(alumnos)
+  } catch (error) {
+    res.status(500).json({
+      mensaje: "Error al obtener matrícula"
+    })
+  }
+})
+
+
+// GUARDAR ESTUDIANTE
+app.post("/api/matricula", async (req, res) => {
+  try {
+
+    const nuevoAlumno = new MatriculaAlumno(req.body)
+
+    await nuevoAlumno.save()
+
+    res.json(nuevoAlumno)
+
+  } catch (error) {
+    res.status(500).json({
+      mensaje: "Error al guardar estudiante"
+    })
+  }
+})
+
+app.put("/api/matricula/:id", async (req, res) => {
+  try {
+    const alumnoActualizado = await MatriculaAlumno.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    )
+
+    res.json(alumnoActualizado)
+  } catch (error) {
+    res.status(500).json({
+      mensaje: "Error al actualizar estudiante de matrícula"
+    })
+  }
+})
+
+app.delete("/api/matricula/:id", async (req, res) => {
+  try {
+    await MatriculaAlumno.findByIdAndDelete(req.params.id)
+
+    res.json({
+      mensaje: "Estudiante eliminado de matrícula"
+    })
+  } catch (error) {
+    res.status(500).json({
+      mensaje: "Error al eliminar estudiante de matrícula"
+    })
+  }
+})
+
+// IMPORTAR MATRÍCULA DESDE EXCEL
+app.post("/api/matricula/importar", async (req, res) => {
+  try {
+    const alumnos = req.body.alumnos
+
+    const alumnosConRecursante = alumnos.map((alumno) => ({
+      ...alumno,
+      recursante:
+        alumno.estadoInscripcion
+          ?.toLowerCase()
+          .includes("continúa mismo año de estudio") || false
+    }))
+
+    const alumnosGuardados = await MatriculaAlumno.insertMany(alumnosConRecursante)
+
+    res.json(alumnosGuardados)
+  } catch (error) {
+    res.status(500).json({
+      mensaje: "Error al importar matrícula"
     })
   }
 })

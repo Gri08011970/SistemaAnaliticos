@@ -1,6 +1,6 @@
 import mongoose from "mongoose"
 
-const alumnoSchema = new mongoose.Schema({
+const AlumnoSchema = new mongoose.Schema({
 
   nombre: {
     type: String,
@@ -12,25 +12,13 @@ const alumnoSchema = new mongoose.Schema({
     required: true
   },
 
-  libro: {
-    type: String,
-    default: ""
-  },
+  libro: String,
 
-  folio: {
-    type: String,
-    default: ""
-  },
+  folio: String,
 
-  ultimoAnio: {
-  type: String,
-  default: ""
- },
+  ultimoAnio: String,
 
-  fecha: {
-  type: String,
-  default: ""
- },
+  fecha: String,
 
   estado: {
     type: String,
@@ -39,16 +27,51 @@ const alumnoSchema = new mongoose.Schema({
 
   carpeta: {
     type: String,
-    default: "---"
+    default: "-"
   },
 
   seleccionado: {
+    type: Boolean,
+    default: false
+  },
+
+  // ===== MATRÍCULA =====
+
+  curso: {
+    type: String,
+    default: ""
+  },
+
+  turno: {
+    type: String,
+    default: ""
+  },
+
+  fechaNacimiento: {
+    type: String,
+    default: ""
+  },
+
+  edadJunio: {
+    type: Number,
+    default: 0
+  },
+
+  pendientes: {
+    type: String,
+    default: ""
+  },
+
+  condicion: {
+    type: String,
+    default: ""
+  },
+
+  recursante: {
     type: Boolean,
     default: false
   }
 
 })
 
-const Alumno = mongoose.model("Alumno", alumnoSchema)
-
-export default Alumno
+export default mongoose.model("Alumno", AlumnoSchema)

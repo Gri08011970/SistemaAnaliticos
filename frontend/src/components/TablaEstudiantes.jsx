@@ -13,37 +13,58 @@ export default function TablaEstudiantes({
   seleccionarAlumno
 }) {
 
-  const estudiantesFiltrados = estudiantes
-  .filter((alumno) => {
+  function formatearDNI(dni) {
+    if (!dni) return ""
 
-    const coincideDni = alumno.dni.includes(dniBusqueda)
+    return dni
+      .toString()
+      .replace(/\D/g, "")
+      .replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+  }
 
-    const coincideApellido =
-      alumno.nombre
-        .toLowerCase()
-        .includes(apellidoBusqueda.toLowerCase())
+  function limpiarDNI(dni) {
+    if (!dni) return ""
 
-    const coincideEstado =
-      estadoFiltro === "Todos" ||
-      alumno.estado === estadoFiltro
+    return dni
+      .toString()
+      .replace(/\D/g, "")
+  }
 
-    return coincideDni && coincideApellido && coincideEstado
-  })
+  const listaEstudiantes = Array.isArray(estudiantes) ? estudiantes : []
 
-  .sort((a, b) =>
-    a.nombre.localeCompare(
-      b.nombre,
-      "es",
-      { sensitivity: "base" }
+  const estudiantesFiltrados = listaEstudiantes
+    .filter((alumno) => {
+      const dniAlumno = limpiarDNI(alumno.dni)
+      const dniBuscado = limpiarDNI(dniBusqueda)
+
+      const coincideDni = dniAlumno.includes(dniBuscado)
+
+      const coincideApellido =
+        alumno.nombre
+          .toLowerCase()
+          .includes(apellidoBusqueda.toLowerCase())
+
+      const coincideEstado =
+        estadoFiltro === "Todos" ||
+        alumno.estado === estadoFiltro
+
+      return coincideDni && coincideApellido && coincideEstado
+    })
+
+    .sort((a, b) =>
+      a.nombre.localeCompare(
+        b.nombre,
+        "es",
+        { sensitivity: "base" }
+      )
     )
-  )
-  
-function imprimirLista() {
-  const filas = estudiantesFiltrados.map((alumno, index) => `
+
+  function imprimirLista() {
+    const filas = estudiantesFiltrados.map((alumno, index) => `
     <tr>
       <td>${index + 1}</td>
       <td>${alumno.nombre || ""}</td>
-      <td>${alumno.dni || ""}</td>
+      <td>${formatearDNI(alumno.dni) || ""}</td>
       <td>${alumno.libro || ""}</td>
       <td>${alumno.folio || ""}</td>
       <td>${alumno.ultimoAnio || "---"}</td>
@@ -53,9 +74,9 @@ function imprimirLista() {
     </tr>
   `).join("")
 
-  const ventana = window.open("", "_blank")
+    const ventana = window.open("", "_blank")
 
-  ventana.document.write(`
+    ventana.document.write(`
     <html>
       <head>
         <title>Lista de analíticos filtrada</title>
@@ -121,11 +142,11 @@ function imprimirLista() {
     </html>
   `)
 
-  ventana.document.close()
-  ventana.print()
-}
+    ventana.document.close()
+    ventana.print()
+  }
 
-return (
+  return (
     <div
       className="lista-impresion"
       style={{ marginTop: "40px" }}
@@ -176,7 +197,13 @@ return (
         </p>
       )}
 
-      <table style={estiloTabla}>
+      <table
+        style={{
+          ...estiloTabla,
+          tableLayout: "fixed",
+          width: "100%"
+        }}
+      >
         <thead>
           <tr
             style={{
@@ -185,39 +212,63 @@ return (
             }}
           >
             {!modoImprimirLista && (
-              <th style={estiloCelda}>Seleccionar</th>
+              <th style={{ ...estiloCelda, width: "40px" }}>
+                ✓
+              </th>
             )}
-            <th style={estiloCelda}>Apellido y Nombre</th>
-            <th style={estiloCelda}>DNI</th>
 
-            <th style={{ ...estiloCelda, ...columnaChica }}>
+            <th style={{ ...estiloCelda, width: "235px" }}>
+              Apellido y Nombre
+            </th>
+
+            <th style={{ ...estiloCelda, width: "80px" }}>
+              DNI
+            </th>
+
+            <th style={{ ...estiloCelda, width: "35px" }}>
               Libro
             </th>
 
-            <th style={{ ...estiloCelda, ...columnaChica }}>
+            <th style={{ ...estiloCelda, width: "35px" }}>
               Folio
             </th>
 
-            <th style={{ ...estiloCelda, ...columnaChica }}>
-              Último año
+            <th style={{ ...estiloCelda, width: "45px" }}>
+              Últ.
+              <br />
+              año
             </th>
 
-            <th style={{ ...estiloCelda, ...columnaChica }}>
+            <th style={{ ...estiloCelda, width: "70px" }}>
               Fecha
             </th>
 
-            <th style={estiloCelda}>Estado</th>
-            <th style={estiloCelda}>Carpeta</th>
-            {!modoImprimirLista && (
-              <th style={estiloCelda}>Acciones</th>
-            )}
+            <th style={{ ...estiloCelda, width: "105px" }}>
+              Estado
+            </th>
 
+            <th style={{ ...estiloCelda, width: "45px" }}>
+              Carp.
+            </th>
+
+            {!modoImprimirLista && (
+              <th style={{ ...estiloCelda, width: "85px" }}>
+                Acciones
+              </th>
+            )}
           </tr>
         </thead>
 
         <tbody>
-          {estudiantesFiltrados.map((alumno) => (
-            <tr key={alumno._id}>
+          {estudiantesFiltrados.map((alumno, index) => (
+            <tr
+              key={alumno._id}
+              style={{
+                backgroundColor: index % 2 === 0
+                  ? "#ffffff"
+                  : "#f8fbfc"
+              }}
+            >
 
               {!modoImprimirLista && (
                 <td style={estiloCelda}>
@@ -234,7 +285,7 @@ return (
               </td>
 
               <td style={estiloCelda}>
-                {alumno.dni}
+                {formatearDNI(alumno.dni)}
               </td>
 
               <td style={estiloCelda}>
@@ -260,10 +311,13 @@ return (
                     actualizarEstado(alumno._id, evento.target.value)
                   }
                   style={{
-                    padding: "8px",
+                    padding: "5px",
                     borderRadius: "8px",
+                    border: "1px solid #ddd",
                     color: obtenerColorEstado(alumno.estado),
-                    fontWeight: "bold"
+                    fontWeight: "bold",
+                    fontSize: "12px",
+                    width: "100%"
                   }}
                 >
                   <option>Pendiente</option>
@@ -285,7 +339,12 @@ return (
               </td>
 
               {!modoImprimirLista && (
-                <td style={estiloCelda}>
+                <td
+                  style={{
+                    ...estiloCelda,
+                    whiteSpace: "nowrap"
+                  }}
+                >
                   <button
                     onClick={() => editarEstudiante(alumno)}
                     style={botonEditar}
@@ -301,8 +360,8 @@ return (
                   </button>
                 </td>
               )}
-            
-          </tr>
+
+            </tr>
           ))}
         </tbody>
       </table>
@@ -332,47 +391,49 @@ const mensajeNoEncontrado = {
 }
 
 const estiloInputCarpeta = {
-  padding: "8px",
-  borderRadius: "8px",
-  border: "1px solid #ccc",
-  width: "70px"
+  width: "32px",
+  padding: "4px",
+  border: "none",
+  backgroundColor: "transparent",
+  textAlign: "center",
+  fontWeight: "bold",
+  color: "#1e3a5f"
 }
 
 const columnaChica = {
   width: "60px"
 }
 
-const botonEliminar = {
-  backgroundColor: "#c62828",
-  color: "white",
+const botonEditar = {
+  backgroundColor: "#dbe7f5",
+  color: "#1e3a5f",
   border: "none",
-  width: "36px",
-  height: "36px",
-  borderRadius: "8px",
+  padding: "6px 8px",
+  borderRadius: "10px",
   cursor: "pointer",
-  fontSize: "16px"
+  fontWeight: "bold",
+  marginRight: "4px"
 }
 
-const botonEditar = {
-  backgroundColor: "#1e3a5f",
-  color: "white",
+const botonEliminar = {
+  backgroundColor: "#f7dede",
+  color: "#8b2e2e",
   border: "none",
-  width: "36px",
-  height: "36px",
-  borderRadius: "8px",
+  padding: "6px 8px",
+  borderRadius: "10px",
   cursor: "pointer",
-  fontSize: "16px",
-  marginBottom: "4px"
+  fontWeight: "bold"
 }
 
 const botonImprimirLista = {
-  backgroundColor: "#1e3a5f",
+  backgroundColor: "#4cb3aa",
   color: "white",
   border: "none",
   padding: "8px 12px",
   borderRadius: "8px",
   cursor: "pointer",
-  marginBottom: "15px"
+  marginBottom: "15px",
+  fontWeight: "bold"
 }
 
 function obtenerColorEstado(estado) {
