@@ -21,6 +21,10 @@ export default function Matricula() {
   const [filtroAnioPrevia, setFiltroAnioPrevia] = useState("")
   const [previaSeleccionada, setPreviaSeleccionada] = useState("")
   const [anioPrevia, setAnioPrevia] = useState("")
+  const [verPlanillaPrevias, setVerPlanillaPrevias] = useState(false)
+  const [materiaExamen, setMateriaExamen] = useState("")
+  const [anioExamen, setAnioExamen] = useState("")
+
   const [nuevoAlumno, setNuevoAlumno] = useState({
     apellido: "",
     nombre: "",
@@ -56,6 +60,22 @@ export default function Matricula() {
         : [],
       condicionFinal: alumno.condicionFinal || ""
     })
+  }
+
+  function limpiarFormulario() {
+    setNuevoAlumno({
+      apellido: "",
+      nombre: "",
+      dni: "",
+      fechaNacimiento: "",
+      condicionFinal: "",
+      materiasPendientes: []
+    })
+
+    setMateriaPrevia("")
+    setAnioPrevia("")
+
+    setEditandoId(null)
   }
 
   function prepararMovimiento(alumno) {
@@ -530,6 +550,56 @@ export default function Matricula() {
     return edad !== "-" && edad > edadEsperada
   }
 
+  const edadesDelCurso = alumnosDelCurso.reduce((contador, alumno) => {
+    const edad = calcularEdadAl30Junio(alumno.fechaNacimiento)
+
+    if (edad === "-") return contador
+
+    contador[edad] = (contador[edad] || 0) + 1
+
+    return contador
+  }, {})
+
+  const alumnosParaExamen = alumnosMatricula.filter((alumno) =>
+    alumno.materiasPendientes?.some((previa) => {
+      const coincideMateria =
+        !materiaExamen || previa.asignatura === materiaExamen
+
+      const coincideAnio =
+        !anioExamen || previa.anio === anioExamen
+
+      return coincideMateria && coincideAnio
+    })
+  )
+
+  function imprimirPlanillaPrevias() {
+    window.print()
+  }
+
+  function tieneSobreedad(alumno) {
+    if (!alumno.fechaNacimiento || !alumno.curso) return false
+
+    const edad = calcularEdadAl30Junio(alumno.fechaNacimiento)
+    const anioCurso = Number(alumno.curso.charAt(0))
+
+    const edadesEsperadas = {
+      1: 12,
+      2: 13,
+      3: 14,
+      4: 15,
+      5: 16,
+      6: 17
+    }
+
+    return edad > edadesEsperadas[anioCurso]
+  }
+
+  function cerrarPlanillaPrevias() {
+    setVerPlanillaPrevias(false)
+    setMateriaExamen("")
+    setAnioExamen("")
+  }
+
   return (
     <div style={{ marginTop: "40px" }}>
       <h2 style={{ color: "#1e3a5f" }}>
@@ -572,6 +642,128 @@ export default function Matricula() {
               </div>
             </div>
           )}
+          <button
+            style={botonImprimir}
+            onClick={() => {
+              setVerPlanillaPrevias(!verPlanillaPrevias)
+
+              setMateriaExamen("")
+              setAnioExamen("")
+            }}
+          >
+            📋 Planilla de examen
+          </button>
+          {verPlanillaPrevias && (
+            <div style={detalleCurso}>
+              <h3 style={{ color: "#1e3a5f" }}>
+                📋 Planilla de examen por previas
+              </h3>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: "10px",
+                  marginBottom: "15px"
+                }}
+              >
+                <select
+                  style={inputAlumno}
+                  value={materiaExamen}
+                  onChange={(e) => setMateriaExamen(e.target.value)}
+                >
+                  <option value="">Seleccionar asignatura</option>
+
+                  {asignaturas.map((asignatura) => (
+                    <option key={asignatura} value={asignatura}>
+                      {asignatura}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  style={inputAlumno}
+                  value={anioExamen}
+                  onChange={(e) => setAnioExamen(e.target.value)}
+                >
+                  <option value="">Seleccionar año</option>
+
+                  {aniosMateria.map((anio) => (
+                    <option key={anio} value={anio}>
+                      {anio}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <p>
+                Cantidad de estudiantes: {alumnosParaExamen.length}
+              </p>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: "12px",
+                  justifyContent: "center",
+                  marginTop: "10px"
+                }}
+              >
+                <button
+                  style={botonImprimir}
+                  onClick={imprimirPlanillaPrevias}
+                >
+                  🖨️ Imprimir planilla
+                </button>
+
+                <button
+                  style={botonVolver}
+                  onClick={cerrarPlanillaPrevias}
+                >
+                  Cerrar planilla
+                </button>
+              </div>
+
+              <table style={tabla}>
+                <thead>
+                  <tr>
+                    <th style={celda}>Apellido y Nombre</th>
+                    <th style={celda}>DNI</th>
+                    <th style={celda}>Curso</th>
+                    <th style={celda}>Turno</th>
+                    <th style={celda}>Materia</th>
+                    <th style={celda}>Año</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {alumnosParaExamen.map((alumno) =>
+                    alumno.materiasPendientes
+                      .filter((previa) => {
+                        const coincideMateria =
+                          !materiaExamen || previa.asignatura === materiaExamen
+
+                        const coincideAnio =
+                          !anioExamen || previa.anio === anioExamen
+
+                        return coincideMateria && coincideAnio
+                      })
+                      .map((previa, index) => (
+                        <tr key={`${alumno._id}-${index}`}>
+                          <td style={celda}>
+                            {alumno.apellido}, {alumno.nombre}
+                          </td>
+                          <td style={celda}>{formatearDNI(alumno.dni)}</td>
+                          <td style={celda}>{alumno.curso}</td>
+                          <td style={celda}>{alumno.turno}</td>
+                          <td style={celda}>{previa.asignatura}</td>
+                          <td style={celda}>{previa.anio}</td>
+                        </tr>
+                      ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+
           <div style={contenedorTurnos}>
             <div style={bloqueTurno}>
               <div
@@ -703,17 +895,34 @@ export default function Matricula() {
           )}
 
           {verEstadisticasCurso && (
-          <div
-            style={{
-              ...tarjetaEstadistica,
-              maxWidth: "180px",
-              margin: "20px auto 10px auto"
-            }}
-          >
-            <h3>Sobreedad</h3>
-            <p>{totalSobreedad}</p>
-          </div>
+            <div
+              style={{
+                ...tarjetaEstadistica,
+                maxWidth: "180px",
+                margin: "20px auto 10px auto"
+              }}
+            >
+              <h3>Sobreedad</h3>
+              <p>{totalSobreedad}</p>
+            </div>
           )}
+
+          <div style={bloqueEdades}>
+            <h3 style={{ color: "#1e3a5f" }}>
+              Edades del curso
+            </h3>
+
+            <div style={grillaEdades}>
+              {Object.entries(edadesDelCurso)
+                .sort((a, b) => Number(a[0]) - Number(b[0]))
+                .map(([edad, cantidad]) => (
+                  <div key={edad} style={tarjetaEdad}>
+                    <strong>{edad} años</strong>
+                    <p>{cantidad}</p>
+                  </div>
+                ))}
+            </div>
+          </div>
 
           <div className="no-print">
             <button
@@ -936,6 +1145,12 @@ export default function Matricula() {
                   ? "Guardar cambios"
                   : "Agregar estudiante"}
             </button>
+            <button
+              style={botonVolver}
+              onClick={limpiarFormulario}
+            >
+              Limpiar formulario
+            </button>
           </div>
           {alumnoMoviendo && (
             <div style={bloqueMovimiento}>
@@ -1118,6 +1333,12 @@ export default function Matricula() {
                     <td style={celda}>
                       {calcularEdadAl30Junio(
                         alumno.fechaNacimiento
+                      )}
+
+                      {tieneSobreedad(alumno) && (
+                        <span style={alertaSobreedad}>
+                          ⚠️
+                        </span>
                       )}
                     </td>
 
@@ -1373,4 +1594,29 @@ const tarjetaEstadistica = {
   padding: "18px",
   textAlign: "center",
   boxShadow: "0 3px 8px rgba(0,0,0,0.05)"
+}
+const alertaSobreedad = {
+  marginLeft: "6px",
+  fontSize: "13px"
+}
+const bloqueEdades = {
+  marginTop: "20px",
+  marginBottom: "15px",
+  textAlign: "center"
+}
+
+const grillaEdades = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))",
+  gap: "10px",
+  marginTop: "10px"
+}
+
+const tarjetaEdad = {
+  backgroundColor: "#f8fafc",
+  border: "1px solid #dbe4ee",
+  borderRadius: "14px",
+  padding: "12px",
+  textAlign: "center",
+  boxShadow: "0 2px 6px rgba(0,0,0,0.05)"
 }
