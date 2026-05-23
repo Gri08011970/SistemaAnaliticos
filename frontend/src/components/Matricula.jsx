@@ -268,6 +268,25 @@ export default function Matricula() {
       ? ((totalRec / totalEstudiantes) * 100).toFixed(0)
       : 0
 
+  const totalSobreedad = alumnosDelCurso.filter((alumno) => {
+    if (!alumno.fechaNacimiento) return false
+
+    const edad = calcularEdadAl30Junio(alumno.fechaNacimiento)
+
+    const anioCurso = Number(cursoSeleccionado.curso.charAt(0))
+
+    const edadesEsperadas = {
+      1: 12,
+      2: 13,
+      3: 14,
+      4: 15,
+      5: 16,
+      6: 17
+    }
+
+    return edad > edadesEsperadas[anioCurso]
+  }).length
+
   function calcularEdadAl30Junio(fechaNacimiento) {
     if (!fechaNacimiento) return "-"
 
@@ -499,6 +518,18 @@ export default function Matricula() {
     })
   }
 
+  function obtenerAnioDelCurso(curso) {
+    return curso?.charAt(0)
+  }
+
+  function tieneSobreedad(alumno) {
+    const anio = obtenerAnioDelCurso(alumno.curso)
+    const edadEsperada = edadEsperadaPorAnio[anio]
+    const edad = calcularEdadAl30Junio(alumno.fechaNacimiento)
+
+    return edad !== "-" && edad > edadEsperada
+  }
+
   return (
     <div style={{ marginTop: "40px" }}>
       <h2 style={{ color: "#1e3a5f" }}>
@@ -521,7 +552,7 @@ export default function Matricula() {
               </div>
 
               <div style={tarjetaEstadistica}>
-               <h3>turno mañana</h3> 
+                <h3>turno mañana</h3>
                 <p>{totalManana}</p>
               </div>
 
@@ -560,32 +591,32 @@ export default function Matricula() {
                 </span>
               </div>
               {mostrarTurnoManana && (
-              <div style={grillaCursos}>
-                {cursosManana.map((curso) => (
-                  <div key={curso} style={tarjetaCurso}>
-                    <h4>{curso}</h4>
+                <div style={grillaCursos}>
+                  {cursosManana.map((curso) => (
+                    <div key={curso} style={tarjetaCurso}>
+                      <h4>{curso}</h4>
 
-                    <p style={textoCantidad}>
-                      {contarAlumnos(curso, "Mañana")} estudiantes
-                    </p>
+                      <p style={textoCantidad}>
+                        {contarAlumnos(curso, "Mañana")} estudiantes
+                      </p>
 
-                    <button
-                      style={botonCurso}
-                      onClick={() =>
-                        setCursoSeleccionado({
-                          curso,
-                          turno: "Mañana"
-                        })
-                      }
-                    >
-                      Ver curso
-                    </button>
-                  </div>
-                ))}
-              </div>
+                      <button
+                        style={botonCurso}
+                        onClick={() =>
+                          setCursoSeleccionado({
+                            curso,
+                            turno: "Mañana"
+                          })
+                        }
+                      >
+                        Ver curso
+                      </button>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
-       
+
             <div style={bloqueTurno}>
               <div
                 onClick={() => setMostrarTurnoTarde(!mostrarTurnoTarde)}
@@ -604,29 +635,29 @@ export default function Matricula() {
                 </span>
               </div>
               {mostrarTurnoTarde && (
-              <div style={grillaCursos}>
-                {cursosTarde.map((curso) => (
-                  <div key={curso} style={tarjetaCurso}>
-                    <h4>{curso}</h4>
+                <div style={grillaCursos}>
+                  {cursosTarde.map((curso) => (
+                    <div key={curso} style={tarjetaCurso}>
+                      <h4>{curso}</h4>
 
-                    <p style={textoCantidad}>
-                      {contarAlumnos(curso, "Tarde")} estudiantes
-                    </p>
+                      <p style={textoCantidad}>
+                        {contarAlumnos(curso, "Tarde")} estudiantes
+                      </p>
 
-                    <button
-                      style={botonCurso}
-                      onClick={() =>
-                        setCursoSeleccionado({
-                          curso,
-                          turno: "Tarde"
-                        })
-                      }
-                    >
-                      Ver curso
-                    </button>
-                  </div>
-                ))}
-              </div>
+                      <button
+                        style={botonCurso}
+                        onClick={() =>
+                          setCursoSeleccionado({
+                            curso,
+                            turno: "Tarde"
+                          })
+                        }
+                      >
+                        Ver curso
+                      </button>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           </div>
@@ -669,6 +700,19 @@ export default function Matricula() {
                 <p>{totalConPrevias}</p>
               </div>
             </div>
+          )}
+
+          {verEstadisticasCurso && (
+          <div
+            style={{
+              ...tarjetaEstadistica,
+              maxWidth: "180px",
+              margin: "20px auto 10px auto"
+            }}
+          >
+            <h3>Sobreedad</h3>
+            <p>{totalSobreedad}</p>
+          </div>
           )}
 
           <div className="no-print">
