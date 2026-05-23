@@ -25,6 +25,9 @@ mongoose.connect(process.env.MONGO_URI)
     console.log("Error al conectar Mongo:", error)
   })
 
+  function limpiarDni(dni) {
+  return dni?.toString().replace(/\D/g, "")
+}
 // ======================
 // RUTAS API
 // ======================
@@ -42,11 +45,24 @@ app.get("/alumnos", async (req, res) => {
 
 app.post("/alumnos", async (req, res) => {
   try {
-    const nuevoAlumno = new Alumno(req.body)
+    const dniLimpio = limpiarDni(req.body.dni)
+
+    const alumnoExistente = await Alumno.findOne({ dni: dniLimpio })
+
+    if (alumnoExistente) {
+      return res.status(400).json({
+        mensaje: "Ya existe un pedido de analítico con ese DNI"
+      })
+    }
+
+    const nuevoAlumno = new Alumno({
+      ...req.body,
+      dni: dniLimpio
+    })
 
     await nuevoAlumno.save()
-
     res.json(nuevoAlumno)
+
   } catch (error) {
     res.status(500).json({
       mensaje: "Error al guardar alumno"
@@ -113,13 +129,25 @@ app.get("/api/matricula", async (req, res) => {
 
 
 // GUARDAR ESTUDIANTE
+
 app.post("/api/matricula", async (req, res) => {
   try {
+    const dniLimpio = limpiarDni(req.body.dni)
 
-    const nuevoAlumno = new MatriculaAlumno(req.body)
+    const alumnoExistente = await MatriculaAlumno.findOne({ dni: dniLimpio })
+
+    if (alumnoExistente) {
+      return res.status(400).json({
+        mensaje: "Ya existe un estudiante de matrícula con ese DNI"
+      })
+    }
+
+    const nuevoAlumno = new MatriculaAlumno({
+      ...req.body,
+      dni: dniLimpio
+    })
 
     await nuevoAlumno.save()
-
     res.json(nuevoAlumno)
 
   } catch (error) {

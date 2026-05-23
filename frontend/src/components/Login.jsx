@@ -8,7 +8,7 @@ export default function Login({
   const [error, setError] = useState("")
 
   function ingresar() {
-    if (usuario.trim().toLowerCase() === "admin" && contrasena.trim() === "140") {
+    if (usuario.trim().toLowerCase() === "gri" && contrasena.trim() === "140") {
       setLogueado(true)
       setError("")
     } else {
@@ -90,7 +90,7 @@ const input = {
 }
 
 const boton = {
-  backgroundColor: "#1e3a5f",
+  backgroundColor: "#1e406b",
   color: "white",
   border: "none",
   padding: "12px",

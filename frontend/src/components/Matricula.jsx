@@ -13,7 +13,12 @@ export default function Matricula() {
   const [nuevoCurso, setNuevoCurso] = useState("")
   const [nuevoTurno, setNuevoTurno] = useState("")
   const [guardando, setGuardando] = useState(false)
-
+  const [verEstadisticasGeneral, setVerEstadisticasGeneral] = useState(true)
+  const [verEstadisticasCurso, setVerEstadisticasCurso] = useState(false)
+  const [mostrarTurnoManana, setMostrarTurnoManana] = useState(false)
+  const [mostrarTurnoTarde, setMostrarTurnoTarde] = useState(false)
+  const [filtroPrevia, setFiltroPrevia] = useState("")
+  const [filtroAnioPrevia, setFiltroAnioPrevia] = useState("")
   const [previaSeleccionada, setPreviaSeleccionada] = useState("")
   const [anioPrevia, setAnioPrevia] = useState("")
   const [nuevoAlumno, setNuevoAlumno] = useState({
@@ -129,7 +134,14 @@ export default function Matricula() {
 
       obtenerMatricula()
     } catch (error) {
+      if (error.response?.status === 400) {
+        alert(error.response.data.mensaje)
+        return
+      }
+
       console.log(error)
+      alert("Error al guardar estudiante")
+
     } finally {
       setGuardando(false)
     }
@@ -203,6 +215,26 @@ export default function Matricula() {
       )
     : []
 
+  const alumnosFiltrados = alumnosDelCurso.filter((alumno) => {
+
+    if (!filtroPrevia && !filtroAnioPrevia) {
+      return true
+    }
+
+    return alumno.materiasPendientes?.some((previa) => {
+
+      const coincideMateria =
+        !filtroPrevia ||
+        previa.asignatura === filtroPrevia
+
+      const coincideAnio =
+        !filtroAnioPrevia ||
+        previa.anio === filtroAnioPrevia
+
+      return coincideMateria && coincideAnio
+    })
+  })
+
   function contarAlumnos(curso, turno) {
     return alumnosMatricula.filter(
       (alumno) =>
@@ -211,6 +243,30 @@ export default function Matricula() {
         alumno.estadoMatricula === "Activo"
     ).length
   }
+
+  const totalEstudiantes = alumnosDelCurso.length
+
+  const totalProm = alumnosDelCurso.filter(
+    alumno => alumno.condicionFinal === "Prom"
+  ).length
+
+  const totalRec = alumnosDelCurso.filter(
+    alumno => alumno.condicionFinal === "Rec"
+  ).length
+
+  const totalConPrevias = alumnosDelCurso.filter(
+    alumno => alumno.materiasPendientes?.length > 0
+  ).length
+
+  const porcentajeProm =
+    totalEstudiantes > 0
+      ? ((totalProm / totalEstudiantes) * 100).toFixed(0)
+      : 0
+
+  const porcentajeRec =
+    totalEstudiantes > 0
+      ? ((totalRec / totalEstudiantes) * 100).toFixed(0)
+      : 0
 
   function calcularEdadAl30Junio(fechaNacimiento) {
     if (!fechaNacimiento) return "-"
@@ -268,64 +324,7 @@ export default function Matricula() {
       .replace(/\B(?=(\d{3})+(?!\d))/g, ".")
   }
 
-  function exportarExcel() {
 
-    const datos = alumnosDelCurso.map((alumno) => ({
-      "Apellido y Nombre":
-        `${alumno.apellido || ""}, ${alumno.nombre || ""}`,
-
-      "DNI": alumno.dni || "",
-
-      "Fecha nacimiento":
-        alumno.fechaNacimiento || "",
-
-      "Edad":
-        calcularEdadAl30Junio(alumno.fechaNacimiento),
-
-      "Previas":
-        alumno.previas
-          ?.map((p) => `${p.materia} (${p.anio})`)
-          .join(", ") || "",
-
-      "Condición":
-        alumno.condicion || "",
-
-      "Curso":
-        cursoSeleccionado || "",
-
-      "Turno":
-        turnoSeleccionado || ""
-    }))
-
-    const hoja = XLSX.utils.json_to_sheet(datos)
-
-    const libro = XLSX.utils.book_new()
-
-    XLSX.utils.book_append_sheet(
-      libro,
-      hoja,
-      "Matrícula"
-    )
-
-    const excelBuffer =
-      XLSX.write(libro, {
-        bookType: "xlsx",
-        type: "array"
-      })
-
-    const archivo = new Blob(
-      [excelBuffer],
-      {
-        type:
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-      }
-    )
-
-    saveAs(
-      archivo,
-      `Matricula_${cursoSeleccionado}.xlsx`
-    )
-  }
 
   function exportarExcel() {
     const datos = alumnosDelCurso.map((alumno) => ({
@@ -467,73 +466,171 @@ export default function Matricula() {
 
     evento.target.value = ""
   }
+  const totalGeneral = alumnosMatricula.length
+
+  const totalManana = alumnosMatricula.filter(
+    alumno => alumno.turno === "Mañana"
+  ).length
+
+  const totalTarde = alumnosMatricula.filter(
+    alumno => alumno.turno === "Tarde"
+  ).length
+
+  const cicloBasico = alumnosMatricula.filter(
+    alumno =>
+      alumno.curso?.startsWith("1°") ||
+      alumno.curso?.startsWith("2°") ||
+      alumno.curso?.startsWith("3°")
+  ).length
+
+  const cicloSuperior = alumnosMatricula.filter(
+    alumno =>
+      alumno.curso?.startsWith("4°") ||
+      alumno.curso?.startsWith("5°") ||
+      alumno.curso?.startsWith("6°")
+  ).length
+
+  function eliminarPrevia(index) {
+    setNuevoAlumno({
+      ...nuevoAlumno,
+      materiasPendientes: nuevoAlumno.materiasPendientes.filter(
+        (_, i) => i !== index
+      )
+    })
+  }
 
   return (
     <div style={{ marginTop: "40px" }}>
-      <h2 style={{ color: "#1e3a5f" }}>Gestión de Matrícula</h2>
+      <h2 style={{ color: "#1e3a5f" }}>
+        Gestión de Matrícula
+      </h2>
 
       <p style={{ color: "#666" }}>
         Organización por turno, año y sección.
       </p>
 
+
+
       {!cursoSeleccionado && (
-        <div style={contenedorTurnos}>
-          <div style={bloqueTurno}>
-            <h3 style={tituloTurno}>Turno Mañana</h3>
+        <>
+          {verEstadisticasGeneral && (
+            <div style={bloqueEstadisticas}>
+              <div style={tarjetaEstadistica}>
+                <h3>Total general</h3>
+                <p>{totalGeneral}</p>
+              </div>
 
-            <div style={grillaCursos}>
-              {cursosManana.map((curso) => (
-                <div key={curso} style={tarjetaCurso}>
-                  <h4>{curso}</h4>
+              <div style={tarjetaEstadistica}>
+               <h3>turno mañana</h3> 
+                <p>{totalManana}</p>
+              </div>
 
-                  <p style={textoCantidad}>
-                    {contarAlumnos(curso, "Mañana")} estudiantes
-                  </p>
+              <div style={tarjetaEstadistica}>
+                <h3>Turno Tarde</h3>
+                <p>{totalTarde}</p>
+              </div>
 
-                  <button
-                    style={botonCurso}
-                    onClick={() =>
-                      setCursoSeleccionado({
-                        curso,
-                        turno: "Mañana"
-                      })
-                    }
-                  >
-                    Ver curso
-                  </button>
-                </div>
-              ))}
+              <div style={tarjetaEstadistica}>
+                <h3>Ciclo básico</h3>
+                <p>{cicloBasico}</p>
+              </div>
+
+              <div style={tarjetaEstadistica}>
+                <h3>Ciclo superior</h3>
+                <p>{cicloSuperior}</p>
+              </div>
+            </div>
+          )}
+          <div style={contenedorTurnos}>
+            <div style={bloqueTurno}>
+              <div
+                onClick={() => setMostrarTurnoManana(!mostrarTurnoManana)}
+                style={{
+                  ...tituloTurno,
+                  cursor: "pointer",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center"
+                }}
+              >
+                <span>📚 Turno Mañana</span>
+
+                <span style={{ fontSize: "18px" }}>
+                  {mostrarTurnoManana ? "▼" : "▶"}
+                </span>
+              </div>
+              {mostrarTurnoManana && (
+              <div style={grillaCursos}>
+                {cursosManana.map((curso) => (
+                  <div key={curso} style={tarjetaCurso}>
+                    <h4>{curso}</h4>
+
+                    <p style={textoCantidad}>
+                      {contarAlumnos(curso, "Mañana")} estudiantes
+                    </p>
+
+                    <button
+                      style={botonCurso}
+                      onClick={() =>
+                        setCursoSeleccionado({
+                          curso,
+                          turno: "Mañana"
+                        })
+                      }
+                    >
+                      Ver curso
+                    </button>
+                  </div>
+                ))}
+              </div>
+              )}
+            </div>
+       
+            <div style={bloqueTurno}>
+              <div
+                onClick={() => setMostrarTurnoTarde(!mostrarTurnoTarde)}
+                style={{
+                  ...tituloTurno,
+                  cursor: "pointer",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center"
+                }}
+              >
+                <span>📚 Turno Tarde</span>
+
+                <span style={{ fontSize: "18px" }}>
+                  {mostrarTurnoTarde ? "▼" : "▶"}
+                </span>
+              </div>
+              {mostrarTurnoTarde && (
+              <div style={grillaCursos}>
+                {cursosTarde.map((curso) => (
+                  <div key={curso} style={tarjetaCurso}>
+                    <h4>{curso}</h4>
+
+                    <p style={textoCantidad}>
+                      {contarAlumnos(curso, "Tarde")} estudiantes
+                    </p>
+
+                    <button
+                      style={botonCurso}
+                      onClick={() =>
+                        setCursoSeleccionado({
+                          curso,
+                          turno: "Tarde"
+                        })
+                      }
+                    >
+                      Ver curso
+                    </button>
+                  </div>
+                ))}
+              </div>
+              )}
             </div>
           </div>
-
-          <div style={bloqueTurno}>
-            <h3 style={tituloTurno}>Turno Tarde</h3>
-
-            <div style={grillaCursos}>
-              {cursosTarde.map((curso) => (
-                <div key={curso} style={tarjetaCurso}>
-                  <h4>{curso}</h4>
-
-                  <p style={textoCantidad}>
-                    {contarAlumnos(curso, "Tarde")} estudiantes
-                  </p>
-
-                  <button
-                    style={botonCurso}
-                    onClick={() =>
-                      setCursoSeleccionado({
-                        curso,
-                        turno: "Tarde"
-                      })
-                    }
-                  >
-                    Ver curso
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        </>
       )}
 
       {cursoSeleccionado && (
@@ -549,6 +646,30 @@ export default function Matricula() {
           <p>
             Cantidad de estudiantes: {alumnosDelCurso.length}
           </p>
+
+          {verEstadisticasCurso && (
+            <div style={bloqueEstadisticas}>
+              <div style={tarjetaEstadistica}>
+                <h3>Total</h3>
+                <p>{totalEstudiantes}</p>
+              </div>
+
+              <div style={tarjetaEstadistica}>
+                <h3>Prom</h3>
+                <p>{totalProm} ({porcentajeProm}%)</p>
+              </div>
+
+              <div style={tarjetaEstadistica}>
+                <h3>Rec</h3>
+                <p>{totalRec} ({porcentajeRec}%)</p>
+              </div>
+
+              <div style={tarjetaEstadistica}>
+                <h3>Con previas</h3>
+                <p>{totalConPrevias}</p>
+              </div>
+            </div>
+          )}
 
           <div className="no-print">
             <button
@@ -568,20 +689,34 @@ export default function Matricula() {
             </button>
 
             <button
+              style={botonImprimir}
+              onClick={() =>
+                setVerEstadisticasCurso(!verEstadisticasCurso)
+              }
+            >
+              📊 Estadísticas
+            </button>
 
+            <button
               style={botonImprimir}
               onClick={exportarExcel}
             >
               Exportar Excel
             </button>
 
-            <input
-              type="file"
-              accept=".xls,.xlsx"
-              onChange={importarReporteOficial}
-            />
+            <div
+              style={{
+                marginTop: "10px",
+                marginBottom: "15px"
+              }}
+            >
+              <input
+                type="file"
+                accept=".xls,.xlsx"
+                onChange={importarReporteOficial}
+              />
+            </div>
           </div>
-
           <div
             style={formularioAlumno}
             className="no-print"
@@ -695,9 +830,26 @@ export default function Matricula() {
             <div style={{ marginTop: "8px" }}>
               {nuevoAlumno.materiasPendientes.map(
                 (previa, index) => (
-                  <div key={index}>
-                    • {previa.asignatura} (
-                    {previa.anio})
+                  <div
+                    key={index}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      marginBottom: "5px"
+                    }}
+                  >
+                    <span>
+                      • {previa.asignatura} ({previa.anio})
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() => eliminarPrevia(index)}
+                      style={botonEliminar}
+                    >
+                      🗑️
+                    </button>
                   </div>
                 )
               )}
@@ -793,7 +945,65 @@ export default function Matricula() {
               </button>
             </div>
           )}
+          <div
+            style={{
+              display: "flex",
+              gap: "10px",
+              marginBottom: "15px"
+            }}
+          >
+            <select
+              style={inputAlumno}
+              value={filtroPrevia}
+              onChange={(e) =>
+                setFiltroPrevia(e.target.value)
+              }
+            >
+              <option value="">
+                Filtrar por asignatura
+              </option>
 
+              {asignaturas.map((asignatura) => (
+                <option
+                  key={asignatura}
+                  value={asignatura}
+                >
+                  {asignatura}
+                </option>
+              ))}
+            </select>
+
+            <select
+              style={inputAlumno}
+              value={filtroAnioPrevia}
+              onChange={(e) =>
+                setFiltroAnioPrevia(e.target.value)
+              }
+            >
+              <option value="">
+                Filtrar por año
+              </option>
+
+              {aniosMateria.map((anio) => (
+                <option
+                  key={anio}
+                  value={anio}
+                >
+                  {anio}
+                </option>
+              ))}
+            </select>
+
+            <button
+              style={botonVolver}
+              onClick={() => {
+                setFiltroPrevia("")
+                setFiltroAnioPrevia("")
+              }}
+            >
+              Limpiar filtros
+            </button>
+          </div>
           <table style={tabla}>
             <thead>
               <tr>
@@ -843,7 +1053,7 @@ export default function Matricula() {
                   </tr>
                 )}
 
-              {alumnosDelCurso.map(
+              {alumnosFiltrados.map(
                 (alumno) => (
                   <tr key={alumno._id}>
                     <td style={celda}>
@@ -926,6 +1136,7 @@ export default function Matricula() {
     </div>
   )
 }
+
 const contenedorTurnos = {
   display: "flex",
   flexDirection: "column",
@@ -934,14 +1145,20 @@ const contenedorTurnos = {
 }
 
 const bloqueTurno = {
-  backgroundColor: "#f4f6f8",
-  padding: "25px",
-  borderRadius: "15px"
+  backgroundColor: "#eef7f6",
+  border: "2px solid #c7e3df",
+  padding: "32px",
+  borderRadius: "26px",
+  boxShadow: "0 8px 22px rgba(0,0,0,0.08)",
+  marginBottom: "45px"
 }
 
 const tituloTurno = {
-  color: "#1e3a5f",
-  marginBottom: "20px"
+  color: "#0f766e",
+  marginBottom: "28px",
+  fontSize: "24px",
+  textAlign: "center",
+  fontWeight: "bold"
 }
 
 const grillaCursos = {
@@ -1096,4 +1313,20 @@ const bloqueMovimiento = {
   borderRadius: "12px",
   padding: "15px",
   marginBottom: "20px"
+}
+const bloqueEstadisticas = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+  gap: "15px",
+  marginTop: "20px",
+  marginBottom: "20px"
+}
+
+const tarjetaEstadistica = {
+  backgroundColor: "#f8fafc",
+  border: "1px solid #dbe4ee",
+  borderRadius: "16px",
+  padding: "18px",
+  textAlign: "center",
+  boxShadow: "0 3px 8px rgba(0,0,0,0.05)"
 }

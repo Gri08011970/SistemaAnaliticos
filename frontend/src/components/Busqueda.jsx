@@ -45,7 +45,7 @@ const estiloInput = {
 
 const estiloBoton = {
   width: "100px",
-  backgroundColor: "#8b9199",
+  backgroundColor: "#0b0c0e",
   color: "white",
   border: "none",
   padding: "10px",

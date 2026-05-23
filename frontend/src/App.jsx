@@ -52,8 +52,14 @@ export default function App() {
       obtenerAlumnos()
       setSeccionActiva("lista")
     } catch (error) {
-      console.log(error)
-    }
+  if (error.response?.status === 400) {
+    alert(error.response.data.mensaje)
+    return
+  }
+
+  console.log(error)
+  alert("Error al guardar el pedido")
+}
   }
 
   async function actualizarEstudianteEditado(id, datosActualizados) {
@@ -328,7 +334,7 @@ export default function App() {
 }
 
 const botonMenu = {
-  backgroundColor: "#4cb3aa",
+  backgroundColor: "#1c6c6e",
   color: "white",
   border: "none",
   padding: "10px 16px",
@@ -341,7 +347,7 @@ const botonMenu = {
 }
 
 const botonVolver = {
-  backgroundColor: "#3f886b",
+  backgroundColor: "#111312",
   color: "white",
   border: "none",
   padding: "10px 16px",
