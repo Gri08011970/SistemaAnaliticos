@@ -6,9 +6,7 @@ import { saveAs } from "file-saver"
 export default function Matricula() {
   const [cursoSeleccionado, setCursoSeleccionado] = useState(null)
   const [alumnosMatricula, setAlumnosMatricula] = useState([])
-
   const [alumnoEditando, setAlumnoEditando] = useState(null)
-
   const [alumnoMoviendo, setAlumnoMoviendo] = useState(null)
   const [nuevoCurso, setNuevoCurso] = useState("")
   const [nuevoTurno, setNuevoTurno] = useState("")
@@ -24,11 +22,16 @@ export default function Matricula() {
   const [verPlanillaPrevias, setVerPlanillaPrevias] = useState(false)
   const [materiaExamen, setMateriaExamen] = useState("")
   const [anioExamen, setAnioExamen] = useState("")
+  const [turnoExamen, setTurnoExamen] = useState("")
+  const [busquedaAlumno, setBusquedaAlumno] = useState("")
+  const [ordenCurso, setOrdenCurso] = useState("apellido")
 
   const [nuevoAlumno, setNuevoAlumno] = useState({
     apellido: "",
     nombre: "",
     dni: "",
+    legajoNumero: "",
+    legajoAnio: "",
     fechaNacimiento: "",
     materiasPendientes: [],
     condicionFinal: ""
@@ -54,6 +57,8 @@ export default function Matricula() {
       apellido: alumno.apellido || "",
       nombre: alumno.nombre || "",
       dni: alumno.dni || "",
+      legajoNumero: alumno.legajoNumero || "",
+      legajoAnio: alumno.legajoAnio || "",
       fechaNacimiento: alumno.fechaNacimiento || "",
       materiasPendientes: Array.isArray(alumno.materiasPendientes)
         ? alumno.materiasPendientes
@@ -67,15 +72,17 @@ export default function Matricula() {
       apellido: "",
       nombre: "",
       dni: "",
+      legajoNumero: "",
+      legajoAnio: "",
       fechaNacimiento: "",
       condicionFinal: "",
       materiasPendientes: []
     })
 
-    setMateriaPrevia("")
+    setPreviaSeleccionada("")
     setAnioPrevia("")
+    setAlumnoEditando(null)
 
-    setEditandoId(null)
   }
 
   function prepararMovimiento(alumno) {
@@ -221,18 +228,35 @@ export default function Matricula() {
 
   const alumnosDelCurso = cursoSeleccionado
     ? alumnosMatricula
-      .filter((alumno) =>
-        alumno.curso === cursoSeleccionado.curso &&
-        alumno.turno === cursoSeleccionado.turno &&
-        alumno.estadoMatricula === "Activo"
+      .filter(
+        (alumno) =>
+          alumno.curso === cursoSeleccionado.curso &&
+          alumno.turno === cursoSeleccionado.turno &&
+          alumno.estadoMatricula === "Activo"
       )
-      .sort((a, b) =>
-        `${a.apellido} ${a.nombre}`.localeCompare(
+      .sort((a, b) => {
+
+        if (ordenCurso === "legajo") {
+
+          const anioA = Number(a.legajoAnio || 0)
+          const anioB = Number(b.legajoAnio || 0)
+
+          if (anioA !== anioB) {
+            return anioB - anioA
+          }
+
+          const numeroA = Number(a.legajoNumero || 0)
+          const numeroB = Number(b.legajoNumero || 0)
+
+          return numeroA - numeroB
+        }
+
+        return `${a.apellido} ${a.nombre}`.localeCompare(
           `${b.apellido} ${b.nombre}`,
           "es",
           { sensitivity: "base" }
         )
-      )
+      })
     : []
 
   const alumnosFiltrados = alumnosDelCurso.filter((alumno) => {
@@ -350,9 +374,74 @@ export default function Matricula() {
     }
   }
 
+  const alumnosEncontrados = alumnosMatricula.filter((alumno) => {
+    const texto = busquedaAlumno.toLowerCase()
+
+    return (
+      alumno.apellido?.toLowerCase().includes(texto) ||
+      alumno.nombre?.toLowerCase().includes(texto) ||
+      alumno.dni?.includes(texto)
+    )
+  })
+
   function imprimirCurso() {
-    window.print()
+    const contenido = document.getElementById("curso-imprimir")
+
+    if (!contenido) return
+
+    const ventana = window.open("", "_blank")
+
+    ventana.document.write(`
+    <html>
+      <head>
+        <title>Lista de matrícula por curso</title>
+
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            padding: 30px;
+            color: #222;
+          }
+
+          h2, h3, p {
+            text-align: center;
+          }
+
+          h2 {
+            color: #1e3a5f;
+            margin-bottom: 5px;
+          }
+
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 12px;
+          }
+
+          th, td {
+            border: 1px solid #333;
+            padding: 6px;
+            text-align: center;
+          }
+
+          th {
+            background-color: #1e3a5f;
+            color: white;
+          }
+        </style>
+      </head>
+
+      <body>
+        ${contenido.innerHTML}
+      </body>
+    </html>
+  `)
+
+    ventana.document.close()
+    ventana.print()
   }
+
 
   function formatearDNI(dni) {
     if (!dni) return ""
@@ -362,8 +451,6 @@ export default function Matricula() {
       .replace(/\D/g, "")
       .replace(/\B(?=(\d{3})+(?!\d))/g, ".")
   }
-
-
 
   function exportarExcel() {
     const datos = alumnosDelCurso.map((alumno) => ({
@@ -542,14 +629,6 @@ export default function Matricula() {
     return curso?.charAt(0)
   }
 
-  function tieneSobreedad(alumno) {
-    const anio = obtenerAnioDelCurso(alumno.curso)
-    const edadEsperada = edadEsperadaPorAnio[anio]
-    const edad = calcularEdadAl30Junio(alumno.fechaNacimiento)
-
-    return edad !== "-" && edad > edadEsperada
-  }
-
   const edadesDelCurso = alumnosDelCurso.reduce((contador, alumno) => {
     const edad = calcularEdadAl30Junio(alumno.fechaNacimiento)
 
@@ -560,21 +639,82 @@ export default function Matricula() {
     return contador
   }, {})
 
-  const alumnosParaExamen = alumnosMatricula.filter((alumno) =>
-    alumno.materiasPendientes?.some((previa) => {
-      const coincideMateria =
-        !materiaExamen || previa.asignatura === materiaExamen
-
-      const coincideAnio =
-        !anioExamen || previa.anio === anioExamen
-
-      return coincideMateria && coincideAnio
-    })
-  )
-
   function imprimirPlanillaPrevias() {
-    window.print()
+    const contenido = document.getElementById("planilla-previas-imprimir")
+
+    if (!contenido) return
+
+    const ventana = window.open("", "_blank")
+
+    ventana.document.write(`
+    <html>
+      <head>
+        <title>Planilla de examen por previas</title>
+
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            padding: 30px;
+            color: #222;
+          }
+
+          h2, h3, p {
+            text-align: center;
+          }
+
+          h2 {
+            color: #1e3a5f;
+            margin-bottom: 5px;
+          }
+
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 12px;
+          }
+
+          th, td {
+            border: 1px solid #333;
+            padding: 6px;
+            text-align: center;
+          }
+
+          th {
+            background-color: #1e3a5f;
+            color: white;
+          }
+
+          .firmas {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+          }
+
+          .firma {
+            width: 40%;
+            text-align: center;
+            border-top: 1px solid #333;
+            padding-top: 8px;
+          }
+        </style>
+      </head>
+
+      <body>
+        ${contenido.innerHTML}
+
+        <div class="firmas">
+          <div class="firma">Firma docente</div>
+          <div class="firma">Firma autoridad</div>
+        </div>
+      </body>
+    </html>
+  `)
+
+    ventana.document.close()
+    ventana.print()
   }
+
 
   function tieneSobreedad(alumno) {
     if (!alumno.fechaNacimiento || !alumno.curso) return false
@@ -598,7 +738,29 @@ export default function Matricula() {
     setVerPlanillaPrevias(false)
     setMateriaExamen("")
     setAnioExamen("")
+    setTurnoExamen("")
   }
+
+  const alumnosParaExamen = alumnosMatricula.filter((alumno) => {
+    const coincideTurno =
+      !turnoExamen ||
+      alumno.turno === turnoExamen
+
+    return (
+      coincideTurno &&
+      alumno.materiasPendientes?.some((previa) => {
+        const coincideMateria =
+          !materiaExamen ||
+          previa.asignatura === materiaExamen
+
+        const coincideAnio =
+          !anioExamen ||
+          previa.anio === anioExamen
+
+        return coincideMateria && coincideAnio
+      })
+    )
+  })
 
   return (
     <div style={{ marginTop: "40px" }}>
@@ -642,6 +804,63 @@ export default function Matricula() {
               </div>
             </div>
           )}
+
+          <div style={bloqueBusquedaGeneral}>
+            <h3 style={{ color: "#1e3a5f" }}>
+              🔎 Buscar estudiante
+            </h3>
+
+            <input
+              type="text"
+              placeholder="Apellido, nombre o DNI"
+              style={inputBusquedaGeneral}
+              value={busquedaAlumno}
+              onChange={(e) =>
+                setBusquedaAlumno(e.target.value)
+              }
+            />
+
+            {busquedaAlumno && (
+              <div style={listaResultadosBusqueda}>
+                {alumnosEncontrados.length > 0 ? (
+                  alumnosEncontrados.map((alumno) => (
+                    <div
+                      key={alumno._id}
+                      style={itemResultadoBusqueda}
+                    >
+                      <div>
+                        <strong>
+                          {alumno.apellido},{" "}
+                          {alumno.nombre}
+                        </strong>
+
+                        <p style={{ margin: 0 }}>
+                          {alumno.curso} • Turno{" "}
+                          {alumno.turno}
+                        </p>
+                      </div>
+
+                      <button
+                        style={botonEditar}
+                        onClick={() => {
+                          setCursoSeleccionado({
+                            curso: alumno.curso,
+                            turno: alumno.turno
+                          })
+
+                          editarAlumno(alumno)
+                        }}
+                      >
+                        ✏️
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <p>No se encontraron estudiantes.</p>
+                )}
+              </div>
+            )}
+          </div>
           <button
             style={botonImprimir}
             onClick={() => {
@@ -653,8 +872,10 @@ export default function Matricula() {
           >
             📋 Planilla de examen
           </button>
+
           {verPlanillaPrevias && (
             <div style={detalleCurso}>
+
               <h3 style={{ color: "#1e3a5f" }}>
                 📋 Planilla de examen por previas
               </h3>
@@ -693,11 +914,73 @@ export default function Matricula() {
                     </option>
                   ))}
                 </select>
+
+                <select
+                  style={inputAlumno}
+                  value={turnoExamen}
+                  onChange={(e) => setTurnoExamen(e.target.value)}
+                >
+                  <option value="">Todos los turnos</option>
+                  <option value="Mañana">Turno Mañana</option>
+                  <option value="Tarde">Turno Tarde</option>
+                </select>
               </div>
 
-              <p>
-                Cantidad de estudiantes: {alumnosParaExamen.length}
-              </p>
+              <div id="planilla-previas-imprimir">
+                <h3 style={{ color: "#1e3a5f" }}>
+                  📋 Planilla de examen por previas
+                </h3>
+
+                <p>
+                  Cantidad de estudiantes: {alumnosParaExamen.length}
+                </p>
+
+                {alumnosParaExamen.length === 0 && (
+                  <p style={mensajeNoEncontrado}>
+                    No hay estudiantes para esa materia, año y turno.
+                  </p>
+                )}
+
+                <table style={tabla}>
+                  <thead>
+                    <tr>
+                      <th style={celda}>Apellido y Nombre</th>
+                      <th style={celda}>DNI</th>
+                      <th style={celda}>Curso</th>
+                      <th style={celda}>Turno</th>
+                      <th style={celda}>Materia</th>
+                      <th style={celda}>Año</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {alumnosParaExamen.map((alumno) =>
+                      alumno.materiasPendientes
+                        .filter((previa) => {
+                          const coincideMateria =
+                            !materiaExamen || previa.asignatura === materiaExamen
+
+                          const coincideAnio =
+                            !anioExamen || previa.anio === anioExamen
+
+                          return coincideMateria && coincideAnio
+                        })
+                        .map((previa, index) => (
+                          <tr key={`${alumno._id}-${index}`}>
+                            <td style={celda}>
+                              {alumno.apellido}, {alumno.nombre}
+                            </td>
+                            <td style={celda}>{formatearDNI(alumno.dni)}</td>
+                            <td style={celda}>{alumno.curso}</td>
+                            <td style={celda}>{alumno.turno}</td>
+                            <td style={celda}>{previa.asignatura}</td>
+                            <td style={celda}>{previa.anio}</td>
+                          </tr>
+                        ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
 
               <div
                 style={{
@@ -721,49 +1004,8 @@ export default function Matricula() {
                   Cerrar planilla
                 </button>
               </div>
-
-              <table style={tabla}>
-                <thead>
-                  <tr>
-                    <th style={celda}>Apellido y Nombre</th>
-                    <th style={celda}>DNI</th>
-                    <th style={celda}>Curso</th>
-                    <th style={celda}>Turno</th>
-                    <th style={celda}>Materia</th>
-                    <th style={celda}>Año</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {alumnosParaExamen.map((alumno) =>
-                    alumno.materiasPendientes
-                      .filter((previa) => {
-                        const coincideMateria =
-                          !materiaExamen || previa.asignatura === materiaExamen
-
-                        const coincideAnio =
-                          !anioExamen || previa.anio === anioExamen
-
-                        return coincideMateria && coincideAnio
-                      })
-                      .map((previa, index) => (
-                        <tr key={`${alumno._id}-${index}`}>
-                          <td style={celda}>
-                            {alumno.apellido}, {alumno.nombre}
-                          </td>
-                          <td style={celda}>{formatearDNI(alumno.dni)}</td>
-                          <td style={celda}>{alumno.curso}</td>
-                          <td style={celda}>{alumno.turno}</td>
-                          <td style={celda}>{previa.asignatura}</td>
-                          <td style={celda}>{previa.anio}</td>
-                        </tr>
-                      ))
-                  )}
-                </tbody>
-              </table>
             </div>
           )}
-
           <div style={contenedorTurnos}>
             <div style={bloqueTurno}>
               <div
@@ -857,545 +1099,582 @@ export default function Matricula() {
       )}
 
       {cursoSeleccionado && (
-        <div
-          style={detalleCurso}
-          className="area-impresion"
-        >
-          <h3 style={{ color: "#1e3a5f" }}>
-            Curso: {cursoSeleccionado.curso} - Turno{" "}
-            {cursoSeleccionado.turno}
-          </h3>
-
-          <p>
-            Cantidad de estudiantes: {alumnosDelCurso.length}
-          </p>
-
-          {verEstadisticasCurso && (
-            <div style={bloqueEstadisticas}>
-              <div style={tarjetaEstadistica}>
-                <h3>Total</h3>
-                <p>{totalEstudiantes}</p>
-              </div>
-
-              <div style={tarjetaEstadistica}>
-                <h3>Prom</h3>
-                <p>{totalProm} ({porcentajeProm}%)</p>
-              </div>
-
-              <div style={tarjetaEstadistica}>
-                <h3>Rec</h3>
-                <p>{totalRec} ({porcentajeRec}%)</p>
-              </div>
-
-              <div style={tarjetaEstadistica}>
-                <h3>Con previas</h3>
-                <p>{totalConPrevias}</p>
-              </div>
-            </div>
-          )}
-
-          {verEstadisticasCurso && (
-            <div
-              style={{
-                ...tarjetaEstadistica,
-                maxWidth: "180px",
-                margin: "20px auto 10px auto"
-              }}
-            >
-              <h3>Sobreedad</h3>
-              <p>{totalSobreedad}</p>
-            </div>
-          )}
-
-          <div style={bloqueEdades}>
-            <h3 style={{ color: "#1e3a5f" }}>
-              Edades del curso
-            </h3>
-
-            <div style={grillaEdades}>
-              {Object.entries(edadesDelCurso)
-                .sort((a, b) => Number(a[0]) - Number(b[0]))
-                .map(([edad, cantidad]) => (
-                  <div key={edad} style={tarjetaEdad}>
-                    <strong>{edad} años</strong>
-                    <p>{cantidad}</p>
-                  </div>
-                ))}
-            </div>
-          </div>
+        <div style={detalleCurso} className="area-impresion">
 
           <div className="no-print">
             <button
               style={botonVolver}
-              onClick={() =>
-                setCursoSeleccionado(null)
-              }
+              onClick={() => setCursoSeleccionado(null)}
             >
               Volver a todos los cursos
             </button>
 
-            <button
-              style={botonImprimir}
-              onClick={imprimirCurso}
-            >
+            <button style={botonImprimir} onClick={imprimirCurso}>
               🖨️ Imprimir curso
             </button>
 
             <button
               style={botonImprimir}
-              onClick={() =>
-                setVerEstadisticasCurso(!verEstadisticasCurso)
-              }
+              onClick={() => setVerEstadisticasCurso(!verEstadisticasCurso)}
             >
               📊 Estadísticas
             </button>
 
-            <button
-              style={botonImprimir}
-              onClick={exportarExcel}
-            >
+            <button style={botonImprimir} onClick={exportarExcel}>
               Exportar Excel
             </button>
+          </div>
 
+          <div id="curso-imprimir">
+            <h3 style={{ color: "#1e3a5f" }}>
+              Curso: {cursoSeleccionado.curso} - Turno {cursoSeleccionado.turno}
+            </h3>
+
+            <p>Cantidad de estudiantes: {alumnosDelCurso.length}</p>
+
+
+            {verEstadisticasCurso && (
+              <div style={bloqueEstadisticas}>
+                <div style={tarjetaEstadistica}>
+                  <h3>Total</h3>
+                  <p>{totalEstudiantes}</p>
+                </div>
+
+                <div style={tarjetaEstadistica}>
+                  <h3>Prom</h3>
+                  <p>{totalProm} ({porcentajeProm}%)</p>
+                </div>
+
+                <div style={tarjetaEstadistica}>
+                  <h3>Rec</h3>
+                  <p>{totalRec} ({porcentajeRec}%)</p>
+                </div>
+
+                <div style={tarjetaEstadistica}>
+                  <h3>Con previas</h3>
+                  <p>{totalConPrevias}</p>
+                </div>
+              </div>
+            )}
+
+            {verEstadisticasCurso && (
+              <div
+                style={{
+                  ...tarjetaEstadistica,
+                  maxWidth: "180px",
+                  margin: "20px auto 10px auto"
+                }}
+              >
+                <h3>Sobreedad</h3>
+                <p>{totalSobreedad}</p>
+              </div>
+            )}
+
+            <div style={bloqueEdades}>
+              <h3 style={{ color: "#1e3a5f" }}>
+                Edades del curso
+              </h3>
+
+              <div style={grillaEdades}>
+                {Object.entries(edadesDelCurso)
+                  .sort((a, b) => Number(a[0]) - Number(b[0]))
+                  .map(([edad, cantidad]) => (
+                    <div key={edad} style={tarjetaEdad}>
+                      <strong>{edad} años</strong>
+                      <p>{cantidad}</p>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            <div className="no-print">
+              <button
+                style={botonVolver}
+                onClick={() =>
+                  setCursoSeleccionado(null)
+                }
+              >
+                Volver a todos los cursos
+              </button>
+
+              <button
+                style={botonImprimir}
+                onClick={imprimirCurso}
+              >
+                🖨️ Imprimir curso
+              </button>
+
+              <button
+                style={botonImprimir}
+                onClick={() =>
+                  setVerEstadisticasCurso(!verEstadisticasCurso)
+                }
+              >
+                📊 Estadísticas
+              </button>
+
+              <button
+                style={botonImprimir}
+                onClick={exportarExcel}
+              >
+                Exportar Excel
+              </button>
+
+              <div
+                style={{
+                  marginTop: "10px",
+                  marginBottom: "15px"
+                }}
+              >
+                <input
+                  type="file"
+                  accept=".xls,.xlsx"
+                  onChange={importarReporteOficial}
+                />
+              </div>
+            </div>
             <div
-              style={{
-                marginTop: "10px",
-                marginBottom: "15px"
-              }}
+              style={formularioAlumno}
+              className="no-print"
             >
               <input
-                type="file"
-                accept=".xls,.xlsx"
-                onChange={importarReporteOficial}
+                placeholder="Apellido"
+                style={inputAlumno}
+                value={nuevoAlumno.apellido}
+                onChange={(e) =>
+                  setNuevoAlumno({
+                    ...nuevoAlumno,
+                    apellido: e.target.value
+                  })
+                }
               />
-            </div>
-          </div>
-          <div
-            style={formularioAlumno}
-            className="no-print"
-          >
-            <input
-              placeholder="Apellido"
-              style={inputAlumno}
-              value={nuevoAlumno.apellido}
-              onChange={(e) =>
-                setNuevoAlumno({
-                  ...nuevoAlumno,
-                  apellido: e.target.value
-                })
-              }
-            />
 
-            <input
-              placeholder="Nombre"
-              style={inputAlumno}
-              value={nuevoAlumno.nombre}
-              onChange={(e) =>
-                setNuevoAlumno({
-                  ...nuevoAlumno,
-                  nombre: e.target.value
-                })
-              }
-            />
-
-            <input
-              placeholder="DNI"
-              style={inputAlumno}
-              value={nuevoAlumno.dni}
-              onChange={(e) =>
-                setNuevoAlumno({
-                  ...nuevoAlumno,
-                  dni: e.target.value
-                })
-              }
-            />
-
-            <input
-              type="date"
-              style={inputAlumno}
-              value={nuevoAlumno.fechaNacimiento}
-              onChange={(e) =>
-                setNuevoAlumno({
-                  ...nuevoAlumno,
-                  fechaNacimiento: e.target.value
-                })
-              }
-            />
-
-            <div style={bloquePrevias}>
-              <select
+              <input
+                placeholder="Nombre"
                 style={inputAlumno}
-                value={previaSeleccionada}
+                value={nuevoAlumno.nombre}
                 onChange={(e) =>
-                  setPreviaSeleccionada(
-                    e.target.value
-                  )
+                  setNuevoAlumno({
+                    ...nuevoAlumno,
+                    nombre: e.target.value
+                  })
                 }
-              >
-                <option value="">
-                  Asignatura
-                </option>
+              />
 
-                {asignaturas.map(
-                  (asignatura) => (
-                    <option
-                      key={asignatura}
-                      value={asignatura}
-                    >
-                      {asignatura}
-                    </option>
-                  )
-                )}
-              </select>
-
-              <select
+              <input
+                placeholder="DNI"
                 style={inputAlumno}
-                value={anioPrevia}
+                value={nuevoAlumno.dni}
                 onChange={(e) =>
-                  setAnioPrevia(
-                    e.target.value
-                  )
+                  setNuevoAlumno({
+                    ...nuevoAlumno,
+                    dni: e.target.value
+                  })
                 }
-              >
-                <option value="">
-                  Año
-                </option>
+              />
 
-                {aniosMateria.map((anio) => (
-                  <option
-                    key={anio}
-                    value={anio}
-                  >
-                    {anio}
+              <input
+                placeholder="N° legajo"
+                style={inputAlumno}
+                value={nuevoAlumno.legajoNumero}
+                onChange={(e) =>
+                  setNuevoAlumno({
+                    ...nuevoAlumno,
+                    legajoNumero: e.target.value
+                  })
+                }
+              />
+
+              <input
+                placeholder="Año legajo"
+                style={inputAlumno}
+                value={nuevoAlumno.legajoAnio}
+                onChange={(e) =>
+                  setNuevoAlumno({
+                    ...nuevoAlumno,
+                    legajoAnio: e.target.value
+                  })
+                }
+              />
+
+              <input
+                type="date"
+                style={inputAlumno}
+                value={nuevoAlumno.fechaNacimiento}
+                onChange={(e) =>
+                  setNuevoAlumno({
+                    ...nuevoAlumno,
+                    fechaNacimiento: e.target.value
+                  })
+                }
+              />
+
+              <div style={bloquePrevias}>
+                <select
+                  style={inputAlumno}
+                  value={previaSeleccionada}
+                  onChange={(e) =>
+                    setPreviaSeleccionada(
+                      e.target.value
+                    )
+                  }
+                >
+                  <option value="">
+                    Asignatura
                   </option>
-                ))}
-              </select>
 
-              <button
-                type="button"
-                style={botonAgregarPrevia}
-                onClick={agregarPrevia}
-              >
-                Agregar previa
-              </button>
-            </div>
+                  {asignaturas.map(
+                    (asignatura) => (
+                      <option
+                        key={asignatura}
+                        value={asignatura}
+                      >
+                        {asignatura}
+                      </option>
+                    )
+                  )}
+                </select>
 
-            <div style={{ marginTop: "8px" }}>
-              {nuevoAlumno.materiasPendientes.map(
-                (previa, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      marginBottom: "5px"
-                    }}
-                  >
-                    <span>
-                      • {previa.asignatura} ({previa.anio})
-                    </span>
+                <select
+                  style={inputAlumno}
+                  value={anioPrevia}
+                  onChange={(e) =>
+                    setAnioPrevia(
+                      e.target.value
+                    )
+                  }
+                >
+                  <option value="">
+                    Año
+                  </option>
 
-                    <button
-                      type="button"
-                      onClick={() => eliminarPrevia(index)}
-                      style={botonEliminar}
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                )
-              )}
-            </div>
-
-            <select
-              style={inputAlumno}
-              value={nuevoAlumno.condicionFinal}
-              onChange={(e) =>
-                setNuevoAlumno({
-                  ...nuevoAlumno,
-                  condicionFinal:
-                    e.target.value
-                })
-              }
-            >
-              <option value="">
-                Prom / Rec
-              </option>
-
-              <option value="Prom">
-                Prom
-              </option>
-
-              <option value="Rec">
-                Rec
-              </option>
-            </select>
-
-            <button
-              style={botonAgregar}
-              onClick={
-                guardarAlumnoMatricula
-              }
-              disabled={guardando}
-            >
-              {guardando
-                ? "Guardando..."
-                : alumnoEditando
-                  ? "Guardar cambios"
-                  : "Agregar estudiante"}
-            </button>
-            <button
-              style={botonVolver}
-              onClick={limpiarFormulario}
-            >
-              Limpiar formulario
-            </button>
-          </div>
-          {alumnoMoviendo && (
-            <div style={bloqueMovimiento}>
-              <h4>🔁 Movimiento de matrícula</h4>
-
-              <p>
-                {alumnoMoviendo.apellido},{" "}
-                {alumnoMoviendo.nombre}
-              </p>
-
-              <select
-                value={nuevoCurso}
-                onChange={(e) =>
-                  setNuevoCurso(e.target.value)
-                }
-                style={inputAlumno}
-              >
-                {[...cursosManana, ...cursosTarde].map(
-                  (curso) => (
+                  {aniosMateria.map((anio) => (
                     <option
-                      key={curso}
-                      value={curso}
+                      key={anio}
+                      value={anio}
                     >
-                      {curso}
+                      {anio}
                     </option>
-                  )
-                )}
-              </select>
+                  ))}
+                </select>
 
-              <select
-                value={nuevoTurno}
-                onChange={(e) =>
-                  setNuevoTurno(e.target.value)
-                }
-                style={inputAlumno}
-              >
-                <option value="Mañana">
-                  Mañana
-                </option>
-
-                <option value="Tarde">
-                  Tarde
-                </option>
-              </select>
-
-              <button
-                style={botonAgregarPrevia}
-                onClick={moverAlumno}
-              >
-                Mover estudiante
-              </button>
-            </div>
-          )}
-          <div
-            style={{
-              display: "flex",
-              gap: "10px",
-              marginBottom: "15px"
-            }}
-          >
-            <select
-              style={inputAlumno}
-              value={filtroPrevia}
-              onChange={(e) =>
-                setFiltroPrevia(e.target.value)
-              }
-            >
-              <option value="">
-                Filtrar por asignatura
-              </option>
-
-              {asignaturas.map((asignatura) => (
-                <option
-                  key={asignatura}
-                  value={asignatura}
+                <button
+                  type="button"
+                  style={botonAgregarPrevia}
+                  onClick={agregarPrevia}
                 >
-                  {asignatura}
-                </option>
-              ))}
-            </select>
+                  Agregar previa
+                </button>
+              </div>
 
-            <select
-              style={inputAlumno}
-              value={filtroAnioPrevia}
-              onChange={(e) =>
-                setFiltroAnioPrevia(e.target.value)
-              }
-            >
-              <option value="">
-                Filtrar por año
-              </option>
-
-              {aniosMateria.map((anio) => (
-                <option
-                  key={anio}
-                  value={anio}
-                >
-                  {anio}
-                </option>
-              ))}
-            </select>
-
-            <button
-              style={botonVolver}
-              onClick={() => {
-                setFiltroPrevia("")
-                setFiltroAnioPrevia("")
-              }}
-            >
-              Limpiar filtros
-            </button>
-          </div>
-          <table style={tabla}>
-            <thead>
-              <tr>
-                <th style={{ ...celda, width: "220px" }}>
-                  Apellido y Nombre
-                </th>
-
-                <th style={celda}>
-                  DNI
-                </th>
-
-                <th style={{ ...celda, width: "95px" }}>
-                  Fecha nacimiento
-                </th>
-
-                <th style={{ ...celda, width: "55px" }}>
-                  Edad
-                </th>
-
-                <th style={{ ...celda, width: "240px" }}>
-                  Pendientes
-                </th>
-
-                <th style={{ ...celda, width: "65px" }}>
-                  Cond.
-                </th>
-
-                <th style={{ ...celda, width: "140px" }}>
-                  Acciones
-                </th>
-
-              </tr>
-            </thead>
-
-            <tbody>
-              {alumnosDelCurso.length ===
-                0 && (
-                  <tr>
-                    <td
-                      style={celda}
-                      colSpan="8"
-                    >
-                      Todavía no hay
-                      estudiantes cargados
-                      en este curso.
-                    </td>
-                  </tr>
-                )}
-
-              {alumnosFiltrados.map(
-                (alumno) => (
-                  <tr key={alumno._id}>
-                    <td style={celda}>
-                      {alumno.apellido},{" "}
-                      {alumno.nombre}
-                    </td>
-
-                    <td style={celda}>
-                      {formatearDNI(alumno.dni)}
-                    </td>
-
-                    <td style={celda}>
-                      {formatearFecha(
-                        alumno.fechaNacimiento
-                      )}
-                    </td>
-
-                    <td style={celda}>
-                      {calcularEdadAl30Junio(
-                        alumno.fechaNacimiento
-                      )}
-
-                      {tieneSobreedad(alumno) && (
-                        <span style={alertaSobreedad}>
-                          ⚠️
-                        </span>
-                      )}
-                    </td>
-
-                    <td style={celda}>
-                      {Array.isArray(
-                        alumno.materiasPendientes
-                      )
-                        ? alumno.materiasPendientes
-                          .map(
-                            (previa) =>
-                              `${previa.asignatura} (${previa.anio})`
-                          )
-                          .join(", ")
-                        : ""}
-                    </td>
-
-                    <td style={celda}>
-                      {
-                        alumno.condicionFinal
-                      }
-                    </td>
-
-
-                    <td
+              <div style={{ marginTop: "8px" }}>
+                {nuevoAlumno.materiasPendientes.map(
+                  (previa, index) => (
+                    <div
+                      key={index}
                       style={{
-                        ...celda,
-                        whiteSpace: "nowrap"
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        marginBottom: "5px"
                       }}
-                      className="no-print"
                     >
-                      <button
-                        style={botonEditar}
-                        onClick={() => editarAlumno(alumno)}
-                      >
-                        ✏️
-                      </button>
+                      <span>
+                        • {previa.asignatura} ({previa.anio})
+                      </span>
 
                       <button
-                        style={botonMover}
-                        onClick={() => prepararMovimiento(alumno)}
-                      >
-                        🔁
-                      </button>
-
-                      <button
+                        type="button"
+                        onClick={() => eliminarPrevia(index)}
                         style={botonEliminar}
-                        onClick={() => eliminarAlumnoMatricula(alumno._id)}
                       >
                         🗑️
                       </button>
-                    </td>
-                  </tr>
-                )
-              )}
-            </tbody>
-          </table>
+                    </div>
+                  )
+                )}
+              </div>
 
+              <select
+                style={inputAlumno}
+                value={nuevoAlumno.condicionFinal}
+                onChange={(e) =>
+                  setNuevoAlumno({
+                    ...nuevoAlumno,
+                    condicionFinal:
+                      e.target.value
+                  })
+                }
+              >
+                <option value="">
+                  Prom / Rec
+                </option>
+
+                <option value="Prom">
+                  Prom
+                </option>
+
+                <option value="Rec">
+                  Rec
+                </option>
+              </select>
+
+              <button
+                style={botonAgregar}
+                onClick={
+                  guardarAlumnoMatricula
+                }
+                disabled={guardando}
+              >
+                {guardando
+                  ? "Guardando..."
+                  : alumnoEditando
+                    ? "Guardar cambios"
+                    : "Agregar estudiante"}
+              </button>
+              <button
+                style={botonVolver}
+                onClick={limpiarFormulario}
+              >
+                Limpiar formulario
+              </button>
+            </div>
+            {alumnoMoviendo && (
+              <div style={bloqueMovimiento}>
+                <h4>🔁 Movimiento de matrícula</h4>
+
+                <p>
+                  {alumnoMoviendo.apellido},{" "}
+                  {alumnoMoviendo.nombre}
+                </p>
+
+                <select
+                  value={nuevoCurso}
+                  onChange={(e) =>
+                    setNuevoCurso(e.target.value)
+                  }
+                  style={inputAlumno}
+                >
+                  {[...cursosManana, ...cursosTarde].map(
+                    (curso) => (
+                      <option
+                        key={curso}
+                        value={curso}
+                      >
+                        {curso}
+                      </option>
+                    )
+                  )}
+                </select>
+
+                <select
+                  value={nuevoTurno}
+                  onChange={(e) =>
+                    setNuevoTurno(e.target.value)
+                  }
+                  style={inputAlumno}
+                >
+                  <option value="Mañana">
+                    Mañana
+                  </option>
+
+                  <option value="Tarde">
+                    Tarde
+                  </option>
+                </select>
+
+                <button
+                  style={botonAgregarPrevia}
+                  onClick={moverAlumno}
+                >
+                  Mover estudiante
+                </button>
+              </div>
+            )}
+            <div
+              style={{
+                display: "flex",
+                gap: "10px",
+                marginBottom: "15px"
+              }}
+            >
+
+
+              <button
+                style={botonVolver}
+                onClick={() => {
+                  setFiltroPrevia("")
+                  setFiltroAnioPrevia("")
+                }}
+              >
+
+               
+
+                Limpiar filtros
+              </button>
+
+               
+
+            </div>
+
+            <select
+                  style={inputAlumno}
+                  value={ordenCurso}
+                  onChange={(e) =>
+                    setOrdenCurso(e.target.value)
+                  }
+                >
+                  <option value="apellido">
+                    Ordenar por apellido
+                  </option>
+
+                  <option value="legajo">
+                    Ordenar por legajo
+                  </option>
+                </select> 
+            <table style={tabla}>
+              <thead>
+                <tr>
+                  <th style={{ ...celda, width: "220px" }}>
+                    Apellido y Nombre
+                  </th>
+
+                  <th style={celda}>
+                    DNI
+                  </th>
+
+                  <th style={celda}>
+                    Legajo
+                  </th>
+
+                  <th style={{ ...celda, width: "95px" }}>
+                    Fecha nacimiento
+                  </th>
+
+                  <th style={{ ...celda, width: "55px" }}>
+                    Edad
+                  </th>
+
+                  <th style={{ ...celda, width: "240px" }}>
+                    Pendientes
+                  </th>
+
+                  <th style={{ ...celda, width: "65px" }}>
+                    Cond.
+                  </th>
+
+                  <th style={{ ...celda, width: "140px" }}>
+                    Acciones
+                  </th>
+
+                </tr>
+              </thead>
+
+              <tbody>
+                {alumnosDelCurso.length ===
+                  0 && (
+                    <tr>
+                      <td
+                        style={celda}
+                        colSpan="8"
+                      >
+                        Todavía no hay
+                        estudiantes cargados
+                        en este curso.
+                      </td>
+                    </tr>
+                  )}
+
+                {alumnosFiltrados.map(
+                  (alumno) => (
+                    <tr key={alumno._id}>
+                      <td style={celda}>
+                        {alumno.apellido},{" "}
+                        {alumno.nombre}
+                      </td>
+
+                      <td style={celda}>
+                        {formatearDNI(alumno.dni)}
+                      </td>
+
+                      <td style={celda}>
+                        {alumno.legajoNumero && alumno.legajoAnio
+                          ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
+                          : "-"}
+                      </td>
+
+                      <td style={celda}>
+                        {formatearFecha(
+                          alumno.fechaNacimiento
+                        )}
+                      </td>
+
+                      <td style={celda}>
+                        {calcularEdadAl30Junio(
+                          alumno.fechaNacimiento
+                        )}
+
+                        {tieneSobreedad(alumno) && (
+                          <span style={alertaSobreedad}>
+                            ⚠️
+                          </span>
+                        )}
+                      </td>
+
+                      <td style={celda}>
+                        {Array.isArray(
+                          alumno.materiasPendientes
+                        )
+                          ? alumno.materiasPendientes
+                            .map(
+                              (previa) =>
+                                `${previa.asignatura} (${previa.anio})`
+                            )
+                            .join(", ")
+                          : ""}
+                      </td>
+
+                      <td style={celda}>
+                        {
+                          alumno.condicionFinal
+                        }
+                      </td>
+
+
+                      <td
+                        style={{
+                          ...celda,
+                          whiteSpace: "nowrap"
+                        }}
+                        className="no-print"
+                      >
+                        <button
+                          style={botonEditar}
+                          onClick={() => editarAlumno(alumno)}
+                        >
+                          ✏️
+                        </button>
+
+                        <button
+                          style={botonMover}
+                          onClick={() => prepararMovimiento(alumno)}
+                        >
+                          🔁
+                        </button>
+
+                        <button
+                          style={botonEliminar}
+                          onClick={() => eliminarAlumnoMatricula(alumno._id)}
+                        >
+                          🗑️
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
@@ -1475,19 +1754,19 @@ const botonVolver = {
 
 const formularioAlumno = {
   display: "grid",
-  gridTemplateColumns: "repeat(4, 1fr)",
-  gap: "10px",
-  marginBottom: "20px",
-  marginTop: "20px",
+  gridTemplateColumns: "repeat(4, minmax(150px, 1fr))",
+  gap: "14px",
+  marginBottom: "22px",
+  marginTop: "22px",
   alignItems: "center"
 }
 
 const inputAlumno = {
-  padding: "10px",
+  padding: "12px",
   borderRadius: "8px",
   border: "1px solid #ccc",
   minWidth: "0",
-  width: "100%"
+  width: "92%"
 }
 
 const botonAgregar = {
@@ -1619,4 +1898,45 @@ const tarjetaEdad = {
   padding: "12px",
   textAlign: "center",
   boxShadow: "0 2px 6px rgba(0,0,0,0.05)"
+}
+const mensajeNoEncontrado = {
+  backgroundColor: "#fff3cd",
+  padding: "12px",
+  borderRadius: "10px",
+  color: "#856404",
+  marginBottom: "15px",
+  textAlign: "center"
+}
+const bloqueBusquedaGeneral = {
+  backgroundColor: "#f8fafc",
+  border: "1px solid #dbe4ee",
+  borderRadius: "18px",
+  padding: "20px",
+  marginBottom: "20px",
+  boxShadow: "0 3px 8px rgba(0,0,0,0.05)"
+}
+
+const inputBusquedaGeneral = {
+  width: "100%",
+  padding: "12px",
+  borderRadius: "10px",
+  border: "1px solid #cfd8e3",
+  fontSize: "15px",
+  marginBottom: "12px"
+}
+
+const listaResultadosBusqueda = {
+  display: "flex",
+  flexDirection: "column",
+  gap: "10px"
+}
+
+const itemResultadoBusqueda = {
+  backgroundColor: "white",
+  border: "1px solid #dbe4ee",
+  borderRadius: "12px",
+  padding: "12px",
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center"
 }

@@ -4,6 +4,9 @@ const matriculaAlumnoSchema = new mongoose.Schema({
   apellido: String,
   nombre: String,
   dni: String,
+  
+  legajoNumero: String,
+  legajoAnio: String,
 
   curso: String,
   turno: String,
