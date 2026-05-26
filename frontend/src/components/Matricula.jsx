@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import axios from "axios"
 import * as XLSX from "xlsx"
 import { saveAs } from "file-saver"
+import preceptora11 from "../assets/preceptores/preceptor_1_1.jpg"
 
 export default function Matricula() {
   const [cursoSeleccionado, setCursoSeleccionado] = useState(null)
@@ -25,6 +26,13 @@ export default function Matricula() {
   const [turnoExamen, setTurnoExamen] = useState("")
   const [busquedaAlumno, setBusquedaAlumno] = useState("")
   const [ordenCurso, setOrdenCurso] = useState("apellido")
+  const fotosPreceptores = {
+  "6°1°-Mañana": preceptora11,
+  "5°2°-Mañana": preceptora11,
+  "4°3°-Tarde": preceptora11,
+  "4°4°-Tarde": preceptora11
+}
+  
 
   const [nuevoAlumno, setNuevoAlumno] = useState({
     apellido: "",
@@ -49,6 +57,7 @@ export default function Matricula() {
       console.log(error)
     }
   }
+
 
   function editarAlumno(alumno) {
     setAlumnoEditando(alumno)
@@ -1027,7 +1036,17 @@ export default function Matricula() {
               {mostrarTurnoManana && (
                 <div style={grillaCursos}>
                   {cursosManana.map((curso) => (
-                    <div key={curso} style={tarjetaCurso}>
+                    <div
+                      key={curso}
+                      style={{
+                        ...tarjetaCurso,
+                        backgroundImage: fotosPreceptores[`${curso}-Mañana`]
+                          ? `linear-gradient(rgba(255,255,255,0.50), rgba(255,255,255,0.50)), url(${fotosPreceptores[`${curso}-Mañana`]})`
+                          : "none",
+                        backgroundSize: "cover",
+                        backgroundPosition: "center"
+                      }}
+                    >
                       <h4>{curso}</h4>
 
                       <p style={textoCantidad}>
@@ -1036,6 +1055,12 @@ export default function Matricula() {
 
                       <button
                         style={botonCurso}
+                        onMouseEnter={(e) =>
+                          (e.target.style.backgroundColor = "#115e59")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.target.style.backgroundColor = "#0f766e")
+                        }
                         onClick={() =>
                           setCursoSeleccionado({
                             curso,
@@ -1071,7 +1096,23 @@ export default function Matricula() {
               {mostrarTurnoTarde && (
                 <div style={grillaCursos}>
                   {cursosTarde.map((curso) => (
-                    <div key={curso} style={tarjetaCurso}>
+                    <div
+                      key={curso}
+                      style={{
+                        ...tarjetaCurso,
+
+                        backgroundImage: `
+                          linear-gradient(
+                           rgba(255,255,255,0.50),
+                           rgba(255,255,255,0.50)
+                        ),
+                          url(${fotosPreceptores[`${curso}-Tarde`]})
+                       `,
+
+                        backgroundSize: "cover",
+                        backgroundPosition: "center"
+                      }}
+                    >
                       <h4>{curso}</h4>
 
                       <p style={textoCantidad}>
@@ -1508,30 +1549,30 @@ export default function Matricula() {
                 }}
               >
 
-               
+
 
                 Limpiar filtros
               </button>
 
-               
+
 
             </div>
 
             <select
-                  style={inputAlumno}
-                  value={ordenCurso}
-                  onChange={(e) =>
-                    setOrdenCurso(e.target.value)
-                  }
-                >
-                  <option value="apellido">
-                    Ordenar por apellido
-                  </option>
+              style={inputAlumno}
+              value={ordenCurso}
+              onChange={(e) =>
+                setOrdenCurso(e.target.value)
+              }
+            >
+              <option value="apellido">
+                Ordenar por apellido
+              </option>
 
-                  <option value="legajo">
-                    Ordenar por legajo
-                  </option>
-                </select> 
+              <option value="legajo">
+                Ordenar por legajo
+              </option>
+            </select>
             <table style={tabla}>
               <thead>
                 <tr>
@@ -1730,7 +1771,8 @@ const botonCurso = {
   border: "none",
   padding: "8px 12px",
   borderRadius: "8px",
-  cursor: "pointer"
+  cursor: "pointer",
+   transition: "0.2s"
 }
 
 const detalleCurso = {
