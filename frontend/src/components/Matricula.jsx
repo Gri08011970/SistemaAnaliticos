@@ -985,9 +985,133 @@ export default function Matricula() {
                 📋 Planilla de examen por previas
               </h3>
 
-              <p>Acá va la planilla completa.</p>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "10px",
+                  marginBottom: "15px"
+                }}
+              >
+                <select
+                  style={inputAlumno}
+                  value={materiaExamen}
+                  onChange={(e) => setMateriaExamen(e.target.value)}
+                >
+                  <option value="">Seleccionar asignatura</option>
+
+                  {asignaturas.map((asignatura) => (
+                    <option key={asignatura} value={asignatura}>
+                      {asignatura}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  style={inputAlumno}
+                  value={anioExamen}
+                  onChange={(e) => setAnioExamen(e.target.value)}
+                >
+                  <option value="">Seleccionar año</option>
+
+                  {aniosMateria.map((anio) => (
+                    <option key={anio} value={anio}>
+                      {anio}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  style={inputAlumno}
+                  value={turnoExamen}
+                  onChange={(e) => setTurnoExamen(e.target.value)}
+                >
+                  <option value="">Todos los turnos</option>
+                  <option value="Mañana">Turno Mañana</option>
+                  <option value="Tarde">Turno Tarde</option>
+                </select>
+              </div>
+
+              <div id="planilla-previas-imprimir">
+                <h3 style={{ color: "#1e3a5f" }}>
+                  📋 Planilla de examen por previas
+                </h3>
+
+                <p>
+                  Cantidad de estudiantes: {alumnosParaExamen.length}
+                </p>
+
+                {alumnosParaExamen.length === 0 && (
+                  <p style={mensajeNoEncontrado}>
+                    No hay estudiantes para esa materia, año y turno.
+                  </p>
+                )}
+
+                <table style={tabla}>
+                  <thead>
+                    <tr>
+                      <th style={celda}>Apellido y Nombre</th>
+                      <th style={celda}>DNI</th>
+                      <th style={celda}>Curso</th>
+                      <th style={celda}>Turno</th>
+                      <th style={celda}>Materia</th>
+                      <th style={celda}>Año</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {alumnosParaExamen.map((alumno) =>
+                      alumno.materiasPendientes
+                        .filter((previa) => {
+                          const coincideMateria =
+                            !materiaExamen || previa.asignatura === materiaExamen
+
+                          const coincideAnio =
+                            !anioExamen || previa.anio === anioExamen
+
+                          return coincideMateria && coincideAnio
+                        })
+                        .map((previa, index) => (
+                          <tr key={`${alumno._id}-${index}`}>
+                            <td style={celda}>
+                              {alumno.apellido}, {alumno.nombre}
+                            </td>
+                            <td style={celda}>{formatearDNI(alumno.dni)}</td>
+                            <td style={celda}>{alumno.curso}</td>
+                            <td style={celda}>{alumno.turno}</td>
+                            <td style={celda}>{previa.asignatura}</td>
+                            <td style={celda}>{previa.anio}</td>
+                          </tr>
+                        ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: "12px",
+                  justifyContent: "center",
+                  marginTop: "10px"
+                }}
+              >
+                <button
+                  style={botonImprimir}
+                  onClick={imprimirPlanillaPrevias}
+                >
+                  🖨️ Imprimir planilla
+                </button>
+
+                <button
+                  style={botonVolver}
+                  onClick={cerrarPlanillaPrevias}
+                >
+                  Cerrar planilla
+                </button>
+              </div>
             </div>
           )}
+
 
           {anioLegajoFiltro && (
             <div style={detalleCurso}>
