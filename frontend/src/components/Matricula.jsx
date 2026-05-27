@@ -405,13 +405,42 @@ export default function Matricula() {
   })
 
   function imprimirCurso() {
-    const contenido = document.getElementById("curso-imprimir")
+  if (!cursoSeleccionado) return
 
-    if (!contenido) return
+  const filas = alumnosFiltrados
+    .map(
+      (alumno, index) => `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${alumno.apellido || ""}, ${alumno.nombre || ""}</td>
+          <td>${formatearDNI(alumno.dni)}</td>
+          <td>
+            ${
+              alumno.legajoNumero && alumno.legajoAnio
+                ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
+                : "-"
+            }
+          </td>
+          <td>${formatearFecha(alumno.fechaNacimiento)}</td>
+          <td>${calcularEdadAl30Junio(alumno.fechaNacimiento)}</td>
+          <td>${alumno.condicionFinal || ""}</td>
+          <td>
+            ${
+              Array.isArray(alumno.materiasPendientes)
+                ? alumno.materiasPendientes
+                    .map((previa) => `${previa.asignatura} (${previa.anio})`)
+                    .join(", ")
+                : ""
+            }
+          </td>
+        </tr>
+      `
+    )
+    .join("")
 
-    const ventana = window.open("", "_blank")
+  const ventana = window.open("", "_blank")
 
-    ventana.document.write(`
+  ventana.document.write(`
     <html>
       <head>
         <title>Lista de matrícula por curso</title>
@@ -419,29 +448,40 @@ export default function Matricula() {
         <style>
           body {
             font-family: Arial, sans-serif;
-            padding: 30px;
+            padding: 28px;
             color: #222;
           }
 
           h2, h3, p {
             text-align: center;
+            margin: 4px 0;
           }
 
           h2 {
             color: #1e3a5f;
-            margin-bottom: 5px;
+            font-size: 20px;
+          }
+
+          h3 {
+            font-size: 16px;
+            margin-top: 18px;
+          }
+
+          .subtitulo {
+            font-size: 12px;
+            color: #555;
           }
 
           table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
-            font-size: 12px;
+            margin-top: 18px;
+            font-size: 11px;
           }
 
           th, td {
             border: 1px solid #333;
-            padding: 6px;
+            padding: 5px;
             text-align: center;
           }
 
@@ -449,19 +489,54 @@ export default function Matricula() {
             background-color: #1e3a5f;
             color: white;
           }
+
+          .nombre {
+            text-align: left;
+          }
+
+          @page {
+            size: landscape;
+            margin: 12mm;
+          }
         </style>
       </head>
 
       <body>
-        ${contenido.innerHTML}
+        <h2>Escuela Educación Secundaria N°140</h2>
+        <p class="subtitulo">"Florencio Molina Campos"</p>
+
+        <h3>
+          Lista de matrícula - Curso ${cursoSeleccionado.curso}
+          - Turno ${cursoSeleccionado.turno}
+        </h3>
+
+        <p>Cantidad de estudiantes: ${alumnosFiltrados.length}</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>N°</th>
+              <th>Apellido y Nombre</th>
+              <th>DNI</th>
+              <th>Legajo</th>
+              <th>Fecha nac.</th>
+              <th>Edad</th>
+              <th>Cond.</th>
+              <th>Pendientes</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            ${filas}
+          </tbody>
+        </table>
       </body>
     </html>
   `)
 
-    ventana.document.close()
-    ventana.print()
-  }
-
+  ventana.document.close()
+  ventana.print()
+}
 
   function formatearDNI(dni) {
     if (!dni) return ""
@@ -980,7 +1055,7 @@ export default function Matricula() {
             </div>
           )}
           {verPlanillaPrevias && (
-            <div style={detalleCurso}>
+            <div style={detalleCurso}> 
               <h3 style={{ color: "#1e3a5f" }}>
                 📋 Planilla de examen por previas
               </h3>
@@ -1354,7 +1429,7 @@ export default function Matricula() {
 
 
             {verEstadisticasCurso && (
-              <div style={bloqueEstadisticas}>
+              <div style={bloqueEstadisticas}> 
                 <div style={tarjetaEstadistica}>
                   <h3>Total</h3>
                   <p>{totalEstudiantes}</p>
