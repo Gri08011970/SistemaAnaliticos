@@ -27,12 +27,13 @@ export default function Matricula() {
   const [busquedaAlumno, setBusquedaAlumno] = useState("")
   const [ordenCurso, setOrdenCurso] = useState("apellido")
   const fotosPreceptores = {
-  "6°1°-Mañana": preceptora11,
-  "5°2°-Mañana": preceptora11,
-  "4°3°-Tarde": preceptora11,
-  "4°4°-Tarde": preceptora11
-}
-  
+    "6°1°-Mañana": preceptora11,
+    "5°2°-Mañana": preceptora11,
+    "4°3°-Tarde": preceptora11,
+    "4°4°-Tarde": preceptora11
+  }
+  const [anioLegajoFiltro, setAnioLegajoFiltro] = useState("")
+
 
   const [nuevoAlumno, setNuevoAlumno] = useState({
     apellido: "",
@@ -771,6 +772,26 @@ export default function Matricula() {
     )
   })
 
+  const aniosLegajoDisponibles = [
+    ...new Set(
+      alumnosMatricula
+        .map((alumno) => alumno.legajoAnio)
+        .filter(Boolean)
+    )
+  ].sort((a, b) => Number(b) - Number(a))
+console.log(alumnosMatricula)
+console.log(aniosLegajoDisponibles)
+  const alumnosPorLegajo = alumnosMatricula
+    .filter((alumno) =>
+      anioLegajoFiltro
+        ? alumno.legajoAnio === anioLegajoFiltro
+        : false
+    )
+    .sort((a, b) =>
+      Number(a.legajoNumero || 0) -
+      Number(b.legajoNumero || 0)
+    )
+
   return (
     <div style={{ marginTop: "40px" }}>
       <h2 style={{ color: "#1e3a5f" }}>
@@ -1015,6 +1036,78 @@ export default function Matricula() {
               </div>
             </div>
           )}
+
+          <div style={bloqueLegajos}>
+            <h3 style={{ color: "#1e3a5f" }}>
+              🧾 Listado de legajos por año
+            </h3>
+
+            <select
+              style={inputAlumno}
+              value={anioLegajoFiltro}
+              onChange={(e) =>
+                setAnioLegajoFiltro(e.target.value)
+              }
+            >
+              <option value="">
+                Seleccionar año de legajo
+              </option>
+
+              {aniosLegajoDisponibles.map((anio) => (
+                <option key={anio} value={anio}>
+                  {anio}
+                </option>
+              ))}
+            </select>
+
+            {anioLegajoFiltro && (
+              <>
+                <p>
+                  Cantidad de legajos {anioLegajoFiltro}:{" "}
+                  {alumnosPorLegajo.length}
+                </p>
+
+                <table style={tabla}>
+                  <thead>
+                    <tr>
+                      <th style={celda}>Legajo</th>
+                      <th style={celda}>Apellido y Nombre</th>
+                      <th style={celda}>DNI</th>
+                      <th style={celda}>Curso</th>
+                      <th style={celda}>Turno</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {alumnosPorLegajo.map((alumno) => (
+                      <tr key={alumno._id}>
+                        <td style={celda}>
+                          {alumno.legajoNumero}/{alumno.legajoAnio}
+                        </td>
+
+                        <td style={celda}>
+                          {alumno.apellido}, {alumno.nombre}
+                        </td>
+
+                        <td style={celda}>
+                          {formatearDNI(alumno.dni)}
+                        </td>
+
+                        <td style={celda}>
+                          {alumno.curso}
+                        </td>
+
+                        <td style={celda}>
+                          {alumno.turno}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </>
+            )}
+          </div>
+
           <div style={contenedorTurnos}>
             <div style={bloqueTurno}>
               <div
@@ -1772,7 +1865,7 @@ const botonCurso = {
   padding: "8px 12px",
   borderRadius: "8px",
   cursor: "pointer",
-   transition: "0.2s"
+  transition: "0.2s"
 }
 
 const detalleCurso = {
@@ -1981,4 +2074,12 @@ const itemResultadoBusqueda = {
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center"
+}
+const bloqueLegajos = {
+  backgroundColor: "#f8fafc",
+  border: "1px solid #dbe4ee",
+  borderRadius: "18px",
+  padding: "20px",
+  marginBottom: "25px",
+  boxShadow: "0 3px 8px rgba(0,0,0,0.05)"
 }
