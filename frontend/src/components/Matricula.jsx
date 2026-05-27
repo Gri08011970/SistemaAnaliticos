@@ -917,282 +917,158 @@ export default function Matricula() {
               </div>
             )}
           </div>
-          <button
-            style={botonImprimir}
-            onClick={() => {
-              setVerPlanillaPrevias(!verPlanillaPrevias)
 
-              setMateriaExamen("")
-              setAnioExamen("")
-            }}
-          >
-            📋 Planilla de examen
-          </button>
+          <div style={panelHerramientas}>
+            <div style={bloqueHerramienta}>
+              <button
+                style={botonImprimir}
+                onClick={() => {
+                  setVerPlanillaPrevias(!verPlanillaPrevias)
+                  setMateriaExamen("")
+                  setAnioExamen("")
+                  setTurnoExamen("")
+                }}
+              >
+                📋 Planilla de examen
+              </button>
+            </div>
 
+            <div style={bloqueHerramienta}>
+              <h3 style={{ color: "#1e3a5f" }}>
+                🧾 Legajos por año
+              </h3>
+
+              <select
+                style={inputAlumno}
+                value={anioLegajoFiltro}
+                onChange={(e) => setAnioLegajoFiltro(e.target.value)}
+              >
+                <option value="">Seleccionar año de legajo</option>
+
+                {aniosLegajoDisponibles.map((anio) => (
+                  <option key={anio} value={anio}>
+                    {anio}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div style={bloqueHerramienta}>
+              <button
+                style={botonImprimir}
+                onClick={() => setVerRecursantes(!verRecursantes)}
+              >
+                🔁 {verRecursantes ? "Ocultar recursantes" : "Ver recursantes"}
+              </button>
+            </div>
+          </div>
           {verPlanillaPrevias && (
             <div style={detalleCurso}>
+              {/* acá pegamos después la planilla completa */}
+            </div>
+          )}
 
+          {anioLegajoFiltro && (
+            <div style={detalleCurso}>
+              {/* acá pegamos después la tabla de legajos */}
+            </div>
+          )}
+
+          {verRecursantes && (
+            <div style={detalleCurso}>
+              {/* acá pegamos después la tabla de recursantes */}
+            </div>
+          )}
+          {verPlanillaPrevias && (
+            <div style={detalleCurso}>
               <h3 style={{ color: "#1e3a5f" }}>
                 📋 Planilla de examen por previas
               </h3>
 
-              <div
-                style={{
-                  display: "flex",
-                  gap: "10px",
-                  marginBottom: "15px"
-                }}
-              >
-                <select
-                  style={inputAlumno}
-                  value={materiaExamen}
-                  onChange={(e) => setMateriaExamen(e.target.value)}
-                >
-                  <option value="">Seleccionar asignatura</option>
-
-                  {asignaturas.map((asignatura) => (
-                    <option key={asignatura} value={asignatura}>
-                      {asignatura}
-                    </option>
-                  ))}
-                </select>
-
-                <select
-                  style={inputAlumno}
-                  value={anioExamen}
-                  onChange={(e) => setAnioExamen(e.target.value)}
-                >
-                  <option value="">Seleccionar año</option>
-
-                  {aniosMateria.map((anio) => (
-                    <option key={anio} value={anio}>
-                      {anio}
-                    </option>
-                  ))}
-                </select>
-
-                <select
-                  style={inputAlumno}
-                  value={turnoExamen}
-                  onChange={(e) => setTurnoExamen(e.target.value)}
-                >
-                  <option value="">Todos los turnos</option>
-                  <option value="Mañana">Turno Mañana</option>
-                  <option value="Tarde">Turno Tarde</option>
-                </select>
-              </div>
-
-              <div id="planilla-previas-imprimir">
-                <h3 style={{ color: "#1e3a5f" }}>
-                  📋 Planilla de examen por previas
-                </h3>
-
-                <p>
-                  Cantidad de estudiantes: {alumnosParaExamen.length}
-                </p>
-
-                {alumnosParaExamen.length === 0 && (
-                  <p style={mensajeNoEncontrado}>
-                    No hay estudiantes para esa materia, año y turno.
-                  </p>
-                )}
-
-                <table style={tabla}>
-                  <thead>
-                    <tr>
-                      <th style={celda}>Apellido y Nombre</th>
-                      <th style={celda}>DNI</th>
-                      <th style={celda}>Curso</th>
-                      <th style={celda}>Turno</th>
-                      <th style={celda}>Materia</th>
-                      <th style={celda}>Año</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {alumnosParaExamen.map((alumno) =>
-                      alumno.materiasPendientes
-                        .filter((previa) => {
-                          const coincideMateria =
-                            !materiaExamen || previa.asignatura === materiaExamen
-
-                          const coincideAnio =
-                            !anioExamen || previa.anio === anioExamen
-
-                          return coincideMateria && coincideAnio
-                        })
-                        .map((previa, index) => (
-                          <tr key={`${alumno._id}-${index}`}>
-                            <td style={celda}>
-                              {alumno.apellido}, {alumno.nombre}
-                            </td>
-                            <td style={celda}>{formatearDNI(alumno.dni)}</td>
-                            <td style={celda}>{alumno.curso}</td>
-                            <td style={celda}>{alumno.turno}</td>
-                            <td style={celda}>{previa.asignatura}</td>
-                            <td style={celda}>{previa.anio}</td>
-                          </tr>
-                        ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  gap: "12px",
-                  justifyContent: "center",
-                  marginTop: "10px"
-                }}
-              >
-                <button
-                  style={botonImprimir}
-                  onClick={imprimirPlanillaPrevias}
-                >
-                  🖨️ Imprimir planilla
-                </button>
-
-                <button
-                  style={botonVolver}
-                  onClick={cerrarPlanillaPrevias}
-                >
-                  Cerrar planilla
-                </button>
-              </div>
+              <p>Acá va la planilla completa.</p>
             </div>
           )}
 
-          <div style={bloqueLegajos}>
-            <h3 style={{ color: "#1e3a5f" }}>
-              🧾 Listado de legajos por año
-            </h3>
+          {anioLegajoFiltro && (
+            <div style={detalleCurso}>
+              <h3 style={{ color: "#1e3a5f" }}>
+                🧾 Listado de legajos {anioLegajoFiltro}
+              </h3>
 
-            <select
-              style={inputAlumno}
-              value={anioLegajoFiltro}
-              onChange={(e) =>
-                setAnioLegajoFiltro(e.target.value)
-              }
-            >
-              <option value="">
-                Seleccionar año de legajo
-              </option>
+              <p>
+                Cantidad de legajos {anioLegajoFiltro}:{" "}
+                {alumnosPorLegajo.length}
+              </p>
 
-              {aniosLegajoDisponibles.map((anio) => (
-                <option key={anio} value={anio}>
-                  {anio}
-                </option>
-              ))}
-            </select>
+              <table style={tabla}>
+                <thead>
+                  <tr>
+                    <th style={celda}>Legajo</th>
+                    <th style={celda}>Apellido y Nombre</th>
+                    <th style={celda}>DNI</th>
+                    <th style={celda}>Curso</th>
+                    <th style={celda}>Turno</th>
+                  </tr>
+                </thead>
 
-            {anioLegajoFiltro && (
-              <>
-                <p>
-                  Cantidad de legajos {anioLegajoFiltro}:{" "}
-                  {alumnosPorLegajo.length}
-                </p>
-
-                <table style={tabla}>
-                  <thead>
-                    <tr>
-                      <th style={celda}>Legajo</th>
-                      <th style={celda}>Apellido y Nombre</th>
-                      <th style={celda}>DNI</th>
-                      <th style={celda}>Curso</th>
-                      <th style={celda}>Turno</th>
+                <tbody>
+                  {alumnosPorLegajo.map((alumno) => (
+                    <tr key={alumno._id}>
+                      <td style={celda}>
+                        {alumno.legajoNumero}/{alumno.legajoAnio}
+                      </td>
+                      <td style={celda}>
+                        {alumno.apellido}, {alumno.nombre}
+                      </td>
+                      <td style={celda}>{formatearDNI(alumno.dni)}</td>
+                      <td style={celda}>{alumno.curso}</td>
+                      <td style={celda}>{alumno.turno}</td>
                     </tr>
-                  </thead>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
-                  <tbody>
-                    {alumnosPorLegajo.map((alumno) => (
-                      <tr key={alumno._id}>
-                        <td style={celda}>
-                          {alumno.legajoNumero}/{alumno.legajoAnio}
-                        </td>
+          {verRecursantes && (
+            <div style={detalleCurso}>
+              <h3 style={{ color: "#1e3a5f" }}>
+                🔁 Estudiantes recursantes
+              </h3>
 
-                        <td style={celda}>
-                          {alumno.apellido}, {alumno.nombre}
-                        </td>
+              <p>Total de recursantes: {alumnosRecursantes.length}</p>
 
-                        <td style={celda}>
-                          {formatearDNI(alumno.dni)}
-                        </td>
+              <table style={tabla}>
+                <thead>
+                  <tr>
+                    <th style={celda}>Apellido y Nombre</th>
+                    <th style={celda}>DNI</th>
+                    <th style={celda}>Curso</th>
+                    <th style={celda}>Turno</th>
+                    <th style={celda}>Legajo</th>
+                  </tr>
+                </thead>
 
-                        <td style={celda}>
-                          {alumno.curso}
-                        </td>
-
-                        <td style={celda}>
-                          {alumno.turno}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </>
-            )}
-          </div>
-          <div style={bloqueLegajos}>
-            <button
-              style={botonImprimir}
-              onClick={() => setVerRecursantes(!verRecursantes)}
-            >
-              🔁 {verRecursantes ? "Ocultar recursantes" : "Ver recursantes"}
-            </button>
-
-            {verRecursantes && (
-              <>
-                <h3 style={{ color: "#1e3a5f" }}>
-                  🔁 Estudiantes recursantes
-                </h3>
-
-                <p>
-                  Total de recursantes: {alumnosRecursantes.length}
-                </p>
-
-                <table style={tabla}>
-                  <thead>
-                    <tr>
-                      <th style={celda}>Apellido y Nombre</th>
-                      <th style={celda}>DNI</th>
-                      <th style={celda}>Curso</th>
-                      <th style={celda}>Turno</th>
-                      <th style={celda}>Legajo</th>
+                <tbody>
+                  {alumnosRecursantes.map((alumno) => (
+                    <tr key={alumno._id}>
+                      <td style={celda}>
+                        {alumno.apellido}, {alumno.nombre}
+                      </td>
+                      <td style={celda}>{formatearDNI(alumno.dni)}</td>
+                      <td style={celda}>{alumno.curso}</td>
+                      <td style={celda}>{alumno.turno}</td>
+                      <td style={celda}>
+                        {alumno.legajoNumero && alumno.legajoAnio
+                          ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
+                          : "-"}
+                      </td>
                     </tr>
-                  </thead>
-
-                  <tbody>
-                    {alumnosRecursantes.map((alumno) => (
-                      <tr key={alumno._id}>
-                        <td style={celda}>
-                          {alumno.apellido}, {alumno.nombre}
-                        </td>
-
-                        <td style={celda}>
-                          {formatearDNI(alumno.dni)}
-                        </td>
-
-                        <td style={celda}>
-                          {alumno.curso}
-                        </td>
-
-                        <td style={celda}>
-                          {alumno.turno}
-                        </td>
-
-                        <td style={celda}>
-                          {alumno.legajoNumero && alumno.legajoAnio
-                            ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
-                            : "-"}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </>
-            )}
-          </div>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
           <div style={contenedorTurnos}>
             <div style={bloqueTurno}>
@@ -1912,16 +1788,16 @@ const contenedorTurnos = {
 const bloqueTurno = {
   backgroundColor: "#eef7f6",
   border: "2px solid #c7e3df",
-  padding: "32px",
+  padding: "18px 24px",
   borderRadius: "26px",
   boxShadow: "0 8px 22px rgba(0,0,0,0.08)",
-  marginBottom: "45px"
+  marginBottom: "22px"
 }
 
 const tituloTurno = {
   color: "#0f766e",
-  marginBottom: "28px",
-  fontSize: "24px",
+  marginBottom: "10px",
+  fontSize: "21px",
   textAlign: "center",
   fontWeight: "bold"
 }
@@ -2169,4 +2045,20 @@ const bloqueLegajos = {
   padding: "20px",
   marginBottom: "25px",
   boxShadow: "0 3px 8px rgba(0,0,0,0.05)"
+}
+const panelHerramientas = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+  gap: "15px",
+  marginTop: "20px",
+  marginBottom: "25px",
+  alignItems: "start"
+}
+const bloqueHerramienta = {
+  backgroundColor: "#f8fafc",
+  border: "1px solid #dbe4ee",
+  borderRadius: "18px",
+  padding: "16px",
+  boxShadow: "0 3px 8px rgba(0,0,0,0.05)",
+  textAlign: "center"
 }
