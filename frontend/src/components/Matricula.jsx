@@ -33,6 +33,7 @@ export default function Matricula() {
     "4°4°-Tarde": preceptora11
   }
   const [anioLegajoFiltro, setAnioLegajoFiltro] = useState("")
+  const [verRecursantes, setVerRecursantes] = useState(false)
 
 
   const [nuevoAlumno, setNuevoAlumno] = useState({
@@ -75,6 +76,15 @@ export default function Matricula() {
         : [],
       condicionFinal: alumno.condicionFinal || ""
     })
+
+    setTimeout(() => {
+      document
+        .getElementById("formulario-matricula")
+        ?.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        })
+    }, 100)
   }
 
   function limpiarFormulario() {
@@ -779,8 +789,8 @@ export default function Matricula() {
         .filter(Boolean)
     )
   ].sort((a, b) => Number(b) - Number(a))
-console.log(alumnosMatricula)
-console.log(aniosLegajoDisponibles)
+  console.log(alumnosMatricula)
+  console.log(aniosLegajoDisponibles)
   const alumnosPorLegajo = alumnosMatricula
     .filter((alumno) =>
       anioLegajoFiltro
@@ -791,6 +801,22 @@ console.log(aniosLegajoDisponibles)
       Number(a.legajoNumero || 0) -
       Number(b.legajoNumero || 0)
     )
+  const alumnosRecursantes = alumnosMatricula
+    .filter((alumno) => alumno.condicionFinal === "Rec")
+    .sort((a, b) => {
+      const cursoA = a.curso || ""
+      const cursoB = b.curso || ""
+
+      if (cursoA !== cursoB) {
+        return cursoA.localeCompare(cursoB, "es")
+      }
+
+      return `${a.apellido} ${a.nombre}`.localeCompare(
+        `${b.apellido} ${b.nombre}`,
+        "es",
+        { sensitivity: "base" }
+      )
+    })
 
   return (
     <div style={{ marginTop: "40px" }}>
@@ -1107,6 +1133,66 @@ console.log(aniosLegajoDisponibles)
               </>
             )}
           </div>
+          <div style={bloqueLegajos}>
+            <button
+              style={botonImprimir}
+              onClick={() => setVerRecursantes(!verRecursantes)}
+            >
+              🔁 {verRecursantes ? "Ocultar recursantes" : "Ver recursantes"}
+            </button>
+
+            {verRecursantes && (
+              <>
+                <h3 style={{ color: "#1e3a5f" }}>
+                  🔁 Estudiantes recursantes
+                </h3>
+
+                <p>
+                  Total de recursantes: {alumnosRecursantes.length}
+                </p>
+
+                <table style={tabla}>
+                  <thead>
+                    <tr>
+                      <th style={celda}>Apellido y Nombre</th>
+                      <th style={celda}>DNI</th>
+                      <th style={celda}>Curso</th>
+                      <th style={celda}>Turno</th>
+                      <th style={celda}>Legajo</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {alumnosRecursantes.map((alumno) => (
+                      <tr key={alumno._id}>
+                        <td style={celda}>
+                          {alumno.apellido}, {alumno.nombre}
+                        </td>
+
+                        <td style={celda}>
+                          {formatearDNI(alumno.dni)}
+                        </td>
+
+                        <td style={celda}>
+                          {alumno.curso}
+                        </td>
+
+                        <td style={celda}>
+                          {alumno.turno}
+                        </td>
+
+                        <td style={celda}>
+                          {alumno.legajoNumero && alumno.legajoAnio
+                            ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
+                            : "-"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </>
+            )}
+          </div>
 
           <div style={contenedorTurnos}>
             <div style={bloqueTurno}>
@@ -1368,6 +1454,7 @@ console.log(aniosLegajoDisponibles)
               </div>
             </div>
             <div
+              id="formulario-matricula"
               style={formularioAlumno}
               className="no-print"
             >
