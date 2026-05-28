@@ -34,7 +34,8 @@ export default function Matricula() {
   }
   const [anioLegajoFiltro, setAnioLegajoFiltro] = useState("")
   const [verRecursantes, setVerRecursantes] = useState(false)
-
+  const [filtroAvanzado, setFiltroAvanzado] = useState("todos")
+  const [alertaActiva, setAlertaActiva] = useState("")
 
   const [nuevoAlumno, setNuevoAlumno] = useState({
     apellido: "",
@@ -280,25 +281,41 @@ export default function Matricula() {
     : []
 
   const alumnosFiltrados = alumnosDelCurso.filter((alumno) => {
+    const coincidePrevia =
+      !filtroPrevia && !filtroAnioPrevia
+        ? true
+        : alumno.materiasPendientes?.some((previa) => {
+          const coincideMateria =
+            !filtroPrevia || previa.asignatura === filtroPrevia
 
-    if (!filtroPrevia && !filtroAnioPrevia) {
+          const coincideAnio =
+            !filtroAnioPrevia || previa.anio === filtroAnioPrevia
+
+          return coincideMateria && coincideAnio
+        })
+
+    const coincideAvanzado = (() => {
+      if (filtroAvanzado === "todos") return true
+      if (filtroAvanzado === "prom") return alumno.condicionFinal === "Prom"
+      if (filtroAvanzado === "rec") return alumno.condicionFinal === "Rec"
+
+      if (filtroAvanzado === "previas") {
+        return alumno.materiasPendientes?.length > 0
+      }
+
+      if (filtroAvanzado === "sinLegajo") {
+        return !alumno.legajoNumero || !alumno.legajoAnio
+      }
+
+      if (filtroAvanzado === "sobreedad") {
+        return tieneSobreedad(alumno)
+      }
+
       return true
-    }
+    })()
 
-    return alumno.materiasPendientes?.some((previa) => {
-
-      const coincideMateria =
-        !filtroPrevia ||
-        previa.asignatura === filtroPrevia
-
-      const coincideAnio =
-        !filtroAnioPrevia ||
-        previa.anio === filtroAnioPrevia
-
-      return coincideMateria && coincideAnio
-    })
+    return coincidePrevia && coincideAvanzado
   })
-
   function contarAlumnos(curso, turno) {
     return alumnosMatricula.filter(
       (alumno) =>
@@ -407,6 +424,29 @@ export default function Matricula() {
   function imprimirCurso() {
     if (!cursoSeleccionado) return
 
+    const mostrarLegajo = alumnosFiltrados.some(
+      (alumno) =>
+        alumno.legajoNumero || alumno.legajoAnio
+    )
+
+    const mostrarPendientes = alumnosFiltrados.some(
+      (alumno) =>
+        Array.isArray(alumno.materiasPendientes) &&
+        alumno.materiasPendientes.length > 0
+    )
+
+    const mostrarCondicion = alumnosFiltrados.some(
+      (alumno) => alumno.condicionFinal
+    )
+    const mostrarFechaNacimiento = alumnosFiltrados.some(
+      (alumno) => alumno.fechaNacimiento
+    )
+
+    const mostrarEdad = alumnosFiltrados.some(
+      (alumno) => alumno.fechaNacimiento
+    )
+
+
     const filas = alumnosFiltrados
       .map(
         (alumno, index) => `
@@ -420,14 +460,30 @@ export default function Matricula() {
             : "-"
           }
           </td>
-          <td>${formatearFecha(alumno.fechaNacimiento)}</td>
-          <td>${calcularEdadAl30Junio(alumno.fechaNacimiento)}</td>
-          <td>${alumno.condicionFinal || ""}</td>
+          <td>${mostrarFechaNacimiento
+            ? `<td>${formatearFecha(alumno.fechaNacimiento)}</td>`
+            : ""
+          }
+          </td>
+          <td>${mostrarEdad
+            ? `<td>${calcularEdadAl30Junio(alumno.fechaNacimiento)}</td>`
+            : ""
+          }</td>
+          <td>${mostrarCondicion
+            ? `<td>${alumno.condicionFinal || ""}</td>`
+            : ""
+          }
+          </td>
           <td>
-            ${Array.isArray(alumno.materiasPendientes)
-            ? alumno.materiasPendientes
-              .map((previa) => `${previa.asignatura} (${previa.anio})`)
-              .join(", ")
+            ${mostrarPendientes
+            ? `<td>
+        ${Array.isArray(alumno.materiasPendientes)
+              ? alumno.materiasPendientes
+                .map((previa) => `${previa.asignatura} (${previa.anio})`)
+                .join(", ")
+              : ""
+            }
+      </td>`
             : ""
           }
           </td>
@@ -516,11 +572,11 @@ export default function Matricula() {
               <th>N°</th>
               <th>Apellido y Nombre</th>
               <th>DNI</th>
-              <th>Legajo</th>
-              <th>Fecha nac.</th>
-              <th>Edad</th>
-              <th>Cond.</th>
-              <th>Pendientes</th>
+              ${mostrarLegajo ? "<th>Legajo</th>" : ""}
+              <th>${mostrarFechaNacimiento ? "<th>Fecha nac.</th>" : ""}</th>
+              <th>${mostrarEdad ? "<th>Edad</th>" : ""}</th>
+              <th>${mostrarCondicion ? "<th>Cond.</th>" : ""}</th>
+              <th>${mostrarPendientes ? "<th>Pendientes</th>" : ""}</th>
             </tr>
           </thead>
 
@@ -891,153 +947,733 @@ export default function Matricula() {
       )
     })
 
- return (
-  <div style={{ marginTop: "40px" }}>
-    <h2 style={{ color: "#1e3a5f" }}>
-      Gestión de Matrícula
-    </h2>
+  const alumnosSinLegajo = alumnosMatricula.filter(
+    (alumno) => !alumno.legajoNumero || !alumno.legajoAnio
+  )
 
-    <p style={{ color: "#666" }}>
-      Organización por turno, año y sección.
-    </p>
+  const alumnosSinFechaNacimiento = alumnosMatricula.filter(
+    (alumno) => !alumno.fechaNacimiento
+  )
 
-    {!cursoSeleccionado && (
-      <>
-        {verEstadisticasGeneral && (
-          <div style={bloqueEstadisticas}>
-            <div style={tarjetaEstadistica}>
-              <h3>Total general</h3>
-              <p>{totalGeneral}</p>
-            </div>
+  const alumnosConPrevias = alumnosMatricula.filter(
+    (alumno) => alumno.materiasPendientes?.length > 0
+  )
 
-            <div style={tarjetaEstadistica}>
-              <h3>turno mañana</h3>
-              <p>{totalManana}</p>
-            </div>
+  const alumnosConSobreedad = alumnosMatricula.filter(
+    (alumno) => tieneSobreedad(alumno)
+  )
 
-            <div style={tarjetaEstadistica}>
-              <h3>Turno Tarde</h3>
-              <p>{totalTarde}</p>
-            </div>
+  const alumnosAlertaActiva =
+    alertaActiva === "sinLegajo"
+      ? alumnosSinLegajo
+      : alertaActiva === "sinFecha"
+        ? alumnosSinFechaNacimiento
+        : alertaActiva === "previas"
+          ? alumnosConPrevias
+          : alertaActiva === "sobreedad"
+            ? alumnosConSobreedad
+            : []
 
-            <div style={tarjetaEstadistica}>
-              <h3>Ciclo básico</h3>
-              <p>{cicloBasico}</p>
-            </div>
+  return (
+    <div style={{ marginTop: "40px" }}>
+      <h2 style={{ color: "#1e3a5f" }}>
+        Gestión de Matrícula
+      </h2>
 
-            <div style={tarjetaEstadistica}>
-              <h3>Ciclo superior</h3>
-              <p>{cicloSuperior}</p>
-            </div>
-          </div>
-        )}
+      <p style={{ color: "#666" }}>
+        Organización por turno, año y sección.
+      </p>
 
-        <div style={bloqueBusquedaGeneral}>
-          <h3 style={{ color: "#1e3a5f" }}>
-            🔎 Buscar estudiante
-          </h3>
+      {!cursoSeleccionado && (
+        <>
+          {verEstadisticasGeneral && (
+            <div style={bloqueEstadisticas}>
+              <div style={tarjetaEstadistica}>
+                <h3>Total general</h3>
+                <p>{totalGeneral}</p>
+              </div>
 
-          <input
-            type="text"
-            placeholder="Apellido, nombre o DNI"
-            style={inputBusquedaGeneral}
-            value={busquedaAlumno}
-            onChange={(e) => setBusquedaAlumno(e.target.value)}
-          />
+              <div style={tarjetaEstadistica}>
+                <h3>turno mañana</h3>
+                <p>{totalManana}</p>
+              </div>
 
-          {busquedaAlumno && (
-            <div style={listaResultadosBusqueda}>
-              {alumnosEncontrados.length > 0 ? (
-                alumnosEncontrados.map((alumno) => (
-                  <div key={alumno._id} style={itemResultadoBusqueda}>
-                    <div>
-                      <strong>
-                        {alumno.apellido}, {alumno.nombre}
-                      </strong>
-                      <p style={{ margin: 0 }}>
-                        {alumno.curso} • Turno {alumno.turno}
-                      </p>
-                    </div>
+              <div style={tarjetaEstadistica}>
+                <h3>Turno Tarde</h3>
+                <p>{totalTarde}</p>
+              </div>
 
-                    <button
-                      style={botonEditar}
-                      onClick={() => {
-                        setCursoSeleccionado({
-                          curso: alumno.curso,
-                          turno: alumno.turno
-                        })
-                        editarAlumno(alumno)
-                      }}
-                    >
-                      ✏️
-                    </button>
-                  </div>
-                ))
-              ) : (
-                <p>No se encontraron estudiantes.</p>
-              )}
+              <div style={tarjetaEstadistica}>
+                <h3>Ciclo básico</h3>
+                <p>{cicloBasico}</p>
+              </div>
+
+              <div style={tarjetaEstadistica}>
+                <h3>Ciclo superior</h3>
+                <p>{cicloSuperior}</p>
+              </div>
             </div>
           )}
-        </div>
 
-        <div style={panelHerramientas}>
-          <div style={bloqueHerramienta}>
-            <button
-              style={botonImprimir}
-              onClick={() => {
-                setVerPlanillaPrevias(!verPlanillaPrevias)
-                setMateriaExamen("")
-                setAnioExamen("")
-                setTurnoExamen("")
-              }}
-            >
-              📋 Planilla de examen
-            </button>
-          </div>
-
-          <div style={bloqueHerramienta}>
-            <h3 style={{ color: "#1e3a5f" }}>
-              🧾 Legajos por año
+          <div style={panelAlertas}>
+            <h3 style={{ color: "#1e3a5f", textAlign: "center" }}>
+              🚨 Alertas institucionales
             </h3>
 
-            <select
-              style={inputAlumno}
-              value={anioLegajoFiltro}
-              onChange={(e) => setAnioLegajoFiltro(e.target.value)}
-            >
-              <option value="">Seleccionar año de legajo</option>
+            <div style={grillaAlertas}>
+              <div style={tarjetaAlerta} onClick={() => setAlertaActiva("sinLegajo")}>
+                <strong>Sin legajo</strong>
+                <p>{alumnosSinLegajo.length}</p>
+              </div>
 
-              {aniosLegajoDisponibles.map((anio) => (
-                <option key={anio} value={anio}>
-                  {anio}
-                </option>
-              ))}
-            </select>
+              <div style={tarjetaAlerta} onClick={() => setAlertaActiva("sinFecha")}>
+                <strong>Sin fecha nacimiento</strong>
+                <p>{alumnosSinFechaNacimiento.length}</p>
+              </div>
+
+              <div style={tarjetaAlerta} onClick={() => setAlertaActiva("previas")}>
+                <strong>Con previas</strong>
+                <p>{alumnosConPrevias.length}</p>
+              </div>
+
+              <div style={tarjetaAlerta} onClick={() => setAlertaActiva("sobreedad")}>
+                <strong>Sobreedad</strong>
+                <p>{alumnosConSobreedad.length}</p>
+              </div>
+            </div>
           </div>
 
-          <div style={bloqueHerramienta}>
-            <button
-              style={botonImprimir}
-              onClick={() => setVerRecursantes(!verRecursantes)}
-            >
-              🔁 {verRecursantes ? "Ocultar recursantes" : "Ver recursantes"}
-            </button>
-          </div>
-        </div>
+          {alertaActiva && (
+            <div style={detalleCurso}>
+              <h3 style={{ color: "#1e3a5f" }}>
+                🚨 Listado de alerta
+              </h3>
 
-        {verPlanillaPrevias && (
-          <div style={detalleCurso}>
+              <button style={botonVolver} onClick={() => setAlertaActiva("")}>
+                Cerrar alerta
+              </button>
+
+              <p>Cantidad: {alumnosAlertaActiva.length}</p>
+
+              <table style={tabla}>
+                <thead>
+                  <tr>
+                    <th style={celda}>Apellido y Nombre</th>
+                    <th style={celda}>DNI</th>
+                    <th style={celda}>Curso</th>
+                    <th style={celda}>Turno</th>
+                    <th style={celda}>Legajo</th>
+                    <th style={celda}>Detalle de alerta</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {alumnosAlertaActiva.map((alumno) => (
+                    <tr key={alumno._id}>
+                      <td style={celda}>
+                        {alumno.apellido}, {alumno.nombre}
+                      </td>
+                      <td style={celda}>{formatearDNI(alumno.dni)}</td>
+                      <td style={celda}>{alumno.curso}</td>
+                      <td style={celda}>{alumno.turno}</td>
+                      <td style={celda}>
+                        {alumno.legajoNumero && alumno.legajoAnio
+                          ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
+                          : "-"}
+                      </td>
+                      <td style={celda}>
+                        {alertaActiva === "sinLegajo" && "Falta número o año de legajo"}
+
+                        {alertaActiva === "sinFecha" && "Falta fecha de nacimiento"}
+
+                        {alertaActiva === "previas" &&
+                          alumno.materiasPendientes
+                            ?.map((previa) => `${previa.asignatura} (${previa.anio})`)
+                            .join(", ")}
+
+                        {alertaActiva === "sobreedad" &&
+                          `${calcularEdadAl30Junio(alumno.fechaNacimiento)} años`}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          <div style={bloqueBusquedaGeneral}>
             <h3 style={{ color: "#1e3a5f" }}>
-              📋 Planilla de examen por previas
+              🔎 Buscar estudiante
             </h3>
 
-            <div style={{ display: "flex", gap: "10px", marginBottom: "15px" }}>
+            <input
+              type="text"
+              placeholder="Apellido, nombre o DNI"
+              style={inputBusquedaGeneral}
+              value={busquedaAlumno}
+              onChange={(e) => setBusquedaAlumno(e.target.value)}
+            />
+
+            {busquedaAlumno && (
+              <div style={listaResultadosBusqueda}>
+                {alumnosEncontrados.length > 0 ? (
+                  alumnosEncontrados.map((alumno) => (
+                    <div key={alumno._id} style={itemResultadoBusqueda}>
+                      <div>
+                        <strong>
+                          {alumno.apellido}, {alumno.nombre}
+                        </strong>
+                        <p style={{ margin: 0 }}>
+                          {alumno.curso} • Turno {alumno.turno}
+                        </p>
+                      </div>
+
+                      <button
+                        style={botonEditar}
+                        onClick={() => {
+                          setCursoSeleccionado({
+                            curso: alumno.curso,
+                            turno: alumno.turno
+                          })
+                          editarAlumno(alumno)
+                        }}
+                      >
+                        ✏️
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <p>No se encontraron estudiantes.</p>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div style={panelHerramientas}>
+            <div style={bloqueHerramienta}>
+              <button
+                style={botonImprimir}
+                onClick={() => {
+                  setVerPlanillaPrevias(!verPlanillaPrevias)
+                  setMateriaExamen("")
+                  setAnioExamen("")
+                  setTurnoExamen("")
+                }}
+              >
+                📋 Planilla de examen
+              </button>
+            </div>
+
+            <div style={bloqueHerramienta}>
+              <h3 style={{ color: "#1e3a5f" }}>
+                🧾 Legajos por año
+              </h3>
+
               <select
                 style={inputAlumno}
-                value={materiaExamen}
-                onChange={(e) => setMateriaExamen(e.target.value)}
+                value={anioLegajoFiltro}
+                onChange={(e) => setAnioLegajoFiltro(e.target.value)}
               >
-                <option value="">Seleccionar asignatura</option>
+                <option value="">Seleccionar año de legajo</option>
+
+                {aniosLegajoDisponibles.map((anio) => (
+                  <option key={anio} value={anio}>
+                    {anio}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div style={bloqueHerramienta}>
+              <button
+                style={botonImprimir}
+                onClick={() => setVerRecursantes(!verRecursantes)}
+              >
+                🔁 {verRecursantes ? "Ocultar recursantes" : "Ver recursantes"}
+              </button>
+            </div>
+          </div>
+
+          {verPlanillaPrevias && (
+            <div style={detalleCurso}>
+              <h3 style={{ color: "#1e3a5f" }}>
+                📋 Planilla de examen por previas
+              </h3>
+
+              <div style={{ display: "flex", gap: "10px", marginBottom: "15px" }}>
+                <select
+                  style={inputAlumno}
+                  value={materiaExamen}
+                  onChange={(e) => setMateriaExamen(e.target.value)}
+                >
+                  <option value="">Seleccionar asignatura</option>
+                  {asignaturas.map((asignatura) => (
+                    <option key={asignatura} value={asignatura}>
+                      {asignatura}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  style={inputAlumno}
+                  value={anioExamen}
+                  onChange={(e) => setAnioExamen(e.target.value)}
+                >
+                  <option value="">Seleccionar año</option>
+                  {aniosMateria.map((anio) => (
+                    <option key={anio} value={anio}>
+                      {anio}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  style={inputAlumno}
+                  value={turnoExamen}
+                  onChange={(e) => setTurnoExamen(e.target.value)}
+                >
+                  <option value="">Todos los turnos</option>
+                  <option value="Mañana">Turno Mañana</option>
+                  <option value="Tarde">Turno Tarde</option>
+                </select>
+              </div>
+
+              <div id="planilla-previas-imprimir">
+                <h3 style={{ color: "#1e3a5f" }}>
+                  📋 Planilla de examen por previas
+                </h3>
+
+                <p>Cantidad de estudiantes: {alumnosParaExamen.length}</p>
+
+                {alumnosParaExamen.length === 0 && (
+                  <p style={mensajeNoEncontrado}>
+                    No hay estudiantes para esa materia, año y turno.
+                  </p>
+                )}
+
+                <table style={tabla}>
+                  <thead>
+                    <tr>
+                      <th style={celda}>Apellido y Nombre</th>
+                      <th style={celda}>DNI</th>
+                      <th style={celda}>Curso</th>
+                      <th style={celda}>Turno</th>
+                      <th style={celda}>Materia</th>
+                      <th style={celda}>Año</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {alumnosParaExamen.map((alumno) =>
+                      alumno.materiasPendientes
+                        .filter((previa) => {
+                          const coincideMateria =
+                            !materiaExamen || previa.asignatura === materiaExamen
+
+                          const coincideAnio =
+                            !anioExamen || previa.anio === anioExamen
+
+                          return coincideMateria && coincideAnio
+                        })
+                        .map((previa, index) => (
+                          <tr key={`${alumno._id}-${index}`}>
+                            <td style={celda}>
+                              {alumno.apellido}, {alumno.nombre}
+                            </td>
+                            <td style={celda}>{formatearDNI(alumno.dni)}</td>
+                            <td style={celda}>{alumno.curso}</td>
+                            <td style={celda}>{alumno.turno}</td>
+                            <td style={celda}>{previa.asignatura}</td>
+                            <td style={celda}>{previa.anio}</td>
+                          </tr>
+                        ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: "12px",
+                  justifyContent: "center",
+                  marginTop: "10px"
+                }}
+              >
+                <button style={botonImprimir} onClick={imprimirPlanillaPrevias}>
+                  🖨️ Imprimir planilla
+                </button>
+
+                <button style={botonVolver} onClick={cerrarPlanillaPrevias}>
+                  Cerrar planilla
+                </button>
+              </div>
+            </div>
+          )}
+
+          {anioLegajoFiltro && (
+            <div style={detalleCurso}>
+              <h3 style={{ color: "#1e3a5f" }}>
+                🧾 Listado de legajos {anioLegajoFiltro}
+              </h3>
+
+              <p>
+                Cantidad de legajos {anioLegajoFiltro}: {alumnosPorLegajo.length}
+              </p>
+
+              <table style={tabla}>
+                <thead>
+                  <tr>
+                    <th style={celda}>Legajo</th>
+                    <th style={celda}>Apellido y Nombre</th>
+                    <th style={celda}>DNI</th>
+                    <th style={celda}>Curso</th>
+                    <th style={celda}>Turno</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {alumnosPorLegajo.map((alumno) => (
+                    <tr key={alumno._id}>
+                      <td style={celda}>
+                        ${
+                          mostrarLegajo
+                            ? `
+      <td>
+        ${alumno.legajoNumero && alumno.legajoAnio
+                              ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
+                              : "-"
+                            }
+      </td>
+    `
+                            : ""
+                        }
+                      </td>
+                      <td style={celda}>
+                        {alumno.apellido}, {alumno.nombre}
+                      </td>
+                      <td style={celda}>{formatearDNI(alumno.dni)}</td>
+                      <td style={celda}>{alumno.curso}</td>
+                      <td style={celda}>{alumno.turno}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {verRecursantes && (
+            <div style={detalleCurso}>
+              <h3 style={{ color: "#1e3a5f" }}>
+                🔁 Estudiantes recursantes
+              </h3>
+
+              <p>Total de recursantes: {alumnosRecursantes.length}</p>
+
+              <table style={tabla}>
+                <thead>
+                  <tr>
+                    <th style={celda}>Apellido y Nombre</th>
+                    <th style={celda}>DNI</th>
+                    <th style={celda}>Curso</th>
+                    <th style={celda}>Turno</th>
+                    <th style={celda}>Legajo</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {alumnosRecursantes.map((alumno) => (
+                    <tr key={alumno._id}>
+                      <td style={celda}>
+                        {alumno.apellido}, {alumno.nombre}
+                      </td>
+                      <td style={celda}>{formatearDNI(alumno.dni)}</td>
+                      <td style={celda}>{alumno.curso}</td>
+                      <td style={celda}>{alumno.turno}</td>
+                      <td style={celda}>
+                        {alumno.legajoNumero && alumno.legajoAnio
+                          ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
+                          : "-"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          <div style={contenedorTurnos}>
+            <div style={bloqueTurno}>
+              <div
+                onClick={() => setMostrarTurnoManana(!mostrarTurnoManana)}
+                style={{
+                  ...tituloTurno,
+                  cursor: "pointer",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center"
+                }}
+              >
+                <span>📚 Turno Mañana</span>
+
+                <span style={{ fontSize: "18px" }}>
+                  {mostrarTurnoManana ? "▼" : "▶"}
+                </span>
+              </div>
+
+              {mostrarTurnoManana && (
+                <div style={grillaCursos}>
+                  {cursosManana.map((curso) => (
+                    <div
+                      key={curso}
+                      style={{
+                        ...tarjetaCurso,
+                        backgroundImage: fotosPreceptores[`${curso}-Mañana`]
+                          ? `linear-gradient(rgba(255,255,255,0.50), rgba(255,255,255,0.50)), url(${fotosPreceptores[`${curso}-Mañana`]})`
+                          : "none",
+                        backgroundSize: "cover",
+                        backgroundPosition: "center"
+                      }}
+                    >
+                      <h4>{curso}</h4>
+
+                      <p style={textoCantidad}>
+                        {contarAlumnos(curso, "Mañana")} estudiantes
+                      </p>
+
+                      <button
+                        style={botonCurso}
+                        onClick={() =>
+                          setCursoSeleccionado({
+                            curso,
+                            turno: "Mañana"
+                          })
+                        }
+                      >
+                        Ver curso
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div style={bloqueTurno}>
+              <div
+                onClick={() => setMostrarTurnoTarde(!mostrarTurnoTarde)}
+                style={{
+                  ...tituloTurno,
+                  cursor: "pointer",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center"
+                }}
+              >
+                <span>📚 Turno Tarde</span>
+
+                <span style={{ fontSize: "18px" }}>
+                  {mostrarTurnoTarde ? "▼" : "▶"}
+                </span>
+              </div>
+
+              {mostrarTurnoTarde && (
+                <div style={grillaCursos}>
+                  {cursosTarde.map((curso) => (
+                    <div
+                      key={curso}
+                      style={{
+                        ...tarjetaCurso,
+                        backgroundImage: fotosPreceptores[`${curso}-Tarde`]
+                          ? `linear-gradient(rgba(255,255,255,0.50), rgba(255,255,255,0.50)), url(${fotosPreceptores[`${curso}-Tarde`]})`
+                          : "none",
+                        backgroundSize: "cover",
+                        backgroundPosition: "center"
+                      }}
+                    >
+                      <h4>{curso}</h4>
+
+                      <p style={textoCantidad}>
+                        {contarAlumnos(curso, "Tarde")} estudiantes
+                      </p>
+
+                      <button
+                        style={botonCurso}
+                        onClick={() =>
+                          setCursoSeleccionado({
+                            curso,
+                            turno: "Tarde"
+                          })
+                        }
+                      >
+                        Ver curso
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
+      {cursoSeleccionado && (
+        <div style={detalleCurso} className="area-impresion">
+          <div className="no-print">
+            <button style={botonVolver} onClick={() => setCursoSeleccionado(null)}>
+              Volver a todos los cursos
+            </button>
+
+            <button style={botonImprimir} onClick={imprimirCurso}>
+              🖨️ Imprimir curso
+            </button>
+
+            <button
+              style={botonImprimir}
+              onClick={() => setVerEstadisticasCurso(!verEstadisticasCurso)}
+            >
+              📊 Estadísticas
+            </button>
+
+            <button style={botonImprimir} onClick={exportarExcel}>
+              Exportar Excel
+            </button>
+          </div>
+
+          <div id="curso-imprimir">
+            <h3 style={{ color: "#1e3a5f" }}>
+              Curso: {cursoSeleccionado.curso} - Turno {cursoSeleccionado.turno}
+            </h3>
+
+            <p>Cantidad de estudiantes: {alumnosDelCurso.length}</p>
+
+            {verEstadisticasCurso && (
+              <>
+                <div style={bloqueEstadisticas}>
+                  <div style={tarjetaEstadistica}>
+                    <h3>Total</h3>
+                    <p>{totalEstudiantes}</p>
+                  </div>
+
+                  <div style={tarjetaEstadistica}>
+                    <h3>Prom</h3>
+                    <p>{totalProm} ({porcentajeProm}%)</p>
+                  </div>
+
+                  <div style={tarjetaEstadistica}>
+                    <h3>Rec</h3>
+                    <p>{totalRec} ({porcentajeRec}%)</p>
+                  </div>
+
+                  <div style={tarjetaEstadistica}>
+                    <h3>Con previas</h3>
+                    <p>{totalConPrevias}</p>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    ...tarjetaEstadistica,
+                    maxWidth: "180px",
+                    margin: "20px auto 10px auto"
+                  }}
+                >
+                  <h3>Sobreedad</h3>
+                  <p>{totalSobreedad}</p>
+                </div>
+              </>
+            )}
+
+            <div style={bloqueEdades}>
+              <h3 style={{ color: "#1e3a5f" }}>
+                Edades del curso
+              </h3>
+
+              <div style={grillaEdades}>
+                {Object.entries(edadesDelCurso)
+                  .sort((a, b) => Number(a[0]) - Number(b[0]))
+                  .map(([edad, cantidad]) => (
+                    <div key={edad} style={tarjetaEdad}>
+                      <strong>{edad} años</strong>
+                      <p>{cantidad}</p>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="no-print" style={{ marginTop: "10px", marginBottom: "15px" }}>
+            <input
+              type="file"
+              accept=".xls,.xlsx"
+              onChange={importarReporteOficial}
+            />
+          </div>
+
+          <div
+            id="formulario-matricula"
+            style={formularioAlumno}
+            className="no-print"
+          >
+            <input
+              placeholder="Apellido"
+              style={inputAlumno}
+              value={nuevoAlumno.apellido}
+              onChange={(e) =>
+                setNuevoAlumno({ ...nuevoAlumno, apellido: e.target.value })
+              }
+            />
+
+            <input
+              placeholder="Nombre"
+              style={inputAlumno}
+              value={nuevoAlumno.nombre}
+              onChange={(e) =>
+                setNuevoAlumno({ ...nuevoAlumno, nombre: e.target.value })
+              }
+            />
+
+            <input
+              placeholder="DNI"
+              style={inputAlumno}
+              value={nuevoAlumno.dni}
+              onChange={(e) =>
+                setNuevoAlumno({ ...nuevoAlumno, dni: e.target.value })
+              }
+            />
+
+            <input
+              placeholder="N° legajo"
+              style={inputAlumno}
+              value={nuevoAlumno.legajoNumero}
+              onChange={(e) =>
+                setNuevoAlumno({ ...nuevoAlumno, legajoNumero: e.target.value })
+              }
+            />
+
+            <input
+              placeholder="Año legajo"
+              style={inputAlumno}
+              value={nuevoAlumno.legajoAnio}
+              onChange={(e) =>
+                setNuevoAlumno({ ...nuevoAlumno, legajoAnio: e.target.value })
+              }
+            />
+
+            <input
+              type="date"
+              style={inputAlumno}
+              value={nuevoAlumno.fechaNacimiento}
+              onChange={(e) =>
+                setNuevoAlumno({ ...nuevoAlumno, fechaNacimiento: e.target.value })
+              }
+            />
+
+            <div style={bloquePrevias}>
+              <select
+                style={inputAlumno}
+                value={previaSeleccionada}
+                onChange={(e) => setPreviaSeleccionada(e.target.value)}
+              >
+                <option value="">Asignatura</option>
                 {asignaturas.map((asignatura) => (
                   <option key={asignatura} value={asignatura}>
                     {asignatura}
@@ -1047,10 +1683,10 @@ export default function Matricula() {
 
               <select
                 style={inputAlumno}
-                value={anioExamen}
-                onChange={(e) => setAnioExamen(e.target.value)}
+                value={anioPrevia}
+                onChange={(e) => setAnioPrevia(e.target.value)}
               >
-                <option value="">Seleccionar año</option>
+                <option value="">Año</option>
                 {aniosMateria.map((anio) => (
                   <option key={anio} value={anio}>
                     {anio}
@@ -1058,693 +1694,271 @@ export default function Matricula() {
                 ))}
               </select>
 
-              <select
-                style={inputAlumno}
-                value={turnoExamen}
-                onChange={(e) => setTurnoExamen(e.target.value)}
+              <button
+                type="button"
+                style={botonAgregarPrevia}
+                onClick={agregarPrevia}
               >
-                <option value="">Todos los turnos</option>
-                <option value="Mañana">Turno Mañana</option>
-                <option value="Tarde">Turno Tarde</option>
-              </select>
-            </div>
-
-            <div id="planilla-previas-imprimir">
-              <h3 style={{ color: "#1e3a5f" }}>
-                📋 Planilla de examen por previas
-              </h3>
-
-              <p>Cantidad de estudiantes: {alumnosParaExamen.length}</p>
-
-              {alumnosParaExamen.length === 0 && (
-                <p style={mensajeNoEncontrado}>
-                  No hay estudiantes para esa materia, año y turno.
-                </p>
-              )}
-
-              <table style={tabla}>
-                <thead>
-                  <tr>
-                    <th style={celda}>Apellido y Nombre</th>
-                    <th style={celda}>DNI</th>
-                    <th style={celda}>Curso</th>
-                    <th style={celda}>Turno</th>
-                    <th style={celda}>Materia</th>
-                    <th style={celda}>Año</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {alumnosParaExamen.map((alumno) =>
-                    alumno.materiasPendientes
-                      .filter((previa) => {
-                        const coincideMateria =
-                          !materiaExamen || previa.asignatura === materiaExamen
-
-                        const coincideAnio =
-                          !anioExamen || previa.anio === anioExamen
-
-                        return coincideMateria && coincideAnio
-                      })
-                      .map((previa, index) => (
-                        <tr key={`${alumno._id}-${index}`}>
-                          <td style={celda}>
-                            {alumno.apellido}, {alumno.nombre}
-                          </td>
-                          <td style={celda}>{formatearDNI(alumno.dni)}</td>
-                          <td style={celda}>{alumno.curso}</td>
-                          <td style={celda}>{alumno.turno}</td>
-                          <td style={celda}>{previa.asignatura}</td>
-                          <td style={celda}>{previa.anio}</td>
-                        </tr>
-                      ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                gap: "12px",
-                justifyContent: "center",
-                marginTop: "10px"
-              }}
-            >
-              <button style={botonImprimir} onClick={imprimirPlanillaPrevias}>
-                🖨️ Imprimir planilla
-              </button>
-
-              <button style={botonVolver} onClick={cerrarPlanillaPrevias}>
-                Cerrar planilla
+                Agregar previa
               </button>
             </div>
-          </div>
-        )}
 
-        {anioLegajoFiltro && (
-          <div style={detalleCurso}>
-            <h3 style={{ color: "#1e3a5f" }}>
-              🧾 Listado de legajos {anioLegajoFiltro}
-            </h3>
+            <div style={{ marginTop: "8px" }}>
+              {nuevoAlumno.materiasPendientes.map((previa, index) => (
+                <div
+                  key={index}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    marginBottom: "5px"
+                  }}
+                >
+                  <span>
+                    • {previa.asignatura} ({previa.anio})
+                  </span>
 
-            <p>
-              Cantidad de legajos {anioLegajoFiltro}: {alumnosPorLegajo.length}
-            </p>
-
-            <table style={tabla}>
-              <thead>
-                <tr>
-                  <th style={celda}>Legajo</th>
-                  <th style={celda}>Apellido y Nombre</th>
-                  <th style={celda}>DNI</th>
-                  <th style={celda}>Curso</th>
-                  <th style={celda}>Turno</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {alumnosPorLegajo.map((alumno) => (
-                  <tr key={alumno._id}>
-                    <td style={celda}>
-                      {alumno.legajoNumero}/{alumno.legajoAnio}
-                    </td>
-                    <td style={celda}>
-                      {alumno.apellido}, {alumno.nombre}
-                    </td>
-                    <td style={celda}>{formatearDNI(alumno.dni)}</td>
-                    <td style={celda}>{alumno.curso}</td>
-                    <td style={celda}>{alumno.turno}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {verRecursantes && (
-          <div style={detalleCurso}>
-            <h3 style={{ color: "#1e3a5f" }}>
-              🔁 Estudiantes recursantes
-            </h3>
-
-            <p>Total de recursantes: {alumnosRecursantes.length}</p>
-
-            <table style={tabla}>
-              <thead>
-                <tr>
-                  <th style={celda}>Apellido y Nombre</th>
-                  <th style={celda}>DNI</th>
-                  <th style={celda}>Curso</th>
-                  <th style={celda}>Turno</th>
-                  <th style={celda}>Legajo</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {alumnosRecursantes.map((alumno) => (
-                  <tr key={alumno._id}>
-                    <td style={celda}>
-                      {alumno.apellido}, {alumno.nombre}
-                    </td>
-                    <td style={celda}>{formatearDNI(alumno.dni)}</td>
-                    <td style={celda}>{alumno.curso}</td>
-                    <td style={celda}>{alumno.turno}</td>
-                    <td style={celda}>
-                      {alumno.legajoNumero && alumno.legajoAnio
-                        ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
-                        : "-"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        <div style={contenedorTurnos}>
-          <div style={bloqueTurno}>
-            <div
-              onClick={() => setMostrarTurnoManana(!mostrarTurnoManana)}
-              style={{
-                ...tituloTurno,
-                cursor: "pointer",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center"
-              }}
-            >
-              <span>📚 Turno Mañana</span>
-
-              <span style={{ fontSize: "18px" }}>
-                {mostrarTurnoManana ? "▼" : "▶"}
-              </span>
-            </div>
-
-            {mostrarTurnoManana && (
-              <div style={grillaCursos}>
-                {cursosManana.map((curso) => (
-                  <div
-                    key={curso}
-                    style={{
-                      ...tarjetaCurso,
-                      backgroundImage: fotosPreceptores[`${curso}-Mañana`]
-                        ? `linear-gradient(rgba(255,255,255,0.50), rgba(255,255,255,0.50)), url(${fotosPreceptores[`${curso}-Mañana`]})`
-                        : "none",
-                      backgroundSize: "cover",
-                      backgroundPosition: "center"
-                    }}
+                  <button
+                    type="button"
+                    onClick={() => eliminarPrevia(index)}
+                    style={botonEliminar}
                   >
-                    <h4>{curso}</h4>
-
-                    <p style={textoCantidad}>
-                      {contarAlumnos(curso, "Mañana")} estudiantes
-                    </p>
-
-                    <button
-                      style={botonCurso}
-                      onClick={() =>
-                        setCursoSeleccionado({
-                          curso,
-                          turno: "Mañana"
-                        })
-                      }
-                    >
-                      Ver curso
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div style={bloqueTurno}>
-            <div
-              onClick={() => setMostrarTurnoTarde(!mostrarTurnoTarde)}
-              style={{
-                ...tituloTurno,
-                cursor: "pointer",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center"
-              }}
-            >
-              <span>📚 Turno Tarde</span>
-
-              <span style={{ fontSize: "18px" }}>
-                {mostrarTurnoTarde ? "▼" : "▶"}
-              </span>
-            </div>
-
-            {mostrarTurnoTarde && (
-              <div style={grillaCursos}>
-                {cursosTarde.map((curso) => (
-                  <div
-                    key={curso}
-                    style={{
-                      ...tarjetaCurso,
-                      backgroundImage: fotosPreceptores[`${curso}-Tarde`]
-                        ? `linear-gradient(rgba(255,255,255,0.50), rgba(255,255,255,0.50)), url(${fotosPreceptores[`${curso}-Tarde`]})`
-                        : "none",
-                      backgroundSize: "cover",
-                      backgroundPosition: "center"
-                    }}
-                  >
-                    <h4>{curso}</h4>
-
-                    <p style={textoCantidad}>
-                      {contarAlumnos(curso, "Tarde")} estudiantes
-                    </p>
-
-                    <button
-                      style={botonCurso}
-                      onClick={() =>
-                        setCursoSeleccionado({
-                          curso,
-                          turno: "Tarde"
-                        })
-                      }
-                    >
-                      Ver curso
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </>
-    )}
-
-    {cursoSeleccionado && (
-      <div style={detalleCurso} className="area-impresion">
-        <div className="no-print">
-          <button style={botonVolver} onClick={() => setCursoSeleccionado(null)}>
-            Volver a todos los cursos
-          </button>
-
-          <button style={botonImprimir} onClick={imprimirCurso}>
-            🖨️ Imprimir curso
-          </button>
-
-          <button
-            style={botonImprimir}
-            onClick={() => setVerEstadisticasCurso(!verEstadisticasCurso)}
-          >
-            📊 Estadísticas
-          </button>
-
-          <button style={botonImprimir} onClick={exportarExcel}>
-            Exportar Excel
-          </button>
-        </div>
-
-        <div id="curso-imprimir">
-          <h3 style={{ color: "#1e3a5f" }}>
-            Curso: {cursoSeleccionado.curso} - Turno {cursoSeleccionado.turno}
-          </h3>
-
-          <p>Cantidad de estudiantes: {alumnosDelCurso.length}</p>
-
-          {verEstadisticasCurso && (
-            <>
-              <div style={bloqueEstadisticas}>
-                <div style={tarjetaEstadistica}>
-                  <h3>Total</h3>
-                  <p>{totalEstudiantes}</p>
+                    🗑️
+                  </button>
                 </div>
-
-                <div style={tarjetaEstadistica}>
-                  <h3>Prom</h3>
-                  <p>{totalProm} ({porcentajeProm}%)</p>
-                </div>
-
-                <div style={tarjetaEstadistica}>
-                  <h3>Rec</h3>
-                  <p>{totalRec} ({porcentajeRec}%)</p>
-                </div>
-
-                <div style={tarjetaEstadistica}>
-                  <h3>Con previas</h3>
-                  <p>{totalConPrevias}</p>
-                </div>
-              </div>
-
-              <div
-                style={{
-                  ...tarjetaEstadistica,
-                  maxWidth: "180px",
-                  margin: "20px auto 10px auto"
-                }}
-              >
-                <h3>Sobreedad</h3>
-                <p>{totalSobreedad}</p>
-              </div>
-            </>
-          )}
-
-          <div style={bloqueEdades}>
-            <h3 style={{ color: "#1e3a5f" }}>
-              Edades del curso
-            </h3>
-
-            <div style={grillaEdades}>
-              {Object.entries(edadesDelCurso)
-                .sort((a, b) => Number(a[0]) - Number(b[0]))
-                .map(([edad, cantidad]) => (
-                  <div key={edad} style={tarjetaEdad}>
-                    <strong>{edad} años</strong>
-                    <p>{cantidad}</p>
-                  </div>
-                ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="no-print" style={{ marginTop: "10px", marginBottom: "15px" }}>
-          <input
-            type="file"
-            accept=".xls,.xlsx"
-            onChange={importarReporteOficial}
-          />
-        </div>
-
-        <div
-          id="formulario-matricula"
-          style={formularioAlumno}
-          className="no-print"
-        >
-          <input
-            placeholder="Apellido"
-            style={inputAlumno}
-            value={nuevoAlumno.apellido}
-            onChange={(e) =>
-              setNuevoAlumno({ ...nuevoAlumno, apellido: e.target.value })
-            }
-          />
-
-          <input
-            placeholder="Nombre"
-            style={inputAlumno}
-            value={nuevoAlumno.nombre}
-            onChange={(e) =>
-              setNuevoAlumno({ ...nuevoAlumno, nombre: e.target.value })
-            }
-          />
-
-          <input
-            placeholder="DNI"
-            style={inputAlumno}
-            value={nuevoAlumno.dni}
-            onChange={(e) =>
-              setNuevoAlumno({ ...nuevoAlumno, dni: e.target.value })
-            }
-          />
-
-          <input
-            placeholder="N° legajo"
-            style={inputAlumno}
-            value={nuevoAlumno.legajoNumero}
-            onChange={(e) =>
-              setNuevoAlumno({ ...nuevoAlumno, legajoNumero: e.target.value })
-            }
-          />
-
-          <input
-            placeholder="Año legajo"
-            style={inputAlumno}
-            value={nuevoAlumno.legajoAnio}
-            onChange={(e) =>
-              setNuevoAlumno({ ...nuevoAlumno, legajoAnio: e.target.value })
-            }
-          />
-
-          <input
-            type="date"
-            style={inputAlumno}
-            value={nuevoAlumno.fechaNacimiento}
-            onChange={(e) =>
-              setNuevoAlumno({ ...nuevoAlumno, fechaNacimiento: e.target.value })
-            }
-          />
-
-          <div style={bloquePrevias}>
-            <select
-              style={inputAlumno}
-              value={previaSeleccionada}
-              onChange={(e) => setPreviaSeleccionada(e.target.value)}
-            >
-              <option value="">Asignatura</option>
-              {asignaturas.map((asignatura) => (
-                <option key={asignatura} value={asignatura}>
-                  {asignatura}
-                </option>
               ))}
-            </select>
+            </div>
 
             <select
               style={inputAlumno}
-              value={anioPrevia}
-              onChange={(e) => setAnioPrevia(e.target.value)}
+              value={nuevoAlumno.condicionFinal}
+              onChange={(e) =>
+                setNuevoAlumno({ ...nuevoAlumno, condicionFinal: e.target.value })
+              }
             >
-              <option value="">Año</option>
-              {aniosMateria.map((anio) => (
-                <option key={anio} value={anio}>
-                  {anio}
-                </option>
-              ))}
+              <option value="">Prom / Rec</option>
+              <option value="Prom">Prom</option>
+              <option value="Rec">Rec</option>
             </select>
 
             <button
-              type="button"
-              style={botonAgregarPrevia}
-              onClick={agregarPrevia}
+              style={botonAgregar}
+              onClick={guardarAlumnoMatricula}
+              disabled={guardando}
             >
-              Agregar previa
+              {guardando
+                ? "Guardando..."
+                : alumnoEditando
+                  ? "Guardar cambios"
+                  : "Agregar estudiante"}
+            </button>
+
+            <button style={botonVolver} onClick={limpiarFormulario}>
+              Limpiar formulario
             </button>
           </div>
 
-          <div style={{ marginTop: "8px" }}>
-            {nuevoAlumno.materiasPendientes.map((previa, index) => (
-              <div
-                key={index}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  marginBottom: "5px"
-                }}
-              >
-                <span>
-                  • {previa.asignatura} ({previa.anio})
-                </span>
+          {alumnoMoviendo && (
+            <div style={bloqueMovimiento}>
+              <h4>🔁 Movimiento de matrícula</h4>
 
-                <button
-                  type="button"
-                  onClick={() => eliminarPrevia(index)}
-                  style={botonEliminar}
-                >
-                  🗑️
-                </button>
-              </div>
-            ))}
+              <p>
+                {alumnoMoviendo.apellido}, {alumnoMoviendo.nombre}
+              </p>
+
+              <select
+                value={nuevoCurso}
+                onChange={(e) => setNuevoCurso(e.target.value)}
+                style={inputAlumno}
+              >
+                {[...cursosManana, ...cursosTarde].map((curso) => (
+                  <option key={curso} value={curso}>
+                    {curso}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={nuevoTurno}
+                onChange={(e) => setNuevoTurno(e.target.value)}
+                style={inputAlumno}
+              >
+                <option value="Mañana">Mañana</option>
+                <option value="Tarde">Tarde</option>
+              </select>
+
+              <button style={botonAgregarPrevia} onClick={moverAlumno}>
+                Mover estudiante
+              </button>
+            </div>
+          )}
+
+          <div
+            className="no-print"
+            style={{
+              display: "flex",
+              gap: "10px",
+              marginBottom: "15px"
+            }}
+          >
+            <button
+              style={botonVolver}
+              onClick={() => {
+                setFiltroPrevia("")
+                setFiltroAnioPrevia("")
+              }}
+            >
+              Limpiar filtros
+            </button>
           </div>
 
           <select
             style={inputAlumno}
-            value={nuevoAlumno.condicionFinal}
-            onChange={(e) =>
-              setNuevoAlumno({ ...nuevoAlumno, condicionFinal: e.target.value })
-            }
+            value={ordenCurso}
+            onChange={(e) => setOrdenCurso(e.target.value)}
           >
-            <option value="">Prom / Rec</option>
-            <option value="Prom">Prom</option>
-            <option value="Rec">Rec</option>
+            <option value="apellido">Ordenar por apellido</option>
+            <option value="legajo">Ordenar por legajo</option>
           </select>
 
-          <button
-            style={botonAgregar}
-            onClick={guardarAlumnoMatricula}
-            disabled={guardando}
-          >
-            {guardando
-              ? "Guardando..."
-              : alumnoEditando
-                ? "Guardar cambios"
-                : "Agregar estudiante"}
-          </button>
-
-          <button style={botonVolver} onClick={limpiarFormulario}>
-            Limpiar formulario
-          </button>
-        </div>
-
-        {alumnoMoviendo && (
-          <div style={bloqueMovimiento}>
-            <h4>🔁 Movimiento de matrícula</h4>
-
-            <p>
-              {alumnoMoviendo.apellido}, {alumnoMoviendo.nombre}
-            </p>
-
-            <select
-              value={nuevoCurso}
-              onChange={(e) => setNuevoCurso(e.target.value)}
-              style={inputAlumno}
-            >
-              {[...cursosManana, ...cursosTarde].map((curso) => (
-                <option key={curso} value={curso}>
-                  {curso}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={nuevoTurno}
-              onChange={(e) => setNuevoTurno(e.target.value)}
-              style={inputAlumno}
-            >
-              <option value="Mañana">Mañana</option>
-              <option value="Tarde">Tarde</option>
-            </select>
-
-            <button style={botonAgregarPrevia} onClick={moverAlumno}>
-              Mover estudiante
-            </button>
-          </div>
-        )}
-
-        <div
-          className="no-print"
-          style={{
-            display: "flex",
-            gap: "10px",
-            marginBottom: "15px"
-          }}
-        >
-          <button
-            style={botonVolver}
-            onClick={() => {
-              setFiltroPrevia("")
-              setFiltroAnioPrevia("")
+          <p
+            style={{
+              marginTop: "12px",
+              marginBottom: "5px",
+              fontWeight: "bold",
+              color: "#1e3a5f",
+              textAlign: "center"
             }}
           >
-            Limpiar filtros
-          </button>
-        </div>
+            Filtro avanzado
+          </p>
 
-        <select
-          style={inputAlumno}
-          value={ordenCurso}
-          onChange={(e) => setOrdenCurso(e.target.value)}
-        >
-          <option value="apellido">Ordenar por apellido</option>
-          <option value="legajo">Ordenar por legajo</option>
-        </select>
+          <select
+            value={filtroAvanzado}
+            onChange={(e) => setFiltroAvanzado(e.target.value)}
+            style={{
+              padding: "8px",
+              borderRadius: "8px",
+              border: "1px solid #ccc",
+              marginTop: "12px",
+              marginBottom: "12px",
+              width: "220px",
+              display: "block",
+              marginLeft: "auto",
+              marginRight: "auto"
+            }}
+          >
+            <option value="todos">Todos</option>
+            <option value="prom">Sólo Prom</option>
+            <option value="rec">Sólo Rec</option>
+            <option value="previas">Con previas</option>
+            <option value="sinLegajo">Sin legajo</option>
+            <option value="sobreedad">Sobreedad</option>
+          </select>
 
-        <table style={tabla}>
-          <thead>
-            <tr>
-              <th style={{ ...celda, width: "220px" }}>
-                Apellido y Nombre
-              </th>
-              <th style={celda}>DNI</th>
-              <th style={celda}>Legajo</th>
-              <th style={{ ...celda, width: "95px" }}>
-                Fecha nacimiento
-              </th>
-              <th style={{ ...celda, width: "55px" }}>Edad</th>
-              <th style={{ ...celda, width: "240px" }}>
-                Pendientes
-              </th>
-              <th style={{ ...celda, width: "65px" }}>Cond.</th>
-              <th style={{ ...celda, width: "140px" }}>Acciones</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {alumnosDelCurso.length === 0 && (
+          <table style={tabla}>
+            <thead>
               <tr>
-                <td style={celda} colSpan="8">
-                  Todavía no hay estudiantes cargados en este curso.
-                </td>
+                <th style={{ ...celda, width: "220px" }}>
+                  Apellido y Nombre
+                </th>
+                <th style={celda}>DNI</th>
+                <th style={celda}>Legajo</th>
+                <th style={{ ...celda, width: "95px" }}>
+                  Fecha nacimiento
+                </th>
+                <th style={{ ...celda, width: "55px" }}>Edad</th>
+                <th style={{ ...celda, width: "240px" }}>
+                  Pendientes
+                </th>
+                <th style={{ ...celda, width: "65px" }}>Cond.</th>
+                <th style={{ ...celda, width: "140px" }}>Acciones</th>
               </tr>
-            )}
+            </thead>
 
-            {alumnosFiltrados.map((alumno) => (
-              <tr key={alumno._id}>
-                <td style={celda}>
-                  {alumno.apellido}, {alumno.nombre}
-                </td>
+            <tbody>
+              {alumnosDelCurso.length === 0 && (
+                <tr>
+                  <td style={celda} colSpan="8">
+                    Todavía no hay estudiantes cargados en este curso.
+                  </td>
+                </tr>
+              )}
 
-                <td style={celda}>{formatearDNI(alumno.dni)}</td>
+              {alumnosFiltrados.map((alumno) => (
+                <tr key={alumno._id}>
+                  <td style={celda}>
+                    {alumno.apellido}, {alumno.nombre}
+                  </td>
 
-                <td style={celda}>
-                  {alumno.legajoNumero && alumno.legajoAnio
-                    ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
-                    : "-"}
-                </td>
+                  <td style={celda}>{formatearDNI(alumno.dni)}</td>
 
-                <td style={celda}>
-                  {formatearFecha(alumno.fechaNacimiento)}
-                </td>
+                  <td style={celda}>
+                    {alumno.legajoNumero && alumno.legajoAnio
+                      ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
+                      : "-"}
+                  </td>
 
-                <td style={celda}>
-                  {calcularEdadAl30Junio(alumno.fechaNacimiento)}
-                  {tieneSobreedad(alumno) && (
-                    <span style={alertaSobreedad}>⚠️</span>
-                  )}
-                </td>
+                  <td style={celda}>
+                    {formatearFecha(alumno.fechaNacimiento)}
+                  </td>
 
-                <td style={celda}>
-                  {Array.isArray(alumno.materiasPendientes)
-                    ? alumno.materiasPendientes
+                  <td style={celda}>
+                    {calcularEdadAl30Junio(alumno.fechaNacimiento)}
+                    {tieneSobreedad(alumno) && (
+                      <span style={alertaSobreedad}>⚠️</span>
+                    )}
+                  </td>
+
+                  <td style={celda}>
+                    {Array.isArray(alumno.materiasPendientes)
+                      ? alumno.materiasPendientes
                         .map(
                           (previa) =>
                             `${previa.asignatura} (${previa.anio})`
                         )
                         .join(", ")
-                    : ""}
-                </td>
+                      : ""}
+                  </td>
 
-                <td style={celda}>{alumno.condicionFinal}</td>
+                  <td style={celda}>{alumno.condicionFinal}</td>
 
-                <td
-                  style={{
-                    ...celda,
-                    whiteSpace: "nowrap"
-                  }}
-                  className="no-print"
-                >
-                  <button
-                    style={botonEditar}
-                    onClick={() => editarAlumno(alumno)}
+                  <td
+                    style={{
+                      ...celda,
+                      whiteSpace: "nowrap"
+                    }}
+                    className="no-print"
                   >
-                    ✏️
-                  </button>
+                    <button
+                      style={botonEditar}
+                      onClick={() => editarAlumno(alumno)}
+                    >
+                      ✏️
+                    </button>
 
-                  <button
-                    style={botonMover}
-                    onClick={() => prepararMovimiento(alumno)}
-                  >
-                    🔁
-                  </button>
+                    <button
+                      style={botonMover}
+                      onClick={() => prepararMovimiento(alumno)}
+                    >
+                      🔁
+                    </button>
 
-                  <button
-                    style={botonEliminar}
-                    onClick={() => eliminarAlumnoMatricula(alumno._id)}
-                  >
-                    🗑️
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    )}
-  </div>
-)
+                    <button
+                      style={botonEliminar}
+                      onClick={() => eliminarAlumnoMatricula(alumno._id)}
+                    >
+                      🗑️
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  )
 }
 const contenedorTurnos = {
   display: "flex",
@@ -2029,4 +2243,27 @@ const bloqueHerramienta = {
   padding: "16px",
   boxShadow: "0 3px 8px rgba(0,0,0,0.05)",
   textAlign: "center"
+}
+const panelAlertas = {
+  backgroundColor: "#fff7ed",
+  border: "1px solid #fed7aa",
+  borderRadius: "18px",
+  padding: "18px",
+  marginBottom: "20px",
+  boxShadow: "0 3px 8px rgba(0,0,0,0.05)"
+}
+
+const grillaAlertas = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+  gap: "12px"
+}
+
+const tarjetaAlerta = {
+  backgroundColor: "white",
+  border: "1px solid #fed7aa",
+  borderRadius: "14px",
+  padding: "12px",
+  textAlign: "center",
+  boxShadow: "0 2px 6px rgba(0,0,0,0.04)"
 }
