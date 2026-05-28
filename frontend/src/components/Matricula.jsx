@@ -2265,5 +2265,8 @@ const tarjetaAlerta = {
   borderRadius: "14px",
   padding: "12px",
   textAlign: "center",
-  boxShadow: "0 2px 6px rgba(0,0,0,0.04)"
+  boxShadow: "0 2px 6px rgba(0,0,0,0.04)",
+  cursor: "pointer",
+  transition: "0.2s",
+  transform: "scale(1)"
 }
