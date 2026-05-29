@@ -37,6 +37,7 @@ export default function Matricula() {
   const [filtroAvanzado, setFiltroAvanzado] = useState("todos")
   const [alertaActiva, setAlertaActiva] = useState("")
 
+  const [alumnoSeleccionado, setAlumnoSeleccionado] = useState(null)
   const [nuevoAlumno, setNuevoAlumno] = useState({
     apellido: "",
     nombre: "",
@@ -422,79 +423,87 @@ export default function Matricula() {
   })
 
   function imprimirCurso() {
-    if (!cursoSeleccionado) return
+  if (!cursoSeleccionado) return
 
-    const mostrarLegajo = alumnosFiltrados.some(
-      (alumno) =>
-        alumno.legajoNumero || alumno.legajoAnio
-    )
+  const mostrarLegajo = alumnosFiltrados.some(
+    (alumno) => alumno.legajoNumero || alumno.legajoAnio
+  )
 
-    const mostrarPendientes = alumnosFiltrados.some(
-      (alumno) =>
-        Array.isArray(alumno.materiasPendientes) &&
-        alumno.materiasPendientes.length > 0
-    )
+  const mostrarFechaNacimiento = alumnosFiltrados.some(
+    (alumno) => alumno.fechaNacimiento
+  )
 
-    const mostrarCondicion = alumnosFiltrados.some(
-      (alumno) => alumno.condicionFinal
-    )
-    const mostrarFechaNacimiento = alumnosFiltrados.some(
-      (alumno) => alumno.fechaNacimiento
-    )
+  const mostrarEdad = mostrarFechaNacimiento
 
-    const mostrarEdad = alumnosFiltrados.some(
-      (alumno) => alumno.fechaNacimiento
-    )
+  const mostrarCondicion = alumnosFiltrados.some(
+    (alumno) => alumno.condicionFinal
+  )
 
+  const mostrarPendientes = alumnosFiltrados.some(
+    (alumno) =>
+      Array.isArray(alumno.materiasPendientes) &&
+      alumno.materiasPendientes.length > 0
+  )
 
-    const filas = alumnosFiltrados
-      .map(
-        (alumno, index) => `
+  const filas = alumnosFiltrados
+    .map(
+      (alumno, index) => `
         <tr>
           <td>${index + 1}</td>
-          <td>${alumno.apellido || ""}, ${alumno.nombre || ""}</td>
+          <td class="nombre">${alumno.apellido || ""}, ${alumno.nombre || ""}</td>
           <td>${formatearDNI(alumno.dni)}</td>
-          <td>
-            ${alumno.legajoNumero && alumno.legajoAnio
-            ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
-            : "-"
-          }
-          </td>
-          <td>${mostrarFechaNacimiento
-            ? `<td>${formatearFecha(alumno.fechaNacimiento)}</td>`
-            : ""
-          }
-          </td>
-          <td>${mostrarEdad
-            ? `<td>${calcularEdadAl30Junio(alumno.fechaNacimiento)}</td>`
-            : ""
-          }</td>
-          <td>${mostrarCondicion
-            ? `<td>${alumno.condicionFinal || ""}</td>`
-            : ""
-          }
-          </td>
-          <td>
-            ${mostrarPendientes
-            ? `<td>
-        ${Array.isArray(alumno.materiasPendientes)
-              ? alumno.materiasPendientes
-                .map((previa) => `${previa.asignatura} (${previa.anio})`)
-                .join(", ")
+
+          ${
+            mostrarLegajo
+              ? `<td>${
+                  alumno.legajoNumero && alumno.legajoAnio
+                    ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
+                    : ""
+                }</td>`
               : ""
-            }
-      </td>`
-            : ""
           }
-          </td>
+
+          ${
+            mostrarFechaNacimiento
+              ? `<td>${alumno.fechaNacimiento ? formatearFecha(alumno.fechaNacimiento) : ""}</td>`
+              : ""
+          }
+
+          ${
+            mostrarEdad
+              ? `<td>${
+                  alumno.fechaNacimiento
+                    ? calcularEdadAl30Junio(alumno.fechaNacimiento)
+                    : ""
+                }</td>`
+              : ""
+          }
+
+          ${
+            mostrarCondicion
+              ? `<td>${alumno.condicionFinal || ""}</td>`
+              : ""
+          }
+
+          ${
+            mostrarPendientes
+              ? `<td>${
+                  Array.isArray(alumno.materiasPendientes)
+                    ? alumno.materiasPendientes
+                        .map((previa) => `${previa.asignatura} (${previa.anio})`)
+                        .join(", ")
+                    : ""
+                }</td>`
+              : ""
+          }
         </tr>
       `
-      )
-      .join("")
+    )
+    .join("")
 
-    const ventana = window.open("", "_blank")
+  const ventana = window.open("", "_blank")
 
-    ventana.document.write(`
+  ventana.document.write(`
     <html>
       <head>
         <title>Lista de matrícula por curso</title>
@@ -573,10 +582,10 @@ export default function Matricula() {
               <th>Apellido y Nombre</th>
               <th>DNI</th>
               ${mostrarLegajo ? "<th>Legajo</th>" : ""}
-              <th>${mostrarFechaNacimiento ? "<th>Fecha nac.</th>" : ""}</th>
-              <th>${mostrarEdad ? "<th>Edad</th>" : ""}</th>
-              <th>${mostrarCondicion ? "<th>Cond.</th>" : ""}</th>
-              <th>${mostrarPendientes ? "<th>Pendientes</th>" : ""}</th>
+              ${mostrarFechaNacimiento ? "<th>Fecha nac.</th>" : ""}
+              ${mostrarEdad ? "<th>Edad</th>" : ""}
+              ${mostrarCondicion ? "<th>Cond.</th>" : ""}
+              ${mostrarPendientes ? "<th>Pendientes</th>" : ""}
             </tr>
           </thead>
 
@@ -588,10 +597,11 @@ export default function Matricula() {
     </html>
   `)
 
-    ventana.document.close()
-    ventana.print()
-  }
-
+  ventana.document.close()
+  ventana.print()
+}
+   
+  
   function formatearDNI(dni) {
     if (!dni) return ""
 
@@ -918,8 +928,7 @@ export default function Matricula() {
         .filter(Boolean)
     )
   ].sort((a, b) => Number(b) - Number(a))
-  console.log(alumnosMatricula)
-  console.log(aniosLegajoDisponibles)
+
   const alumnosPorLegajo = alumnosMatricula
     .filter((alumno) =>
       anioLegajoFiltro
@@ -1139,6 +1148,26 @@ export default function Matricula() {
                       >
                         ✏️
                       </button>
+
+
+                      <button
+                        style={botonMover}
+                        onClick={() => {
+                          setAlumnoSeleccionado(alumno)
+
+                          setTimeout(() => {
+                            document
+                              .getElementById("ficha-estudiante")
+                              ?.scrollIntoView({
+                                behavior: "smooth",
+                                block: "start"
+                              })
+                          }, 100)
+                        }}
+                      >
+                        👤
+                      </button>
+
                     </div>
                   ))
                 ) : (
@@ -1146,7 +1175,99 @@ export default function Matricula() {
                 )}
               </div>
             )}
+
           </div>
+
+          {alumnoSeleccionado && (
+            <div id="ficha-estudiante" style={detalleCurso}>
+
+              <h2 style={{
+                color: "#1e3a5f",
+                textAlign: "center",
+                marginBottom: "20px"
+              }}>
+                👤 Ficha del estudiante
+              </h2>
+
+              <div style={grillaFicha}>
+
+                <div style={campoFicha}>
+                  <strong>Apellido y nombre</strong>
+                  <p>
+                    {alumnoSeleccionado.apellido},{" "}
+                    {alumnoSeleccionado.nombre}
+                  </p>
+                </div>
+
+                <div style={campoFicha}>
+                  <strong>DNI</strong>
+                  <p>{formatearDNI(alumnoSeleccionado.dni)}</p>
+                </div>
+
+                <div style={campoFicha}>
+                  <strong>Curso</strong>
+                  <p>{alumnoSeleccionado.curso}</p>
+                </div>
+
+                <div style={campoFicha}>
+                  <strong>Turno</strong>
+                  <p>{alumnoSeleccionado.turno}</p>
+                </div>
+
+                <div style={campoFicha}>
+                  <strong>Legajo</strong>
+                  <p>
+                    {alumnoSeleccionado.legajoNumero &&
+                      alumnoSeleccionado.legajoAnio
+                      ? `${alumnoSeleccionado.legajoNumero}/${alumnoSeleccionado.legajoAnio}`
+                      : "-"}
+                  </p>
+                </div>
+
+                <div style={campoFicha}>
+                  <strong>Edad</strong>
+                  <p>
+                    {alumnoSeleccionado.fechaNacimiento
+                      ? calcularEdadAl30Junio(
+                        alumnoSeleccionado.fechaNacimiento
+                      ) + " años"
+                      : "-"}
+                  </p>
+                </div>
+
+                <div style={campoFicha}>
+                  <strong>Condición final</strong>
+                  <p>{alumnoSeleccionado.condicionFinal || "-"}</p>
+                </div>
+
+                <div style={campoFicha}>
+                  <strong>Previas</strong>
+                  <p>
+                    {alumnoSeleccionado.materiasPendientes?.length > 0
+                      ? alumnoSeleccionado.materiasPendientes
+                        .map(
+                          (previa) =>
+                            `${previa.asignatura} (${previa.anio})`
+                        )
+                        .join(", ")
+                      : "Sin previas"}
+                  </p>
+                </div>
+
+              </div>
+
+              <div style={{ textAlign: "center", marginTop: "20px" }}>
+                <button
+                  style={botonVolver}
+                  onClick={() => setAlumnoSeleccionado(null)}
+                >
+                  Cerrar ficha
+                </button>
+              </div>
+
+            </div>
+          )}
+
 
           <div style={panelHerramientas}>
             <div style={bloqueHerramienta}>
@@ -1335,19 +1456,11 @@ export default function Matricula() {
                   {alumnosPorLegajo.map((alumno) => (
                     <tr key={alumno._id}>
                       <td style={celda}>
-                        ${
-                          mostrarLegajo
-                            ? `
-      <td>
-        ${alumno.legajoNumero && alumno.legajoAnio
-                              ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
-                              : "-"
-                            }
-      </td>
-    `
-                            : ""
-                        }
-                      </td>
+  {alumno.legajoNumero && alumno.legajoAnio
+    ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
+    : "-"}
+</td>
+    
                       <td style={celda}>
                         {alumno.apellido}, {alumno.nombre}
                       </td>
@@ -1759,7 +1872,7 @@ export default function Matricula() {
           </div>
 
           {alumnoMoviendo && (
-            <div style={bloqueMovimiento}>
+            <div id="movimiento-matricula" style={bloqueMovimiento}>
               <h4>🔁 Movimiento de matrícula</h4>
 
               <p>
@@ -1789,6 +1902,12 @@ export default function Matricula() {
 
               <button style={botonAgregarPrevia} onClick={moverAlumno}>
                 Mover estudiante
+              </button>
+              <button
+                style={botonVolver}
+                onClick={() => setAlumnoMoviendo(null)}
+              >
+                Cancelar movimiento
               </button>
             </div>
           )}
@@ -1937,9 +2056,21 @@ export default function Matricula() {
                       ✏️
                     </button>
 
+
                     <button
                       style={botonMover}
-                      onClick={() => prepararMovimiento(alumno)}
+                      onClick={() => {
+                        prepararMovimiento(alumno)
+
+                        setTimeout(() => {
+                          document
+                            .getElementById("movimiento-matricula")
+                            ?.scrollIntoView({
+                              behavior: "smooth",
+                              block: "start"
+                            })
+                        }, 100)
+                      }}
                     >
                       🔁
                     </button>
@@ -1960,6 +2091,7 @@ export default function Matricula() {
     </div>
   )
 }
+
 const contenedorTurnos = {
   display: "flex",
   flexDirection: "column",
@@ -2269,4 +2401,18 @@ const tarjetaAlerta = {
   cursor: "pointer",
   transition: "0.2s",
   transform: "scale(1)"
+}
+const grillaFicha = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+  gap: "18px",
+  marginTop: "20px"
+}
+
+const campoFicha = {
+  backgroundColor: "#f8fbff",
+  border: "1px solid #dbeafe",
+  borderRadius: "14px",
+  padding: "16px",
+  boxShadow: "0 2px 6px rgba(0,0,0,0.05)"
 }
