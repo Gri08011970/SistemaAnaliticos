@@ -297,20 +297,27 @@ export default function Matricula() {
 
     const coincideAvanzado = (() => {
       if (filtroAvanzado === "todos") return true
-      if (filtroAvanzado === "prom") return alumno.condicionFinal === "Prom"
-      if (filtroAvanzado === "rec") return alumno.condicionFinal === "Rec"
 
-      if (filtroAvanzado === "previas") {
+      if (filtroAvanzado === "prom")
+        return alumno.condicionFinal === "Prom"
+
+      if (filtroAvanzado === "rec")
+        return alumno.condicionFinal === "Rec"
+
+      if (filtroAvanzado === "ingresante")
+        return alumno.condicionFinal === "Ingresante"
+
+      if (filtroAvanzado === "reinscripto")
+        return alumno.condicionFinal === "Reinscripto"
+
+      if (filtroAvanzado === "previas")
         return alumno.materiasPendientes?.length > 0
-      }
 
-      if (filtroAvanzado === "sinLegajo") {
-        return !alumno.legajoNumero || !alumno.legajoAnio
-      }
+      if (filtroAvanzado === "sinLegajo")
+        return !alumno.legajoNumero
 
-      if (filtroAvanzado === "sobreedad") {
-        return tieneSobreedad(alumno)
-      }
+      if (filtroAvanzado === "sobreedad")
+        return calcularSobreedad(alumno)
 
       return true
     })()
@@ -349,6 +356,14 @@ export default function Matricula() {
     totalEstudiantes > 0
       ? ((totalRec / totalEstudiantes) * 100).toFixed(0)
       : 0
+
+  const totalIngresantes = alumnosDelCurso.filter(
+    alumno => alumno.condicionFinal === "Ingresante"
+  ).length
+
+  const totalReinscriptos = alumnosDelCurso.filter(
+    alumno => alumno.condicionFinal === "Reinscripto"
+  ).length
 
   const totalSobreedad = alumnosDelCurso.filter((alumno) => {
     if (!alumno.fechaNacimiento) return false
@@ -423,87 +438,79 @@ export default function Matricula() {
   })
 
   function imprimirCurso() {
-  if (!cursoSeleccionado) return
+    if (!cursoSeleccionado) return
 
-  const mostrarLegajo = alumnosFiltrados.some(
-    (alumno) => alumno.legajoNumero || alumno.legajoAnio
-  )
+    const mostrarLegajo = alumnosFiltrados.some(
+      (alumno) => alumno.legajoNumero || alumno.legajoAnio
+    )
 
-  const mostrarFechaNacimiento = alumnosFiltrados.some(
-    (alumno) => alumno.fechaNacimiento
-  )
+    const mostrarFechaNacimiento = alumnosFiltrados.some(
+      (alumno) => alumno.fechaNacimiento
+    )
 
-  const mostrarEdad = mostrarFechaNacimiento
+    const mostrarEdad = mostrarFechaNacimiento
 
-  const mostrarCondicion = alumnosFiltrados.some(
-    (alumno) => alumno.condicionFinal
-  )
+    const mostrarCondicion = alumnosFiltrados.some(
+      (alumno) => alumno.condicionFinal
+    )
 
-  const mostrarPendientes = alumnosFiltrados.some(
-    (alumno) =>
-      Array.isArray(alumno.materiasPendientes) &&
-      alumno.materiasPendientes.length > 0
-  )
+    const mostrarPendientes = alumnosFiltrados.some(
+      (alumno) =>
+        Array.isArray(alumno.materiasPendientes) &&
+        alumno.materiasPendientes.length > 0
+    )
 
-  const filas = alumnosFiltrados
-    .map(
-      (alumno, index) => `
+    const filas = alumnosFiltrados
+      .map(
+        (alumno, index) => `
         <tr>
           <td>${index + 1}</td>
           <td class="nombre">${alumno.apellido || ""}, ${alumno.nombre || ""}</td>
           <td>${formatearDNI(alumno.dni)}</td>
 
-          ${
-            mostrarLegajo
-              ? `<td>${
-                  alumno.legajoNumero && alumno.legajoAnio
-                    ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
-                    : ""
-                }</td>`
+          ${mostrarLegajo
+            ? `<td>${alumno.legajoNumero && alumno.legajoAnio
+              ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
               : ""
+            }</td>`
+            : ""
           }
 
-          ${
-            mostrarFechaNacimiento
-              ? `<td>${alumno.fechaNacimiento ? formatearFecha(alumno.fechaNacimiento) : ""}</td>`
-              : ""
+          ${mostrarFechaNacimiento
+            ? `<td>${alumno.fechaNacimiento ? formatearFecha(alumno.fechaNacimiento) : ""}</td>`
+            : ""
           }
 
-          ${
-            mostrarEdad
-              ? `<td>${
-                  alumno.fechaNacimiento
-                    ? calcularEdadAl30Junio(alumno.fechaNacimiento)
-                    : ""
-                }</td>`
+          ${mostrarEdad
+            ? `<td>${alumno.fechaNacimiento
+              ? calcularEdadAl30Junio(alumno.fechaNacimiento)
               : ""
+            }</td>`
+            : ""
           }
 
-          ${
-            mostrarCondicion
-              ? `<td>${alumno.condicionFinal || ""}</td>`
-              : ""
+          ${mostrarCondicion
+            ? `<td>${alumno.condicionFinal || ""}</td>`
+            : ""
           }
 
-          ${
-            mostrarPendientes
-              ? `<td>${
-                  Array.isArray(alumno.materiasPendientes)
-                    ? alumno.materiasPendientes
-                        .map((previa) => `${previa.asignatura} (${previa.anio})`)
-                        .join(", ")
-                    : ""
-                }</td>`
+          ${mostrarPendientes
+            ? `<td>${Array.isArray(alumno.materiasPendientes)
+              ? alumno.materiasPendientes
+                .map((previa) => `${previa.asignatura} (${previa.anio})`)
+                .join(", ")
               : ""
+            }</td>`
+            : ""
           }
         </tr>
       `
-    )
-    .join("")
+      )
+      .join("")
 
-  const ventana = window.open("", "_blank")
+    const ventana = window.open("", "_blank")
 
-  ventana.document.write(`
+    ventana.document.write(`
     <html>
       <head>
         <title>Lista de matrícula por curso</title>
@@ -597,11 +604,11 @@ export default function Matricula() {
     </html>
   `)
 
-  ventana.document.close()
-  ventana.print()
-}
-   
-  
+    ventana.document.close()
+    ventana.print()
+  }
+
+
   function formatearDNI(dni) {
     if (!dni) return ""
 
@@ -1456,11 +1463,11 @@ export default function Matricula() {
                   {alumnosPorLegajo.map((alumno) => (
                     <tr key={alumno._id}>
                       <td style={celda}>
-  {alumno.legajoNumero && alumno.legajoAnio
-    ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
-    : "-"}
-</td>
-    
+                        {alumno.legajoNumero && alumno.legajoAnio
+                          ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
+                          : "-"}
+                      </td>
+
                       <td style={celda}>
                         {alumno.apellido}, {alumno.nombre}
                       </td>
@@ -1677,6 +1684,16 @@ export default function Matricula() {
                   </div>
 
                   <div style={tarjetaEstadistica}>
+                    <h3>Ingresantes</h3>
+                    <p>{totalIngresantes}</p>
+                  </div>
+
+                  <div style={tarjetaEstadistica}>
+                    <h3>Reinscriptos</h3>
+                    <p>{totalReinscriptos}</p>
+                  </div>
+
+                  <div style={tarjetaEstadistica}>
                     <h3>Con previas</h3>
                     <p>{totalConPrevias}</p>
                   </div>
@@ -1843,15 +1860,31 @@ export default function Matricula() {
             </div>
 
             <select
-              style={inputAlumno}
               value={nuevoAlumno.condicionFinal}
               onChange={(e) =>
-                setNuevoAlumno({ ...nuevoAlumno, condicionFinal: e.target.value })
+                setNuevoAlumno({
+                  ...nuevoAlumno,
+                  condicionFinal: e.target.value
+                })
               }
             >
-              <option value="">Prom / Rec</option>
-              <option value="Prom">Prom</option>
-              <option value="Rec">Rec</option>
+              <option value="">Seleccionar condición</option>
+
+              <option value="Ingresante">
+                Ingresante al nivel
+              </option>
+
+              <option value="Reinscripto">
+                Reinscripto
+              </option>
+
+              <option value="Prom">
+                Prom
+              </option>
+
+              <option value="Rec">
+                Rec
+              </option>
             </select>
 
             <button
@@ -1973,6 +2006,13 @@ export default function Matricula() {
             <option value="previas">Con previas</option>
             <option value="sinLegajo">Sin legajo</option>
             <option value="sobreedad">Sobreedad</option>
+            <option value="ingresante">
+              Ingresantes
+            </option>
+
+            <option value="reinscripto">
+              Reinscriptos
+            </option>
           </select>
 
           <table style={tabla}>
