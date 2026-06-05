@@ -239,8 +239,9 @@ export default function App() {
 
           <button
             onClick={() => {
-              setDniBusqueda("")
+              
               setApellidoBusqueda("")
+              setDniBusqueda("")
               setEstadoFiltro("Todos")
               setSeccionActiva("lista")
             }}
