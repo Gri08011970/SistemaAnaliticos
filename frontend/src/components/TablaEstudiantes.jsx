@@ -64,8 +64,8 @@ export default function TablaEstudiantes({
       )
     )
 
-  function imprimirLista() {
-    const filas = estudiantesFiltrados.map((alumno, index) => `
+  function imprimirLista(listaParaImprimir = estudiantesFiltrados) {
+  const filas = listaParaImprimir.map((alumno, index) => `
     <tr>
       <td>${index + 1}</td>
       <td>${alumno.nombre || ""}</td>

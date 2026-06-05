@@ -22,7 +22,7 @@ export default function App() {
   const [fechaDesde, setFechaDesde] = useState("")
   const [fechaHasta, setFechaHasta] = useState("")
 
-  useEffect(() => {
+  useEffect(() => { 
     obtenerAlumnos() 
   }, [])
 
@@ -148,16 +148,23 @@ export default function App() {
     return <Login setLogueado={setLogueado} />
   }
 
-  const estudiantesPorPeriodo = estudiantes.filter((alumno) => {
-    if (!alumno.fechaCarga) return false
+ const estudiantesPorPeriodo = estudiantes.filter((alumno) => {
+  let fechaAlumno = ""
 
-    const fecha = alumno.fechaCarga.slice(0, 10)
+  if (alumno.fechaCarga) {
+    fechaAlumno = alumno.fechaCarga.slice(0, 10)
+  } else if (alumno.fecha) {
+    const partes = alumno.fecha.split("/")
+    fechaAlumno = `${partes[2]}-${partes[1]}-${partes[0]}`
+  }
 
-    return (
-      (!fechaDesde || fecha >= fechaDesde) &&
-      (!fechaHasta || fecha <= fechaHasta)
-    )
-  })
+  if (!fechaAlumno) return false
+
+  return (
+    (!fechaDesde || fechaAlumno >= fechaDesde) &&
+    (!fechaHasta || fechaAlumno <= fechaHasta)
+  )
+})
 
   return (
     <div
