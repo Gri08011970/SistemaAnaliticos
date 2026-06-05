@@ -1,3 +1,5 @@
+import { useState } from "react"
+
 export default function TablaEstudiantes({
   dniBusqueda,
   apellidoBusqueda,
@@ -17,6 +19,8 @@ export default function TablaEstudiantes({
   setFechaHasta,
   estudiantesPorPeriodo
 }) {
+  
+  const [mostrarPeriodo, setMostrarPeriodo] = useState(false)
 
   function formatearDNI(dni) {
     if (!dni) return ""
@@ -197,33 +201,44 @@ export default function TablaEstudiantes({
       </button>
 
       <div style={bloquePeriodo}>
-        <h3>🗓️ Imprimir pedidos por fecha de carga</h3>
+  <button
+    style={botonImprimirLista}
+    onClick={() => setMostrarPeriodo(!mostrarPeriodo)}
+  >
+    🗓️ {mostrarPeriodo ? "Ocultar impresión por fecha" : "Imprimir por fecha de carga"}
+  </button>
 
-        <input
-          type="date"
-          value={fechaDesde}
-          onChange={(e) => setFechaDesde(e.target.value)}
-          style={inputPeriodo}
-        />
+  {mostrarPeriodo && (
+    <>
+      <h3>🗓️ Imprimir pedidos por fecha de carga</h3>
 
-        <input
-          type="date"
-          value={fechaHasta}
-          onChange={(e) => setFechaHasta(e.target.value)}
-          style={inputPeriodo}
-        />
+      <input
+        type="date"
+        value={fechaDesde}
+        onChange={(e) => setFechaDesde(e.target.value)}
+        style={inputPeriodo}
+      />
 
-        <p>
-          Pedidos encontrados: {estudiantesPorPeriodo.length}
-        </p>
+      <input
+        type="date"
+        value={fechaHasta}
+        onChange={(e) => setFechaHasta(e.target.value)}
+        style={inputPeriodo}
+      />
 
-        <button
-          style={botonImprimirLista}
-          onClick={() => imprimirLista(estudiantesPorPeriodo)}
-        >
-          🖨️ Imprimir período
-        </button>
-      </div>
+      <p>
+        Pedidos encontrados: {estudiantesPorPeriodo.length}
+      </p>
+
+      <button
+        style={botonImprimirLista}
+        onClick={() => imprimirLista(estudiantesPorPeriodo)}
+      >
+        🖨️ Imprimir período
+      </button>
+    </>
+  )}
+</div>
 
       {estudiantesFiltrados.length === 0 && (
         <p style={mensajeNoEncontrado}>
