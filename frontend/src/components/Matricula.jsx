@@ -36,7 +36,7 @@ export default function Matricula() {
   const [verRecursantes, setVerRecursantes] = useState(false)
   const [filtroAvanzado, setFiltroAvanzado] = useState("todos")
   const [alertaActiva, setAlertaActiva] = useState("")
-
+  const [pedidosAnaliticos, setPedidosAnaliticos] = useState([])
   const [alumnoSeleccionado, setAlumnoSeleccionado] = useState(null)
   const [nuevoAlumno, setNuevoAlumno] = useState({
     apellido: "",
@@ -51,6 +51,7 @@ export default function Matricula() {
 
   useEffect(() => {
     obtenerMatricula()
+    obtenerPedidosAnaliticos()
   }, [])
 
   async function obtenerMatricula() {
@@ -618,6 +619,12 @@ export default function Matricula() {
       .replace(/\B(?=(\d{3})+(?!\d))/g, ".")
   }
 
+  function limpiarDNI(dni) {
+    if (!dni) return ""
+
+    return dni.toString().replace(/\D/g, "")
+  }
+
   function exportarExcel() {
     const datos = alumnosDelCurso.map((alumno) => ({
       "Apellido y Nombre": `${alumno.apellido || ""}, ${alumno.nombre || ""}`,
@@ -757,6 +764,20 @@ export default function Matricula() {
     }
 
     evento.target.value = ""
+  }
+
+  async function obtenerPedidosAnaliticos() {
+    try {
+      const respuesta = await axios.get("/alumnos")
+      console.log("PEDIDOS ANALITICOS")
+      console.log(respuesta.data)
+
+      setPedidosAnaliticos(
+        Array.isArray(respuesta.data) ? respuesta.data : []
+      )
+    } catch (error) {
+      console.log(error)
+    }
   }
   const totalGeneral = alumnosMatricula.length
 
@@ -990,6 +1011,22 @@ export default function Matricula() {
             ? alumnosConSobreedad
             : []
 
+  const pedidosAnaliticosEncontrados = pedidosAnaliticos.filter((pedido) => {
+  const texto = normalizarTexto(busquedaAlumno) || ""
+  const dniBuscado = limpiarDNI(busquedaAlumno)
+
+  const nombrePedido = normalizarTexto(pedido.nombre) || ""
+  const dniPedido = limpiarDNI(pedido.dni)
+
+  const coincideNombre =
+    texto.length > 2 && nombrePedido.includes(texto)
+
+  const coincideDni =
+    dniBuscado.length > 2 && dniPedido.includes(dniBuscado)
+
+  return coincideNombre || coincideDni
+})
+
   return (
     <div style={{ marginTop: "40px" }}>
       <h2 style={{ color: "#1e3a5f" }}>
@@ -1131,16 +1168,32 @@ export default function Matricula() {
 
             {busquedaAlumno && (
               <div style={listaResultadosBusqueda}>
-                {alumnosEncontrados.length > 0 ? (
-                  alumnosEncontrados.map((alumno) => (
+
+                {alumnosEncontrados.map((alumno) => {
+                  const pedidoAnalitico = pedidosAnaliticos.find((pedido) =>
+                    limpiarDNI(pedido.dni) === limpiarDNI(alumno.dni)
+                  )
+
+                  return (
                     <div key={alumno._id} style={itemResultadoBusqueda}>
                       <div>
                         <strong>
                           {alumno.apellido}, {alumno.nombre}
                         </strong>
+
                         <p style={{ margin: 0 }}>
                           {alumno.curso} • Turno {alumno.turno}
                         </p>
+
+                        {pedidoAnalitico && (
+                          <div style={alertaAnalitico}>
+                            📄 Pedido de analítico encontrado
+                            <br />
+                            Estado: {pedidoAnalitico.estado || "-"}
+                            <br />
+                            Libro: {pedidoAnalitico.libro || "-"} | Folio: {pedidoAnalitico.folio || "-"} | Carpeta: {pedidoAnalitico.carpeta || "-"}
+                          </div>
+                        )}
                       </div>
 
                       <button
@@ -1155,7 +1208,6 @@ export default function Matricula() {
                       >
                         ✏️
                       </button>
-
 
                       <button
                         style={botonMover}
@@ -1174,15 +1226,31 @@ export default function Matricula() {
                       >
                         👤
                       </button>
-
                     </div>
-                  ))
-                ) : (
-                  <p>No se encontraron estudiantes.</p>
-                )}
+                  )
+                })}
+
+                {pedidosAnaliticosEncontrados.map((pedido) => (
+                  <div key={pedido._id} style={alertaAnalitico}>
+                    📄 Estudiante con pedido de analítico cargado
+                    <br />
+                    <strong>{pedido.nombre}</strong>
+                    <br />
+                    DNI: {formatearDNI(pedido.dni)}
+                    <br />
+                    Estado: {pedido.estado || "-"}
+                    <br />
+                    Libro: {pedido.libro || "-"} | Folio: {pedido.folio || "-"} | Carpeta: {pedido.carpeta || "-"}
+                  </div>
+                ))}
+
+                {alumnosEncontrados.length === 0 &&
+                  pedidosAnaliticosEncontrados.length === 0 && (
+                    <p>No se encontraron estudiantes.</p>
+                  )}
+
               </div>
             )}
-
           </div>
 
           {alumnoSeleccionado && (
@@ -1220,6 +1288,7 @@ export default function Matricula() {
                   <strong>Turno</strong>
                   <p>{alumnoSeleccionado.turno}</p>
                 </div>
+
 
                 <div style={campoFicha}>
                   <strong>Legajo</strong>
@@ -2455,4 +2524,14 @@ const campoFicha = {
   borderRadius: "14px",
   padding: "16px",
   boxShadow: "0 2px 6px rgba(0,0,0,0.05)"
+}
+const alertaAnalitico = {
+  backgroundColor: "#fff7ed",
+  border: "1px solid #fdba74",
+  color: "#9a3412",
+  padding: "8px",
+  borderRadius: "10px",
+  fontWeight: "bold",
+  marginTop: "8px",
+  fontSize: "13px"
 }
