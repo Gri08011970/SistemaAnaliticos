@@ -2,8 +2,8 @@ import { useEffect, useState } from "react"
 import axios from "axios"
 
 import Busqueda from "./components/Busqueda"
-import TablaEstudiantes from "./components/TablaEstudiantes"
-import Estadisticas from "./components/Estadisticas"
+import TablaEstudiantes from "./components/TablaEstudiantes" 
+import Estadisticas from "./components/Estadisticas" 
 import FormularioNuevo from "./components/FormularioNuevo"
 import PlanillaElevacion from "./components/PlanillaElevacion"
 import ImportarExcel from "./components/ImportarExcel"
@@ -331,8 +331,8 @@ export default function App() {
                 actualizarEstado={actualizarEstado}
                 actualizarCarpeta={actualizarCarpeta}
                 eliminarEstudiante={eliminarEstudiante}
-                editarEstudiante={editarEstudiante}
-                seleccionarAlumno={seleccionarAlumno}
+                editarEstudiante={editarEstudiante} 
+                seleccionarAlumno={seleccionarAlumno} 
                 modoImprimirLista={modoImprimirLista}
                 setModoImprimirLista={setModoImprimirLista}
                 fechaDesde={fechaDesde}
