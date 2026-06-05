@@ -19,9 +19,11 @@ export default function App() {
   const [modoImprimirLista, setModoImprimirLista] = useState(false)
   const [seccionActiva, setSeccionActiva] = useState("inicio")
   const [logueado, setLogueado] = useState(false)
+  const [fechaDesde, setFechaDesde] = useState("")
+  const [fechaHasta, setFechaHasta] = useState("")
 
   useEffect(() => {
-    obtenerAlumnos()
+    obtenerAlumnos() 
   }, [])
 
   async function obtenerAlumnos() {
@@ -52,14 +54,14 @@ export default function App() {
       obtenerAlumnos()
       setSeccionActiva("lista")
     } catch (error) {
-  if (error.response?.status === 400) {
-    alert(error.response.data.mensaje)
-    return
-  }
+      if (error.response?.status === 400) {
+        alert(error.response.data.mensaje)
+        return
+      }
 
-  console.log(error)
-  alert("Error al guardar el pedido")
-}
+      console.log(error)
+      alert("Error al guardar el pedido")
+    }
   }
 
   async function actualizarEstudianteEditado(id, datosActualizados) {
@@ -146,6 +148,17 @@ export default function App() {
     return <Login setLogueado={setLogueado} />
   }
 
+  const estudiantesPorPeriodo = estudiantes.filter((alumno) => {
+    if (!alumno.fechaCarga) return false
+
+    const fecha = alumno.fechaCarga.slice(0, 10)
+
+    return (
+      (!fechaDesde || fecha >= fechaDesde) &&
+      (!fechaHasta || fecha <= fechaHasta)
+    )
+  })
+
   return (
     <div
       style={{
@@ -170,7 +183,7 @@ export default function App() {
             seccionActiva !== "matricula" &&
             "Gestión de pedidos de Analíticos"}
         </h1> <br />
-        
+
 
         <p
           style={{
@@ -187,7 +200,7 @@ export default function App() {
               <p>Carga, seguimiento, estados y planilla de eleve.</p>
 
               <button
-                style={botonMenu} 
+                style={botonMenu}
                 onClick={() => setSeccionActiva("nuevo")}
               >
                 Entrar
@@ -208,128 +221,134 @@ export default function App() {
           </div>
         )}
 
-       {seccionActiva !== "inicio" && (
-  <>
-    {seccionActiva !== "matricula" && (
-      <>
-        <Busqueda
-          
-          apellidoBusqueda={apellidoBusqueda}
-          setApellidoBusqueda={setApellidoBusqueda}
-          dniBusqueda={dniBusqueda}
-          setDniBusqueda={setDniBusqueda}
-          irATabla={() => setSeccionActiva("lista")}
-        />
+        {seccionActiva !== "inicio" && (
+          <>
+            {seccionActiva !== "matricula" && (
+              <>
+                <Busqueda
+                  dniBusqueda={dniBusqueda}
+                  setDniBusqueda={setDniBusqueda}
+                  apellidoBusqueda={apellidoBusqueda}
+                  setApellidoBusqueda={setApellidoBusqueda}
 
-        <div
-          style={{
-            display: "flex",
-            gap: "10px",
-            flexWrap: "wrap",
-            marginTop: "25px",
-            marginBottom: "20px"
-          }}
-        >
-          <button
-            onClick={() => setSeccionActiva("formulario")}
-            style={botonMenu}
-          >
-            Nuevo Pedido de Analítico
-          </button>
+                  irATabla={() => setSeccionActiva("lista")}
+                />
 
-          <button
-            onClick={() => {
-              
-              setApellidoBusqueda("")
-              setDniBusqueda("")
-              setEstadoFiltro("Todos")
-              setSeccionActiva("lista")
-            }}
-            style={botonMenu}
-          >
-            Ver Lista Completa
-          </button>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "10px",
+                    flexWrap: "wrap",
+                    marginTop: "25px",
+                    marginBottom: "20px"
+                  }}
+                >
+                  <button
+                    onClick={() => setSeccionActiva("formulario")}
+                    style={botonMenu}
+                  >
+                    Nuevo Pedido de Analítico
+                  </button>
 
-          <button
-            onClick={generarPlanillaElevacion}
-            style={botonMenu}
-          >
-            Planilla de Eleve
-          </button>
+                  <button
+                    onClick={() => {
 
-          <button
-            onClick={() => setSeccionActiva("estadisticas")}
-            style={botonMenu}
-          >
-            Estadísticas
-          </button>
+                      setDniBusqueda("")
+                      setApellidoBusqueda("")
 
-          <button
-            onClick={() => setSeccionActiva("inicio")}
-            style={botonVolver}
-          >
-            Volver al inicio
-          </button>
-        </div>
-      </>
-    )}
+                      setEstadoFiltro("Todos")
+                      setSeccionActiva("lista")
+                    }}
+                    style={botonMenu}
+                  >
+                    Ver Lista Completa
+                  </button>
 
-    {seccionActiva === "matricula" && (
-      <div style={{ marginBottom: "20px" }}>
-        <button
-          onClick={() => setSeccionActiva("inicio")}
-          style={botonMenu}
-        >
-          Volver al inicio
-        </button>
-      </div>
-    )}
+                  <button
+                    onClick={generarPlanillaElevacion}
+                    style={botonMenu}
+                  >
+                    Planilla de Eleve
+                  </button>
 
-    {seccionActiva === "formulario" && (
-      <>
-        <ImportarExcel
-          importarEstudiantes={importarEstudiantes}
-        />
+                  <button
+                    onClick={() => setSeccionActiva("estadisticas")}
+                    style={botonMenu}
+                  >
+                    Estadísticas
+                  </button>
 
-        <FormularioNuevo
-          agregarEstudiante={agregarEstudiante}
-          actualizarEstudianteEditado={actualizarEstudianteEditado}
-          alumnoEditando={alumnoEditando}
-          setAlumnoEditando={setAlumnoEditando}
-        />
-      </>
-    )}
+                  <button
+                    onClick={() => setSeccionActiva("inicio")}
+                    style={botonVolver}
+                  >
+                    Volver al inicio
+                  </button>
+                </div>
+              </>
+            )}
 
-    {seccionActiva === "lista" && (
-      <TablaEstudiantes
-        dniBusqueda={dniBusqueda}
-        apellidoBusqueda={apellidoBusqueda}
-        estadoFiltro={estadoFiltro}
-        setEstadoFiltro={setEstadoFiltro}
-        estudiantes={estudiantes}
-        actualizarEstado={actualizarEstado}
-        actualizarCarpeta={actualizarCarpeta}
-        eliminarEstudiante={eliminarEstudiante}
-        editarEstudiante={editarEstudiante}
-        seleccionarAlumno={seleccionarAlumno}
-        modoImprimirLista={modoImprimirLista}
-        setModoImprimirLista={setModoImprimirLista}
-      />
-    )}
+            {seccionActiva === "matricula" && (
+              <div style={{ marginBottom: "20px" }}>
+                <button
+                  onClick={() => setSeccionActiva("inicio")}
+                  style={botonMenu}
+                >
+                  Volver al inicio
+                </button>
+              </div>
+            )}
 
-    {seccionActiva === "eleve" && (
-      <PlanillaElevacion estudiantes={estudiantes} />
-    )}
+            {seccionActiva === "formulario" && (
+              <>
+                <ImportarExcel
+                  importarEstudiantes={importarEstudiantes}
+                />
 
-    {seccionActiva === "estadisticas" && (
-      <Estadisticas estudiantes={estudiantes} />
-    )}
+                <FormularioNuevo
+                  agregarEstudiante={agregarEstudiante}
+                  actualizarEstudianteEditado={actualizarEstudianteEditado}
+                  alumnoEditando={alumnoEditando}
+                  setAlumnoEditando={setAlumnoEditando}
+                />
+              </>
+            )}
 
-    {seccionActiva === "matricula" && (
-      <Matricula />
-    )}
-  </>
-)} 
+            {seccionActiva === "lista" && (
+              <TablaEstudiantes
+                dniBusqueda={dniBusqueda}
+                apellidoBusqueda={apellidoBusqueda}
+                estadoFiltro={estadoFiltro}
+                setEstadoFiltro={setEstadoFiltro}
+                estudiantes={estudiantes}
+                actualizarEstado={actualizarEstado}
+                actualizarCarpeta={actualizarCarpeta}
+                eliminarEstudiante={eliminarEstudiante}
+                editarEstudiante={editarEstudiante}
+                seleccionarAlumno={seleccionarAlumno}
+                modoImprimirLista={modoImprimirLista}
+                setModoImprimirLista={setModoImprimirLista}
+                fechaDesde={fechaDesde}
+                setFechaDesde={setFechaDesde}
+                fechaHasta={fechaHasta}
+                setFechaHasta={setFechaHasta}
+                estudiantesPorPeriodo={estudiantesPorPeriodo}
+              />
+            )}
+
+            {seccionActiva === "eleve" && (
+              <PlanillaElevacion estudiantes={estudiantes} />
+            )}
+
+            {seccionActiva === "estadisticas" && (
+              <Estadisticas estudiantes={estudiantes} />
+            )}
+
+            {seccionActiva === "matricula" && (
+              <Matricula />
+            )}
+          </>
+        )}
       </div>
     </div>
   )
@@ -374,4 +393,22 @@ const tarjetaInicio = {
   padding: "28px",
   boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
   textAlign: "center"
+}
+const bloquePeriodo = {
+  marginTop: "20px",
+  padding: "18px",
+  border: "1px solid #c7d2fe",
+  borderRadius: "16px",
+  backgroundColor: "#f8fbff",
+  display: "flex",
+  flexDirection: "column",
+  gap: "10px",
+  alignItems: "center"
+}
+
+const inputPeriodo = {
+  padding: "10px",
+  borderRadius: "8px",
+  border: "1px solid #ccc",
+  width: "220px"
 }

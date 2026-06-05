@@ -10,7 +10,12 @@ export default function TablaEstudiantes({
   editarEstudiante,
   modoImprimirLista,
   setModoImprimirLista,
-  seleccionarAlumno
+  seleccionarAlumno,
+  fechaDesde,
+  setFechaDesde,
+  fechaHasta,
+  setFechaHasta,
+  estudiantesPorPeriodo
 }) {
 
   function formatearDNI(dni) {
@@ -190,6 +195,35 @@ export default function TablaEstudiantes({
       >
         Imprimir lista filtrada
       </button>
+
+      <div style={bloquePeriodo}>
+        <h3>🗓️ Imprimir pedidos por fecha de carga</h3>
+
+        <input
+          type="date"
+          value={fechaDesde}
+          onChange={(e) => setFechaDesde(e.target.value)}
+          style={inputPeriodo}
+        />
+
+        <input
+          type="date"
+          value={fechaHasta}
+          onChange={(e) => setFechaHasta(e.target.value)}
+          style={inputPeriodo}
+        />
+
+        <p>
+          Pedidos encontrados: {estudiantesPorPeriodo.length}
+        </p>
+
+        <button
+          style={botonImprimirLista}
+          onClick={() => imprimirLista(estudiantesPorPeriodo)}
+        >
+          🖨️ Imprimir período
+        </button>
+      </div>
 
       {estudiantesFiltrados.length === 0 && (
         <p style={mensajeNoEncontrado}>
@@ -451,4 +485,23 @@ function obtenerColorEstado(estado) {
   }
 
   return "black"
+}
+const bloquePeriodo = {
+  marginTop: "20px",
+  marginBottom: "20px",
+  padding: "18px",
+  border: "1px solid #c7d2fe",
+  borderRadius: "16px",
+  backgroundColor: "#f8fbff",
+  display: "flex",
+  flexDirection: "column",
+  gap: "10px",
+  alignItems: "center"
+}
+
+const inputPeriodo = {
+  padding: "10px",
+  borderRadius: "8px",
+  border: "1px solid #ccc",
+  width: "220px"
 }

@@ -11,15 +11,15 @@ export default function FormularioNuevo({
   const [libro, setLibro] = useState("")
   const [folio, setFolio] = useState("")
   const [fecha, setFecha] = useState("")
-  const [ultimoAnio, setUltimoAnio] = useState("")
+  const [ultimoAnio, setUltimoAnio] = useState("") 
 
   useEffect(() => {
     if (alumnoEditando) {
-      setNombre(alumnoEditando.nombre)
-      setDni(alumnoEditando.dni)
-      setLibro(alumnoEditando.libro)
-      setFolio(alumnoEditando.folio)
-      setUltimoAnio(alumnoEditando.ultimoAnio)
+      setNombre(alumnoEditando.nombre || "")
+      setDni(alumnoEditando.dni || "")
+      setLibro(alumnoEditando.libro || "")
+      setFolio(alumnoEditando.folio || "")
+      setUltimoAnio(alumnoEditando.ultimoAnio || "")
       setFecha("")
     }
   }, [alumnoEditando])
@@ -30,11 +30,17 @@ export default function FormularioNuevo({
       dni,
       libro,
       folio,
-      fecha: fecha ? fecha.split("-").reverse().join("/") : alumnoEditando?.fecha || "",
+      fecha: fecha
+        ? fecha.split("-").reverse().join("/")
+        : alumnoEditando?.fecha || "",
       ultimoAnio,
       estado: alumnoEditando?.estado || "Pendiente",
       carpeta: alumnoEditando?.carpeta || "---",
-      seleccionado: false
+      seleccionado: alumnoEditando?.seleccionado || false,
+
+      fechaCarga:
+        alumnoEditando?.fechaCarga ||
+        new Date().toISOString()
     }
 
     if (alumnoEditando) {
@@ -62,7 +68,9 @@ export default function FormularioNuevo({
       }}
     >
       <h2 style={{ color: "#1e3a5f" }}>
-        {alumnoEditando ? "Editar analítico" : "Cargar nuevo pedido de  analítico"}
+        {alumnoEditando
+          ? "Editar analítico"
+          : "Cargar nuevo pedido de analítico"}
       </h2>
 
       <input
@@ -118,10 +126,7 @@ export default function FormularioNuevo({
         style={estiloInput}
       />
 
-      <button
-        onClick={manejarEnvio}
-        style={botonGuardar}
-      >
+      <button onClick={manejarEnvio} style={botonGuardar}>
         {alumnoEditando ? "Guardar cambios" : "Guardar pedido de Analítico"}
       </button>
     </div>
