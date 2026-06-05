@@ -187,7 +187,7 @@ export default function App() {
               <p>Carga, seguimiento, estados y planilla de eleve.</p>
 
               <button
-                style={botonMenu}
+                style={botonMenu} 
                 onClick={() => setSeccionActiva("nuevo")}
               >
                 Entrar
@@ -213,10 +213,11 @@ export default function App() {
     {seccionActiva !== "matricula" && (
       <>
         <Busqueda
-          dniBusqueda={dniBusqueda}
-          setDniBusqueda={setDniBusqueda}
+          
           apellidoBusqueda={apellidoBusqueda}
           setApellidoBusqueda={setApellidoBusqueda}
+          dniBusqueda={dniBusqueda}
+          setDniBusqueda={setDniBusqueda}
           irATabla={() => setSeccionActiva("lista")}
         />
 
