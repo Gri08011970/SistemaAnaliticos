@@ -27,7 +27,7 @@ mongoose.connect(process.env.MONGO_URI)
 
   function limpiarDni(dni) {
   return dni?.toString().replace(/\D/g, "")
-}
+} 
 // ======================
 // RUTAS API
 // ======================
@@ -103,7 +103,7 @@ app.put("/alumnos/:id", async (req, res) => {
     const alumnoActualizado = await Alumno.findByIdAndUpdate(
       req.params.id,
       req.body,
-      { new: true }
+      { returnDocument: "after" }
     )
 
     res.json(alumnoActualizado)
@@ -162,7 +162,7 @@ app.put("/api/matricula/:id", async (req, res) => {
     const alumnoActualizado = await MatriculaAlumno.findByIdAndUpdate(
       req.params.id,
       req.body,
-      { new: true }
+      { returnDocument: "after" }
     )
 
     res.json(alumnoActualizado)
