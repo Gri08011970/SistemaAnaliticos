@@ -44,6 +44,8 @@ export default function Matricula() {
     dni: "",
     legajoNumero: "",
     legajoAnio: "",
+    libroMatriz: "",
+    folioMatriz: "",
     fechaNacimiento: "",
     materiasPendientes: [],
     condicionFinal: ""
@@ -73,6 +75,8 @@ export default function Matricula() {
       dni: alumno.dni || "",
       legajoNumero: alumno.legajoNumero || "",
       legajoAnio: alumno.legajoAnio || "",
+      libroMatriz: alumno.libroMatriz || "",
+      folioMatriz: alumno.folioMatriz || "",
       fechaNacimiento: alumno.fechaNacimiento || "",
       materiasPendientes: Array.isArray(alumno.materiasPendientes)
         ? alumno.materiasPendientes
@@ -96,6 +100,8 @@ export default function Matricula() {
       nombre: "",
       dni: "",
       legajoNumero: "",
+      libroMatriz: "",
+      folioMatriz: "",
       legajoAnio: "",
       fechaNacimiento: "",
       condicionFinal: "",
@@ -134,11 +140,13 @@ export default function Matricula() {
   }
 
   function agregarPrevia() {
-    if (!previaSeleccionada || !anioPrevia) return
+    if (!previaSeleccionada) return
+
+    if (previaSeleccionada !== "----------" && !anioPrevia) return
 
     const nuevaPrevia = {
       asignatura: previaSeleccionada,
-      anio: anioPrevia
+      anio: previaSeleccionada === "----------" ? "" : anioPrevia
     }
 
     setNuevoAlumno({
@@ -177,11 +185,15 @@ export default function Matricula() {
         apellido: "",
         nombre: "",
         dni: "",
+        legajoNumero: "",
+        legajoAnio: "",
+        libroMatriz: "",
+        folioMatriz: "",
         fechaNacimiento: "",
         materiasPendientes: [],
         condicionFinal: ""
       })
-
+      
       obtenerMatricula()
     } catch (error) {
       if (error.response?.status === 400) {
@@ -216,6 +228,7 @@ export default function Matricula() {
   ]
 
   const asignaturas = [
+    "----------",
     "Ciencias Naturales",
     "Ciencias Sociales",
     "Educación Artística",
@@ -237,6 +250,7 @@ export default function Matricula() {
     "Política y Ciudadanía",
     "Producción y Análisis de Imágenes",
     "Imagen y Nuevos Medios",
+    "Art. Leng. Danza",
     "Imagen y Procedimientos Constructivos"
   ]
 
@@ -283,10 +297,16 @@ export default function Matricula() {
     : []
 
   const alumnosFiltrados = alumnosDelCurso.filter((alumno) => {
+    const previasReales = Array.isArray(alumno.materiasPendientes)
+      ? alumno.materiasPendientes.filter(
+        (previa) => previa.asignatura !== "----------"
+      )
+      : []
+
     const coincidePrevia =
       !filtroPrevia && !filtroAnioPrevia
         ? true
-        : alumno.materiasPendientes?.some((previa) => {
+        : previasReales.some((previa) => {
           const coincideMateria =
             !filtroPrevia || previa.asignatura === filtroPrevia
 
@@ -312,7 +332,7 @@ export default function Matricula() {
         return alumno.condicionFinal === "Reinscripto"
 
       if (filtroAvanzado === "previas")
-        return alumno.materiasPendientes?.length > 0
+        return previasReales.length > 0
 
       if (filtroAvanzado === "sinLegajo")
         return !alumno.legajoNumero
@@ -344,9 +364,15 @@ export default function Matricula() {
     alumno => alumno.condicionFinal === "Rec"
   ).length
 
-  const totalConPrevias = alumnosDelCurso.filter(
-    alumno => alumno.materiasPendientes?.length > 0
-  ).length
+  const totalConPrevias = alumnosDelCurso.filter((alumno) => {
+    const previasReales = Array.isArray(alumno.materiasPendientes)
+      ? alumno.materiasPendientes.filter(
+        (previa) => previa.asignatura !== "----------"
+      )
+      : []
+
+    return previasReales.length > 0
+  }).length
 
   const porcentajeProm =
     totalEstudiantes > 0
@@ -936,6 +962,7 @@ export default function Matricula() {
     return (
       coincideTurno &&
       alumno.materiasPendientes?.some((previa) => {
+        if (previa.asignatura === "----------") return false
         const coincideMateria =
           !materiaExamen ||
           previa.asignatura === materiaExamen
@@ -992,9 +1019,14 @@ export default function Matricula() {
     (alumno) => !alumno.fechaNacimiento
   )
 
-  const alumnosConPrevias = alumnosMatricula.filter(
-    (alumno) => alumno.materiasPendientes?.length > 0
-  )
+  const alumnosConPrevias = alumnosMatricula.filter((alumno) => {
+    const previasReales =
+      alumno.materiasPendientes?.filter(
+        (previa) => previa.asignatura !== "----------"
+      ) || []
+
+    return previasReales.length > 0
+  })
 
   const alumnosConSobreedad = alumnosMatricula.filter(
     (alumno) => tieneSobreedad(alumno)
@@ -1012,20 +1044,20 @@ export default function Matricula() {
             : []
 
   const pedidosAnaliticosEncontrados = pedidosAnaliticos.filter((pedido) => {
-  const texto = normalizarTexto(busquedaAlumno) || ""
-  const dniBuscado = limpiarDNI(busquedaAlumno)
+    const texto = normalizarTexto(busquedaAlumno) || ""
+    const dniBuscado = limpiarDNI(busquedaAlumno)
 
-  const nombrePedido = normalizarTexto(pedido.nombre) || ""
-  const dniPedido = limpiarDNI(pedido.dni)
+    const nombrePedido = normalizarTexto(pedido.nombre) || ""
+    const dniPedido = limpiarDNI(pedido.dni)
 
-  const coincideNombre =
-    texto.length > 2 && nombrePedido.includes(texto)
+    const coincideNombre =
+      texto.length > 2 && nombrePedido.includes(texto)
 
-  const coincideDni =
-    dniBuscado.length > 2 && dniPedido.includes(dniBuscado)
+    const coincideDni =
+      dniBuscado.length > 2 && dniPedido.includes(dniBuscado)
 
-  return coincideNombre || coincideDni
-})
+    return coincideNombre || coincideDni
+  })
 
   return (
     <div style={{ marginTop: "40px" }}>
@@ -1289,7 +1321,6 @@ export default function Matricula() {
                   <p>{alumnoSeleccionado.turno}</p>
                 </div>
 
-
                 <div style={campoFicha}>
                   <strong>Legajo</strong>
                   <p>
@@ -1319,14 +1350,21 @@ export default function Matricula() {
                 <div style={campoFicha}>
                   <strong>Previas</strong>
                   <p>
-                    {alumnoSeleccionado.materiasPendientes?.length > 0
-                      ? alumnoSeleccionado.materiasPendientes
-                        .map(
-                          (previa) =>
-                            `${previa.asignatura} (${previa.anio})`
-                        )
-                        .join(", ")
-                      : "Sin previas"}
+                    {(() => {
+                      const previasReales =
+                        alumnoSeleccionado.materiasPendientes?.filter(
+                          (previa) => previa.asignatura !== "----------"
+                        ) || []
+
+                      return previasReales.length > 0
+                        ? previasReales
+                          .map(
+                            (previa) =>
+                              `${previa.asignatura} (${previa.anio})`
+                          )
+                          .join(", ")
+                        : "Ninguna"
+                    })()}
                   </p>
                 </div>
 
@@ -1463,6 +1501,7 @@ export default function Matricula() {
                     {alumnosParaExamen.map((alumno) =>
                       alumno.materiasPendientes
                         .filter((previa) => {
+                          if (previa.asignatura === "----------") return false
                           const coincideMateria =
                             !materiaExamen || previa.asignatura === materiaExamen
 
@@ -1856,6 +1895,29 @@ export default function Matricula() {
                 setNuevoAlumno({ ...nuevoAlumno, legajoAnio: e.target.value })
               }
             />
+            <input
+              placeholder="Libro matriz"
+              style={inputAlumno}
+              value={nuevoAlumno.libroMatriz}
+              onChange={(e) =>
+                setNuevoAlumno({
+                  ...nuevoAlumno,
+                  libroMatriz: e.target.value
+                })
+              }
+            />
+
+            <input
+              placeholder="Folio matriz"
+              style={inputAlumno}
+              value={nuevoAlumno.folioMatriz}
+              onChange={(e) =>
+                setNuevoAlumno({
+                  ...nuevoAlumno,
+                  folioMatriz: e.target.value
+                })
+              }
+            />
 
             <input
               type="date"
@@ -2092,6 +2154,7 @@ export default function Matricula() {
                 </th>
                 <th style={celda}>DNI</th>
                 <th style={celda}>Legajo</th>
+                <th style={celda}>Libro/Folio</th>
                 <th style={{ ...celda, width: "95px" }}>
                   Fecha nacimiento
                 </th>
@@ -2107,7 +2170,7 @@ export default function Matricula() {
             <tbody>
               {alumnosDelCurso.length === 0 && (
                 <tr>
-                  <td style={celda} colSpan="8">
+                  <td style={celda} colSpan="9">
                     Todavía no hay estudiantes cargados en este curso.
                   </td>
                 </tr>
@@ -2128,6 +2191,12 @@ export default function Matricula() {
                   </td>
 
                   <td style={celda}>
+                    {alumno.libroMatriz && alumno.folioMatriz
+                      ? `${alumno.libroMatriz}/${alumno.folioMatriz}`
+                      : "-"}
+                  </td>
+
+                  <td style={celda}>
                     {formatearFecha(alumno.fechaNacimiento)}
                   </td>
 
@@ -2143,7 +2212,9 @@ export default function Matricula() {
                       ? alumno.materiasPendientes
                         .map(
                           (previa) =>
-                            `${previa.asignatura} (${previa.anio})`
+                            previa.asignatura === "----------"
+                              ? "----------"
+                              : `${previa.asignatura} (${previa.anio})`
                         )
                         .join(", ")
                       : ""}

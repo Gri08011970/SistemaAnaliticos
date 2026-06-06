@@ -1,12 +1,16 @@
 import mongoose from "mongoose"
 
 const matriculaAlumnoSchema = new mongoose.Schema({
+
   apellido: String,
   nombre: String,
   dni: String,
-  
+
   legajoNumero: String,
   legajoAnio: String,
+
+  libroMatriz: String,
+  folioMatriz: String,
 
   curso: String,
   turno: String,
@@ -19,12 +23,13 @@ const matriculaAlumnoSchema = new mongoose.Schema({
 
   fechaNacimiento: String,
 
- materiasPendientes: [
-  {
-    asignatura: String,
-    anio: String
-  }
-],
+  materiasPendientes: [
+    {
+      asignatura: String,
+      anio: String
+    }
+  ],
+
   condicionFinal: {
     type: String,
     default: ""

@@ -131,7 +131,7 @@ app.get("/api/matricula", async (req, res) => {
 // GUARDAR ESTUDIANTE
 
 app.post("/api/matricula", async (req, res) => {
-  try {
+  try { 
     const dniLimpio = limpiarDni(req.body.dni)
 
     const alumnoExistente = await MatriculaAlumno.findOne({ dni: dniLimpio })
@@ -155,7 +155,7 @@ app.post("/api/matricula", async (req, res) => {
       mensaje: "Error al guardar estudiante"
     })
   }
-})
+}) 
 
 app.put("/api/matricula/:id", async (req, res) => {
   try {
