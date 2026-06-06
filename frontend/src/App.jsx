@@ -2,13 +2,14 @@ import { useEffect, useState } from "react"
 import axios from "axios"
 
 import Busqueda from "./components/Busqueda"
-import TablaEstudiantes from "./components/TablaEstudiantes" 
-import Estadisticas from "./components/Estadisticas" 
+import TablaEstudiantes from "./components/TablaEstudiantes"
+import Estadisticas from "./components/Estadisticas"
 import FormularioNuevo from "./components/FormularioNuevo"
 import PlanillaElevacion from "./components/PlanillaElevacion"
 import ImportarExcel from "./components/ImportarExcel"
 import Login from "./components/Login"
 import Matricula from "./components/Matricula"
+import PortadaInstitucional from "./components/PortadaInstitucional"
 
 export default function App() {
   const [dniBusqueda, setDniBusqueda] = useState("")
@@ -21,9 +22,10 @@ export default function App() {
   const [logueado, setLogueado] = useState(false)
   const [fechaDesde, setFechaDesde] = useState("")
   const [fechaHasta, setFechaHasta] = useState("")
+  const [mostrarPortada, setMostrarPortada] = useState(true)
 
-  useEffect(() => { 
-    obtenerAlumnos() 
+  useEffect(() => {
+    obtenerAlumnos()
   }, [])
 
   async function obtenerAlumnos() {
@@ -144,220 +146,228 @@ export default function App() {
     setSeccionActiva("eleve")
   }
 
-  if (!logueado) {
-    return <Login setLogueado={setLogueado} />
+   
+
+  const estudiantesPorPeriodo = estudiantes.filter((alumno) => {
+    let fechaAlumno = ""
+
+    if (alumno.fechaCarga) {
+      fechaAlumno = alumno.fechaCarga.slice(0, 10)
+    } else if (alumno.fecha) {
+      const partes = alumno.fecha.split("/")
+      fechaAlumno = `${partes[2]}-${partes[1]}-${partes[0]}`
+    }
+
+    if (!fechaAlumno) return false
+
+    return (
+      (!fechaDesde || fechaAlumno >= fechaDesde) &&
+      (!fechaHasta || fechaAlumno <= fechaHasta)
+    )
+  })
+
+  if (mostrarPortada) {
+    return (
+      <PortadaInstitucional
+        entrar={() => setMostrarPortada(false)}
+      />
+    )
   }
-
- const estudiantesPorPeriodo = estudiantes.filter((alumno) => {
-  let fechaAlumno = ""
-
-  if (alumno.fechaCarga) {
-    fechaAlumno = alumno.fechaCarga.slice(0, 10)
-  } else if (alumno.fecha) {
-    const partes = alumno.fecha.split("/")
-    fechaAlumno = `${partes[2]}-${partes[1]}-${partes[0]}`
-  }
-
-  if (!fechaAlumno) return false
-
+  
   return (
-    (!fechaDesde || fechaAlumno >= fechaDesde) &&
-    (!fechaHasta || fechaAlumno <= fechaHasta)
-  )
-})
 
-  return (
-    <div
+   
+  <div
+    style={{
+      backgroundColor: "#f4f6f8",
+      minHeight: "100vh",
+      padding: "40px",
+      fontFamily: "Arial"
+    }}
+  >
+    <div 
       style={{
-        backgroundColor: "#f4f6f8",
-        minHeight: "100vh",
-        padding: "40px",
-        fontFamily: "Arial"
+        backgroundColor: "white",
+        padding: "30px",
+        borderRadius: "15px",
+        boxShadow: "0 0 10px rgba(0,0,0,0.1)"
       }}
     >
-      <div
+      <h1 style={{ color: "#1e3a5f", marginBottom: "5px" }}>
+        {seccionActiva === "inicio" && "Gestión: Pedidos de analíticos - Matrícula"}
+        {seccionActiva === "matricula" && "Gestión de Matrícula"}
+        {seccionActiva !== "inicio" &&
+          seccionActiva !== "matricula" &&
+          "Gestión de pedidos de Analíticos"}
+      </h1> <br />
+
+
+      <p
         style={{
-          backgroundColor: "white",
-          padding: "30px",
-          borderRadius: "15px",
-          boxShadow: "0 0 10px rgba(0,0,0,0.1)"
+          color: "#666",
+          marginBottom: "30px"
         }}
       >
-        <h1 style={{ color: "#1e3a5f", marginBottom: "5px" }}>
-          {seccionActiva === "inicio" && "Gestión: Pedidos de analíticos - Matrícula"}
-          {seccionActiva === "matricula" && "Gestión de Matrícula"}
-          {seccionActiva !== "inicio" &&
-            seccionActiva !== "matricula" &&
-            "Gestión de pedidos de Analíticos"}
-        </h1> <br />
+        Escuela Educación Secundaria N°140 "Florencio Molina Campos"
+      </p>
+      {seccionActiva === "inicio" && (
+        <div style={contenedorInicio}>
+          <div style={tarjetaInicio}>
+            <h3>Gestión de peddos de analíticos</h3>
+            <p>Carga, seguimiento, estados y planilla de eleve.</p>
 
-
-        <p
-          style={{
-            color: "#666",
-            marginBottom: "30px"
-          }}
-        >
-          Escuela Educación Secundaria N°140 "Florencio Molina Campos"
-        </p>
-        {seccionActiva === "inicio" && (
-          <div style={contenedorInicio}>
-            <div style={tarjetaInicio}>
-              <h3>Gestión de peddos de analíticos</h3>
-              <p>Carga, seguimiento, estados y planilla de eleve.</p>
-
-              <button
-                style={botonMenu}
-                onClick={() => setSeccionActiva("nuevo")}
-              >
-                Entrar
-              </button>
-            </div>
-
-            <div style={tarjetaInicio}>
-              <h3>Gestión de Matrícula</h3>
-              <p>Cursos, turnos, estudiantes, previas y movimientos.</p>
-
-              <button
-                style={botonMenu}
-                onClick={() => setSeccionActiva("matricula")}
-              >
-                Entrar
-              </button>
-            </div>
+            <button
+              style={botonMenu}
+              onClick={() => setSeccionActiva("nuevo")}
+            >
+              Entrar
+            </button>
           </div>
-        )}
 
-        {seccionActiva !== "inicio" && (
-          <>
-            {seccionActiva !== "matricula" && (
-              <>
-                <Busqueda
-                  dniBusqueda={dniBusqueda}
-                  setDniBusqueda={setDniBusqueda}
-                  apellidoBusqueda={apellidoBusqueda}
-                  setApellidoBusqueda={setApellidoBusqueda}
+          <div style={tarjetaInicio}>
+            <h3>Gestión de Matrícula</h3>
+            <p>Cursos, turnos, estudiantes, previas y movimientos.</p>
 
-                  irATabla={() => setSeccionActiva("lista")}
-                />
+            <button
+              style={botonMenu}
+              onClick={() => setSeccionActiva("matricula")}
+            >
+              Entrar
+            </button>
+          </div>
+        </div>
+      )}
 
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "10px",
-                    flexWrap: "wrap",
-                    marginTop: "25px",
-                    marginBottom: "20px"
-                  }}
+      {seccionActiva !== "inicio" && (
+        <>
+          {seccionActiva !== "matricula" && (
+            <>
+              <Busqueda
+                dniBusqueda={dniBusqueda}
+                setDniBusqueda={setDniBusqueda}
+                apellidoBusqueda={apellidoBusqueda}
+                setApellidoBusqueda={setApellidoBusqueda}
+
+                irATabla={() => setSeccionActiva("lista")}
+              />
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: "10px",
+                  flexWrap: "wrap",
+                  marginTop: "25px",
+                  marginBottom: "20px"
+                }}
+              >
+                <button
+                  onClick={() => setSeccionActiva("formulario")}
+                  style={botonMenu}
                 >
-                  <button
-                    onClick={() => setSeccionActiva("formulario")}
-                    style={botonMenu}
-                  >
-                    Nuevo Pedido de Analítico
-                  </button>
+                  Nuevo Pedido de Analítico
+                </button>
 
-                  <button
-                    onClick={() => {
+                <button
+                  onClick={() => {
 
-                      setDniBusqueda("")
-                      setApellidoBusqueda("")
+                    setDniBusqueda("")
+                    setApellidoBusqueda("")
 
-                      setEstadoFiltro("Todos")
-                      setSeccionActiva("lista")
-                    }}
-                    style={botonMenu}
-                  >
-                    Ver Lista Completa
-                  </button>
+                    setEstadoFiltro("Todos")
+                    setSeccionActiva("lista")
+                  }}
+                  style={botonMenu}
+                >
+                  Ver Lista Completa
+                </button>
 
-                  <button
-                    onClick={generarPlanillaElevacion}
-                    style={botonMenu}
-                  >
-                    Planilla de Eleve
-                  </button>
+                <button
+                  onClick={generarPlanillaElevacion}
+                  style={botonMenu}
+                >
+                  Planilla de Eleve
+                </button>
 
-                  <button
-                    onClick={() => setSeccionActiva("estadisticas")}
-                    style={botonMenu}
-                  >
-                    Estadísticas
-                  </button>
+                <button
+                  onClick={() => setSeccionActiva("estadisticas")}
+                  style={botonMenu}
+                >
+                  Estadísticas
+                </button>
 
-                  <button
-                    onClick={() => setSeccionActiva("inicio")}
-                    style={botonVolver}
-                  >
-                    Volver al inicio
-                  </button>
-                </div>
-              </>
-            )}
-
-            {seccionActiva === "matricula" && (
-              <div style={{ marginBottom: "20px" }}>
                 <button
                   onClick={() => setSeccionActiva("inicio")}
-                  style={botonMenu}
+                  style={botonVolver}
                 >
                   Volver al inicio
                 </button>
               </div>
-            )}
+            </>
+          )}
 
-            {seccionActiva === "formulario" && (
-              <>
-                <ImportarExcel
-                  importarEstudiantes={importarEstudiantes}
-                />
+          {seccionActiva === "matricula" && (
+            <div style={{ marginBottom: "20px" }}>
+              <button
+                onClick={() => setSeccionActiva("inicio")}
+                style={botonMenu}
+              >
+                Volver al inicio
+              </button>
+            </div>
+          )}
 
-                <FormularioNuevo
-                  agregarEstudiante={agregarEstudiante}
-                  actualizarEstudianteEditado={actualizarEstudianteEditado}
-                  alumnoEditando={alumnoEditando}
-                  setAlumnoEditando={setAlumnoEditando}
-                />
-              </>
-            )}
-
-            {seccionActiva === "lista" && (
-              <TablaEstudiantes
-                dniBusqueda={dniBusqueda}
-                apellidoBusqueda={apellidoBusqueda}
-                estadoFiltro={estadoFiltro}
-                setEstadoFiltro={setEstadoFiltro}
-                estudiantes={estudiantes}
-                actualizarEstado={actualizarEstado}
-                actualizarCarpeta={actualizarCarpeta}
-                eliminarEstudiante={eliminarEstudiante}
-                editarEstudiante={editarEstudiante} 
-                seleccionarAlumno={seleccionarAlumno} 
-                modoImprimirLista={modoImprimirLista}
-                setModoImprimirLista={setModoImprimirLista}
-                fechaDesde={fechaDesde}
-                setFechaDesde={setFechaDesde}
-                fechaHasta={fechaHasta}
-                setFechaHasta={setFechaHasta}
-                estudiantesPorPeriodo={estudiantesPorPeriodo}
+          {seccionActiva === "formulario" && (
+            <>
+              <ImportarExcel
+                importarEstudiantes={importarEstudiantes}
               />
-            )}
 
-            {seccionActiva === "eleve" && (
-              <PlanillaElevacion estudiantes={estudiantes} />
-            )}
+              <FormularioNuevo
+                agregarEstudiante={agregarEstudiante}
+                actualizarEstudianteEditado={actualizarEstudianteEditado}
+                alumnoEditando={alumnoEditando}
+                setAlumnoEditando={setAlumnoEditando}
+              />
+            </>
+          )}
 
-            {seccionActiva === "estadisticas" && (
-              <Estadisticas estudiantes={estudiantes} />
-            )}
+          {seccionActiva === "lista" && (
+            <TablaEstudiantes
+              dniBusqueda={dniBusqueda}
+              apellidoBusqueda={apellidoBusqueda}
+              estadoFiltro={estadoFiltro}
+              setEstadoFiltro={setEstadoFiltro}
+              estudiantes={estudiantes}
+              actualizarEstado={actualizarEstado}
+              actualizarCarpeta={actualizarCarpeta}
+              eliminarEstudiante={eliminarEstudiante}
+              editarEstudiante={editarEstudiante}
+              seleccionarAlumno={seleccionarAlumno}
+              modoImprimirLista={modoImprimirLista}
+              setModoImprimirLista={setModoImprimirLista}
+              fechaDesde={fechaDesde}
+              setFechaDesde={setFechaDesde}
+              fechaHasta={fechaHasta}
+              setFechaHasta={setFechaHasta}
+              estudiantesPorPeriodo={estudiantesPorPeriodo}
+            />
+          )}
 
-            {seccionActiva === "matricula" && (
-              <Matricula />
-            )}
-          </>
-        )}
-      </div>
+          {seccionActiva === "eleve" && (
+            <PlanillaElevacion estudiantes={estudiantes} />
+          )}
+
+          {seccionActiva === "estadisticas" && (
+            <Estadisticas estudiantes={estudiantes} />
+          )}
+
+          {seccionActiva === "matricula" && (
+            <Matricula />
+          )}
+        </>
+      )}
     </div>
+  </div>
   )
 }
 
