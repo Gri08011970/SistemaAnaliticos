@@ -193,7 +193,7 @@ export default function Matricula() {
         materiasPendientes: [],
         condicionFinal: ""
       })
-      
+
       obtenerMatricula()
     } catch (error) {
       if (error.response?.status === 400) {
@@ -1256,7 +1256,7 @@ export default function Matricula() {
                           }, 100)
                         }}
                       >
-                        👤
+                        📖
                       </button>
                     </div>
                   )
@@ -1288,13 +1288,13 @@ export default function Matricula() {
           {alumnoSeleccionado && (
             <div id="ficha-estudiante" style={detalleCurso}>
 
-              <h2 style={{
-                color: "#1e3a5f",
-                textAlign: "center",
-                marginBottom: "20px"
-              }}>
-                👤 Ficha del estudiante
-              </h2>
+              <div style={tituloFicha}>
+                <h2 style={{ margin: 0 }}>
+                  📖 Ficha del estudiante
+                </h2>
+              </div>
+
+
 
               <div style={grillaFicha}>
 
@@ -1327,6 +1327,16 @@ export default function Matricula() {
                     {alumnoSeleccionado.legajoNumero &&
                       alumnoSeleccionado.legajoAnio
                       ? `${alumnoSeleccionado.legajoNumero}/${alumnoSeleccionado.legajoAnio}`
+                      : "-"}
+                  </p>
+                </div>
+
+                <div style={campoFicha}>
+                  <strong>Libro/Folio</strong>
+                  <p>
+                    {alumnoSeleccionado.libroMatriz &&
+                      alumnoSeleccionado.folioMatriz
+                      ? `${alumnoSeleccionado.libroMatriz}/${alumnoSeleccionado.folioMatriz}`
                       : "-"}
                   </p>
                 </div>
@@ -2595,6 +2605,15 @@ const campoFicha = {
   borderRadius: "14px",
   padding: "16px",
   boxShadow: "0 2px 6px rgba(0,0,0,0.05)"
+}
+const tituloFicha = {
+  background: "#e8f4f1",
+  borderLeft: "6px solid #0f766e",
+  borderRadius: "8px",
+  padding: "12px",
+  marginBottom: "20px",
+  textAlign: "center",
+  color: "#1e3a5f"
 }
 const alertaAnalitico = {
   backgroundColor: "#fff7ed",
