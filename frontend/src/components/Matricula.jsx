@@ -2340,7 +2340,7 @@ const grillaCursos = {
   gap: "10px"
 }
 
-const tarjetaCurso = {
+const tarjetaCurso = { 
   backgroundColor: "white",
   padding: "18px",
   borderRadius: "14px",
@@ -2384,13 +2384,12 @@ const botonVolver = {
 
 const formularioAlumno = {
   display: "grid",
-  gridTemplateColumns: "repeat(4, minmax(150px, 1fr))",
+  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
   gap: "14px",
   marginBottom: "22px",
   marginTop: "22px",
   alignItems: "center"
 }
-
 const inputAlumno = {
   padding: "12px",
   borderRadius: "8px",
@@ -2406,7 +2405,7 @@ const botonAgregar = {
   borderRadius: "8px",
   cursor: "pointer",
   fontWeight: "bold",
-  gridColumn: "4 / 5"
+  gridColumn: "auto"
 }
 
 const tabla = {
@@ -2423,10 +2422,10 @@ const celda = {
 }
 const bloquePrevias = {
   display: "grid",
-  gridTemplateColumns: "2fr 1fr auto",
+  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
   gap: "8px",
   alignItems: "center",
-  gridColumn: "1 / 4"
+  gridColumn: "1 / -1"
 }
 const botonEditar = {
   backgroundColor: "#dbe7f5",

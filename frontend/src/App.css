@@ -264,3 +264,67 @@
     text-align: center;
   }
 }
+/* =========================
+   RESPONSIVE GENERAL
+========================= */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/* Tablas: en pantallas chicas permiten deslizar */
+@media (max-width: 900px) {
+  table {
+    min-width: 850px;
+  }
+}
+
+/* Celular y tablet */
+@media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  input,
+  select,
+  button {
+    max-width: 100%;
+  }
+
+  h1 {
+    font-size: 28px !important;
+    line-height: 1.1;
+  }
+
+  h2 {
+    font-size: 22px !important;
+  }
+
+  h3 {
+    font-size: 18px !important;
+  }
+
+  .no-print {
+    flex-wrap: wrap;
+  }
+}
+
+/* Celular vertical */
+@media (max-width: 480px) {
+  h1 {
+    font-size: 24px !important;
+  }
+
+  button {
+    font-size: 12px !important;
+  }
+
+  input,
+  select {
+    font-size: 14px !important;
+  }
+}
