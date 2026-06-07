@@ -24,7 +24,7 @@ export default function PortadaInstitucional({ entrar }) {
         {proyectosEscuela.map((proyecto, index) => (
           <div key={index} style={tarjeta}>
             <img
-              src={`/src/assets/escuela140/${proyecto.imagen}`}
+              src={`/escuela140/${proyecto.imagen}`} 
               alt={proyecto.titulo}
               style={imagen}
             />
@@ -69,7 +69,7 @@ const contenedorPortada = {
 const hero = {
   height: "70vh",
   borderRadius: "24px",
-  backgroundImage: "url('/src/assets/escuela140/dia_mujer.jpg')",
+  backgroundImage: "url('/escuela140/dia_mujer.jpg')",
   backgroundSize: "cover",
   backgroundPosition: "center",
   display: "flex",
@@ -92,7 +92,7 @@ const capa = {
   textAlign: "left",
   maxWidth: "300px",
   boxShadow: "0 4px 10px rgba(0,0,0,0.10)"
-}
+} 
 
 const tituloPrincipal = {
   fontSize: "20px",
