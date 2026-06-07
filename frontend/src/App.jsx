@@ -23,10 +23,11 @@ export default function App() {
   const [fechaDesde, setFechaDesde] = useState("")
   const [fechaHasta, setFechaHasta] = useState("")
   const [mostrarPortada, setMostrarPortada] = useState(true)
+  const [mostrarDespedida, setMostrarDespedida] = useState(false)
 
   useEffect(() => {
     obtenerAlumnos()
-  }, [])
+  }, []) 
 
   async function obtenerAlumnos() {
     try {
@@ -175,16 +176,22 @@ export default function App() {
   }
   
   return (
+    <div
+      style={{
+        backgroundColor: "#f4f6f8",
+        minHeight: "100vh",
+        padding: "40px",
+        fontFamily: "Arial",
+        position: "relative"
+      }}
+    >
 
-   
-  <div
-    style={{
-      backgroundColor: "#f4f6f8",
-      minHeight: "100vh",
-      padding: "40px",
-      fontFamily: "Arial"
-    }}
-  >
+    <button
+      style={botonSalir}
+      onClick={() => setMostrarDespedida(true)}
+    >
+      🚪 Cerrar sesión
+    </button>
     <div 
       style={{
         backgroundColor: "white",
@@ -367,6 +374,63 @@ export default function App() {
         </>
       )}
     </div>
+     {
+  mostrarDespedida && (
+    <div style={fondoModal}>
+      <div style={modalDespedida}>
+
+        <h2 style={{ color: "#1e3a5f" }}>
+          👋 Hasta pronto
+        </h2>
+
+        <p>
+          Gracias por utilizar el Sistema de Gestión Institucional
+        </p>
+
+        <h3 style={{ color: "#1e3a5f" }}>
+          E.E.S. N° 140
+        </h3>
+
+        <p>
+          "Florencio Molina Campos"
+        </p>
+
+        <p
+          style={{
+            fontStyle: "italic",
+            marginTop: "20px",
+            color: "#555"
+          }}
+        >
+          Educar es dejar huellas en el corazón de quienes aprenden.
+        </p>
+
+        <div style={{ marginTop: "25px" }}>
+
+          <button
+            style={botonVolverModal}
+            onClick={() => setMostrarDespedida(false)}
+          >
+            Continuar trabajando
+          </button>
+
+          <button
+            style={botonSalirModal}
+            onClick={() => {
+              setMostrarDespedida(false)
+              setMostrarPortada(true)
+            }}
+          >
+            Salir del sistema
+          </button>
+
+        </div>
+
+      </div>
+    </div>
+  )
+}
+  
   </div>
   )
 }
@@ -428,4 +492,54 @@ const inputPeriodo = {
   borderRadius: "8px",
   border: "1px solid #ccc",
   width: "220px"
+}
+const botonSalir = {
+  position: "absolute",
+  top: "20px",
+  right: "20px",
+  backgroundColor:"#5c8d89"  ,
+  color: "white",
+  border: "none",
+  borderRadius: "999px",
+  padding: "10px 18px",
+  cursor: "pointer",
+  fontWeight: "bold",
+  boxShadow:  "0 3px 6px rgba(0,0,0,0.15)"
+}
+const fondoModal = {
+  position: "fixed",
+  top: 0,
+  left: 0,
+  width: "100%",
+  height: "100%",
+  backgroundColor: "rgba(0,0,0,0.45)",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  zIndex: 9999
+}
+const modalDespedida = {
+  backgroundColor: "white",
+  padding: "35px",
+  borderRadius: "20px",
+  width: "500px",
+  textAlign: "center",
+  boxShadow: "0 10px 30px rgba(0,0,0,0.25)"
+}
+const botonVolverModal = {
+  backgroundColor: "#dfeceb",
+  color: "#1e3a5f",
+  border: "none",
+  padding: "10px 18px",
+  borderRadius: "999px",
+  marginRight: "10px",
+  cursor: "pointer"
+}
+const botonSalirModal = {
+  backgroundColor: "#5c8d89",
+  color: "white",
+  border: "none",
+  padding: "10px 18px",
+  borderRadius: "999px",
+  cursor: "pointer"
 }
