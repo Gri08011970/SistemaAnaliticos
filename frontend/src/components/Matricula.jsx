@@ -1199,7 +1199,7 @@ export default function Matricula() {
             <input
               type="text"
               placeholder="Apellido, nombre o DNI"
-              style={bloqueBusquedaGeneral}
+              style={inputBusquedaPrincipal}
               value={busquedaAlumno}
               onChange={(e) => setBusquedaAlumno(e.target.value)}
             />
@@ -2184,7 +2184,9 @@ export default function Matricula() {
             </option>
           </select>
 
-          <table style={tabla}>
+          
+            <div style={tablaResponsive}>
+             <table style={tabla}>
             <thead>
               <tr>
                 <th style={{ ...celda, width: "220px" }}>
@@ -2203,7 +2205,7 @@ export default function Matricula() {
                 <th style={{ ...celda, width: "65px" }}>Cond.</th>
                 <th style={{ ...celda, width: "140px" }}>Acciones</th>
               </tr>
-            </thead>
+            </thead> 
 
             <tbody>
               {alumnosDelCurso.length === 0 && (
@@ -2305,6 +2307,7 @@ export default function Matricula() {
             </tbody>
           </table>
         </div>
+        </div>
       )}
     </div>
   )
@@ -2405,11 +2408,12 @@ const botonAgregar = {
   borderRadius: "8px",
   cursor: "pointer",
   fontWeight: "bold",
-  gridColumn: "auto"
+  gridColumn: "auto" 
 }
 
 const tabla = {
   width: "100%",
+  minWidth: "850px",
   borderCollapse: "collapse",
   marginTop: "15px"
 }
@@ -2679,3 +2683,8 @@ const nombreFicha = {
   color: "#1e3a5f",
   fontWeight: "bold"
 } 
+const tablaResponsive = {
+  width: "100%",
+  overflowX: "auto",
+  WebkitOverflowScrolling: "touch"
+}
