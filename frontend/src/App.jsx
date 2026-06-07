@@ -103,14 +103,30 @@ export default function App() {
     }
   }
 
-  async function eliminarEstudiante(id) {
-    try {
-      await axios.delete(`/alumnos/${id}`)
-      obtenerAlumnos()
-    } catch (error) {
-      console.log(error)
-    }
+ async function eliminarEstudiante(id) {
+  const confirmar = window.confirm(
+    "¿Seguro que querés eliminar este pedido de analítico?\n\nEsta acción no se puede deshacer."
+  )
+
+  if (!confirmar) return
+
+  try {
+    await axios.delete(`/alumnos/${id}`) 
+
+    setEstudiantes((anteriores) =>
+      anteriores.filter((alumno) => alumno._id !== id)
+    )
+  } catch (error) {
+    console.log(error)
+    console.log(error.response)
+
+    alert(
+      error.response?.data?.mensaje ||
+      error.response?.data?.error ||
+      error.message
+    )
   }
+}
 
   function editarEstudiante(alumno) {
     setAlumnoEditando(alumno)
@@ -428,14 +444,14 @@ export default function App() {
 
       </div>
     </div>
-  )
-}
+  ) 
+} 
   
   </div>
   )
 }
 
-const botonMenu = {
+const botonMenu = { 
   backgroundColor: "#1c6c6e",
   color: "white",
   border: "none",

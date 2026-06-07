@@ -19,7 +19,7 @@ export default function TablaEstudiantes({
   setFechaHasta,
   estudiantesPorPeriodo
 }) {
-  
+
   const [mostrarPeriodo, setMostrarPeriodo] = useState(false)
 
   function formatearDNI(dni) {
@@ -69,7 +69,7 @@ export default function TablaEstudiantes({
     )
 
   function imprimirLista(listaParaImprimir = estudiantesFiltrados) {
-  const filas = listaParaImprimir.map((alumno, index) => `
+    const filas = listaParaImprimir.map((alumno, index) => `
     <tr>
       <td>${index + 1}</td>
       <td>${alumno.nombre || ""}</td>
@@ -152,7 +152,13 @@ export default function TablaEstudiantes({
   `)
 
     ventana.document.close()
-    ventana.print()
+
+    ventana.onload = () => {
+       ventana.focus()
+       ventana.print()
+  }
+
+
   }
 
   return (
@@ -194,51 +200,51 @@ export default function TablaEstudiantes({
       </div>
 
       <button
-        onClick={imprimirLista}
+        onClick={() => imprimirLista()}
         style={botonImprimirLista}
       >
         Imprimir lista filtrada
       </button>
 
       <div style={bloquePeriodo}>
-  <button
-    style={botonImprimirLista}
-    onClick={() => setMostrarPeriodo(!mostrarPeriodo)}
-  >
-    🗓️ {mostrarPeriodo ? "Ocultar impresión por fecha" : "Imprimir por fecha de carga"}
-  </button>
+        <button
+          style={botonImprimirLista}
+          onClick={() => setMostrarPeriodo(!mostrarPeriodo)}
+        >
+          🗓️ {mostrarPeriodo ? "Ocultar impresión por fecha" : "Imprimir por fecha de carga"}
+        </button>
 
-  {mostrarPeriodo && (
-    <>
-      <h3>🗓️ Imprimir pedidos por fecha de carga</h3>
+        {mostrarPeriodo && ( 
+          <>
+            <h3>🗓️ Imprimir pedidos por fecha de carga</h3>
 
-      <input
-        type="date"
-        value={fechaDesde}
-        onChange={(e) => setFechaDesde(e.target.value)}
-        style={inputPeriodo}
-      />
+            <input
+              type="date"
+              value={fechaDesde}
+              onChange={(e) => setFechaDesde(e.target.value)}
+              style={inputPeriodo}
+            />
 
-      <input
-        type="date"
-        value={fechaHasta}
-        onChange={(e) => setFechaHasta(e.target.value)}
-        style={inputPeriodo}
-      />
+            <input
+              type="date"
+              value={fechaHasta}
+              onChange={(e) => setFechaHasta(e.target.value)}
+              style={inputPeriodo}
+            />
 
-      <p>
-        Pedidos encontrados: {estudiantesPorPeriodo.length}
-      </p>
+            <p>
+              Pedidos encontrados: {estudiantesPorPeriodo.length}
+            </p>
 
-      <button
-        style={botonImprimirLista}
-        onClick={() => imprimirLista(estudiantesPorPeriodo)}
-      >
-        🖨️ Imprimir período
-      </button>
-    </>
-  )}
-</div>
+            <button
+              style={botonImprimirLista}
+              onClick={() => imprimirLista(estudiantesPorPeriodo)}
+            >
+              🖨️ Imprimir período
+            </button>
+          </>
+        )}
+      </div>
 
       {estudiantesFiltrados.length === 0 && (
         <p style={mensajeNoEncontrado}>

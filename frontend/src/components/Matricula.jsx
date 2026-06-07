@@ -1186,14 +1186,20 @@ export default function Matricula() {
             </div>
           )}
           <div style={bloqueBusquedaGeneral}>
-            <h3 style={{ color: "#1e3a5f" }}>
-              🔎 Buscar estudiante
-            </h3>
+            <h3
+  style={{
+    color: "#1e3a5f",
+    marginBottom: "10px",
+    marginTop: "0px"
+  }}
+>
+  🔎 Buscar estudiante
+</h3>
 
             <input
               type="text"
               placeholder="Apellido, nombre o DNI"
-              style={inputBusquedaGeneral}
+              style={bloqueBusquedaGeneral}
               value={busquedaAlumno}
               onChange={(e) => setBusquedaAlumno(e.target.value)}
             />
@@ -1300,10 +1306,10 @@ export default function Matricula() {
 
                 <div style={campoFicha}>
                   <strong>Apellido y nombre</strong>
-                  <p>
-                    {alumnoSeleccionado.apellido},{" "}
-                    {alumnoSeleccionado.nombre}
-                  </p>
+                  <br />
+                  <span style={nombreFicha}>
+                    {alumnoSeleccionado.apellido || ""} {alumnoSeleccionado.nombre || ""}
+                  </span>
                 </div>
 
                 <div style={campoFicha}>
@@ -1327,17 +1333,16 @@ export default function Matricula() {
                     {alumnoSeleccionado.legajoNumero &&
                       alumnoSeleccionado.legajoAnio
                       ? `${alumnoSeleccionado.legajoNumero}/${alumnoSeleccionado.legajoAnio}`
-                      : "-"}
+                      : "Sin cargar"}
                   </p>
                 </div>
 
                 <div style={campoFicha}>
                   <strong>Libro/Folio</strong>
                   <p>
-                    {alumnoSeleccionado.libroMatriz &&
-                      alumnoSeleccionado.folioMatriz
-                      ? `${alumnoSeleccionado.libroMatriz}/${alumnoSeleccionado.folioMatriz}`
-                      : "-"}
+                    {alumnoSeleccionado.libroMatriz || alumnoSeleccionado.folioMatriz
+                    ? `${alumnoSeleccionado.libroMatriz || "-"} / ${alumnoSeleccionado.folioMatriz || "-"}`
+                    : "Sin cargar"}
                   </p>
                 </div>
 
@@ -1348,7 +1353,7 @@ export default function Matricula() {
                       ? calcularEdadAl30Junio(
                         alumnoSeleccionado.fechaNacimiento
                       ) + " años"
-                      : "-"}
+                      : "Sin cargar"}
                   </p>
                 </div>
 
@@ -1381,18 +1386,23 @@ export default function Matricula() {
               </div>
 
               <div style={{ textAlign: "center", marginTop: "20px" }}>
-                <button
-                  style={botonVolver}
-                  onClick={() => setAlumnoSeleccionado(null)}
-                >
-                  Cerrar ficha
-                </button>
+               <button
+                 style={botonCerrarFicha}
+                 onClick={() => setAlumnoSeleccionado(null)}
+            >
+                 Cerrar ficha
+              </button>
+  
+ 
+  
               </div>
 
             </div>
           )}
 
-
+          <h3 style={tituloFicha}>
+              🛠 Herramientas de gestión
+          </h3>
           <div style={panelHerramientas}>
             <div style={bloqueHerramienta}>
               <button
@@ -1774,7 +1784,31 @@ export default function Matricula() {
             <button style={botonImprimir} onClick={exportarExcel}>
               Exportar Excel
             </button>
+
+            <label
+              style={{
+                ...botonImprimir,
+                padding: "6px 8px",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px",
+                cursor: "pointer",
+                fontSize: "12px",
+                lineHeight: "1.6"
+              }}
+            >
+              📂 Cargar Excel
+
+              <input
+                type="file"
+                accept=".xls,.xlsx"
+                onChange={importarReporteOficial}
+                style={{ display: "none" }}
+              />
+            </label>
           </div>
+
+
 
           <div id="curso-imprimir">
             <h3 style={{ color: "#1e3a5f" }}>
@@ -1848,13 +1882,7 @@ export default function Matricula() {
             </div>
           </div>
 
-          <div className="no-print" style={{ marginTop: "10px", marginBottom: "15px" }}>
-            <input
-              type="file"
-              accept=".xls,.xlsx"
-              onChange={importarReporteOficial}
-            />
-          </div>
+
 
           <div
             id="formulario-matricula"
@@ -2260,7 +2288,7 @@ export default function Matricula() {
                               block: "start"
                             })
                         }, 100)
-                      }}
+                      }} 
                     >
                       🔁
                     </button>
@@ -2309,7 +2337,7 @@ const tituloTurno = {
 const grillaCursos = {
   display: "grid",
   gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-  gap: "15px"
+  gap: "10px"
 }
 
 const tarjetaCurso = {
@@ -2429,7 +2457,7 @@ const botonAgregarPrevia = {
   cursor: "pointer",
   fontWeight: "bold",
   padding: "10px"
-}
+} 
 const botonImprimir = {
   backgroundColor: "#e9eef5",
   color: "#1e3a5f",
@@ -2511,20 +2539,20 @@ const mensajeNoEncontrado = {
 }
 const bloqueBusquedaGeneral = {
   backgroundColor: "#f8fafc",
-  border: "1px solid #dbe4ee",
-  borderRadius: "18px",
-  padding: "20px",
+  border: "2px solid #cfe3e8",
+  borderRadius: "14px",
+  padding: "4px",
   marginBottom: "20px",
   boxShadow: "0 3px 8px rgba(0,0,0,0.05)"
 }
 
-const inputBusquedaGeneral = {
-  width: "100%",
-  padding: "12px",
+const inputBusquedaPrincipal = {
+  width: "90%",
+  maxWidth: "500px",
+  padding: "10px",
+  border: "2px solid #bfd4dc",
   borderRadius: "10px",
-  border: "1px solid #cfd8e3",
-  fontSize: "15px",
-  marginBottom: "12px"
+  fontSize: "15px"
 }
 
 const listaResultadosBusqueda = {
@@ -2550,23 +2578,28 @@ const bloqueLegajos = {
   marginBottom: "25px",
   boxShadow: "0 3px 8px rgba(0,0,0,0.05)"
 }
+
+
 const panelHerramientas = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-  gap: "15px",
-  marginTop: "20px",
-  marginBottom: "25px",
-  alignItems: "start"
-}
-const bloqueHerramienta = {
-  backgroundColor: "#f8fafc",
-  border: "1px solid #dbe4ee",
+  backgroundColor: "#ffffff",
+  border: "2px solid #c7dde3",
   borderRadius: "18px",
-  padding: "16px",
-  boxShadow: "0 3px 8px rgba(0,0,0,0.05)",
+  padding: "14px",
+  marginTop: "20px",
+  marginBottom: "20px",
+  boxShadow: "0 8px 18px rgba(0,0,0,0.08)"
+}
+
+const bloqueHerramienta = {
+  backgroundColor: "#f8fbff",
+  border: "1px solid #dbeafe",
+  borderRadius: "14px",
+  padding: "12px",
+  boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
   textAlign: "center"
 }
-const panelAlertas = {
+
+const panelAlertas = { 
   backgroundColor: "#fff7ed",
   border: "1px solid #fed7aa",
   borderRadius: "18px",
@@ -2596,19 +2629,24 @@ const grillaFicha = {
   display: "grid",
   gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
   gap: "18px",
-  marginTop: "20px"
+  marginTop: "20px",
+  backgroundColor: "#ffffff",
+  border: "2px solid #c7dde3",
+  borderRadius: "18px",
+  padding: "25px",
+  boxShadow: "0 8px 18px rgba(0,0,0,0.08)"
 }
 
 const campoFicha = {
   backgroundColor: "#f8fbff",
-  border: "1px solid #dbeafe",
+  border: "1px solid #dbeafe", 
   borderRadius: "14px",
   padding: "16px",
   boxShadow: "0 2px 6px rgba(0,0,0,0.05)"
 }
 const tituloFicha = {
-  background: "#e8f4f1",
-  borderLeft: "6px solid #0f766e",
+  backgroundColor: "#eaf6f8",
+  borderLeft: "5px solid #167a7f",
   borderRadius: "8px",
   padding: "12px",
   marginBottom: "20px",
@@ -2625,3 +2663,20 @@ const alertaAnalitico = {
   marginTop: "8px",
   fontSize: "13px"
 }
+const botonCerrarFicha = {
+  backgroundColor: "#e9f5f5",
+  color: "#1e5f5c",
+  border: "1px solid #cfd8e3",
+  padding: "10px 18px",
+  borderRadius: "8px",
+  cursor: "pointer", 
+  fontWeight: "bold",
+  boxShadow: "0 2px 6px rgba(0,0,0,0.06)"
+} 
+const nombreFicha = {
+  display: "inline-block",
+  marginTop: "6px",
+  fontSize: "16px",
+  color: "#1e3a5f",
+  fontWeight: "bold"
+} 

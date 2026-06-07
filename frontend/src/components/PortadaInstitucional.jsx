@@ -181,7 +181,7 @@ const hero = {
 
 const capa = {
   position: "absolute",
-  top: "120px",
+  top: "50px",
   left: "16px",
   background: "rgba(255,255,255,0.60)",
   backdropFilter: "blur(1px)",
