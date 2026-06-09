@@ -26,6 +26,8 @@ export default function Matricula() {
   const [turnoExamen, setTurnoExamen] = useState("")
   const [busquedaAlumno, setBusquedaAlumno] = useState("")
   const [ordenCurso, setOrdenCurso] = useState("apellido")
+  const [mostrarRelevamiento, setMostrarRelevamiento] = useState(false)
+
   const fotosPreceptores = {
     "6°1°-Mañana": preceptora11,
     "5°2°-Mañana": preceptora11,
@@ -38,6 +40,7 @@ export default function Matricula() {
   const [alertaActiva, setAlertaActiva] = useState("")
   const [pedidosAnaliticos, setPedidosAnaliticos] = useState([])
   const [alumnoSeleccionado, setAlumnoSeleccionado] = useState(null)
+  const [anioRelevamiento, setAnioRelevamiento] = useState("1")
   const [nuevoAlumno, setNuevoAlumno] = useState({
     apellido: "",
     nombre: "",
@@ -338,29 +341,29 @@ export default function Matricula() {
         return !alumno.legajoNumero
 
       if (filtroAvanzado === "sinLegajo")
-  return !alumno.legajoNumero
+        return !alumno.legajoNumero
 
-if (filtroAvanzado === "sobreedad") {
-  if (!alumno.fechaNacimiento) return false
+      if (filtroAvanzado === "sobreedad") {
+        if (!alumno.fechaNacimiento) return false
 
-  const edad = calcularEdadAl30Junio(alumno.fechaNacimiento)
+        const edad = calcularEdadAl30Junio(alumno.fechaNacimiento)
 
-  const anioCurso = Number(cursoSeleccionado.curso.charAt(0))
+        const anioCurso = Number(cursoSeleccionado.curso.charAt(0))
 
-  const edadesEsperadas = {
-    1: 12,
-    2: 13,
-    3: 14,
-    4: 15,
-    5: 16,
-    6: 17
-  }
+        const edadesEsperadas = {
+          1: 12,
+          2: 13,
+          3: 14,
+          4: 15,
+          5: 16,
+          6: 17
+        }
 
-  return edad > edadesEsperadas[anioCurso]
-}
+        return edad > edadesEsperadas[anioCurso]
+      }
 
-return true
-      
+      return true
+
     })()
 
     return coincidePrevia && coincideAvanzado
@@ -520,7 +523,7 @@ return true
               ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
               : ""
             }</td>`
-            : "" 
+            : ""
           }
 
           ${mostrarFechaNacimiento
@@ -1079,6 +1082,129 @@ return true
     return coincideNombre || coincideDni
   })
 
+  const materiasPorAnio = {
+    1: [
+      "Matemática",
+      "Prácticas del Lenguaje",
+      "Inglés",
+      "Educación Artística",
+      "Educación Física",
+      "Construcción de la Ciudadanía",
+      "Ciencias Naturales",
+      "Ciencias Sociales"
+    ],
+    2: [
+      "Biología",
+      "Construcción Ciudadana",
+      "Educación Artística",
+      "Educación Física",
+      "Físico-Química",
+      "Geografía",
+      "Historia",
+      "Inglés",
+      "Matemática",
+      "Prácticas del Lenguaje"
+    ],
+    3: [
+      "Biología",
+      "Construcción Ciudadana",
+      "Educación Artística",
+      "Educación Física",
+      "Físico-Química",
+      "Geografía",
+      "Historia",
+      "Inglés",
+      "Matemática",
+      "Prácticas del Lenguaje"
+    ],
+    4: [
+      "Literatura",
+      "Matemática Superior",
+      "Educación Física",
+      "Inglés",
+      "Enetic",
+      "SADO",
+      "Introducción a la Física",
+      "Biología",
+      "Historia",
+      "Geografía",
+      "Producción y Análisis de Imágenes"
+    ],
+    5: [
+      "Literatura",
+      "Matemática Superior",
+      "Educación Física",
+      "Inglés",
+      "Política y Ciudadanía",
+      "Introducción a la Química",
+      "Historia",
+      "Geografía",
+      "Art. Leng. Danza",
+      "Imágenes y Nuevos Medios",
+      "Imágenes y Procedimientos"
+    ]
+  }
+
+  function obtenerPreviasValidas(alumno) {
+    return (alumno.materiasPendientes || []).filter(
+      (previa) =>
+        previa.asignatura &&
+        previa.asignatura !== "----------"
+    )
+  }
+
+  function contarPrevias(alumno) {
+    return obtenerPreviasValidas(alumno).length
+  }
+
+  function debeTodasLasMaterias(alumno, anio) {
+    const previasValidas = obtenerPreviasValidas(alumno)
+
+    const materiasDelAnio = materiasPorAnio[anio] || []
+
+    return materiasDelAnio.every((materia) =>
+      previasValidas.some(
+        (previa) =>
+          previa.asignatura === materia &&
+          Number(previa.anio) === Number(anio)
+      )
+    )
+  }
+
+  function calcularRelevamientoPorAnio(anio) {
+    const alumnosDelAnio = alumnosMatricula.filter(
+      (alumno) => alumno.curso?.startsWith(String(anio))
+    )
+
+    const resumen = {
+      promocionaron: 0,
+      unaODos: 0,
+      tresOCuatro: 0,
+      cincoOMas: 0,
+      todas: 0
+    }
+
+    alumnosDelAnio.forEach((alumno) => {
+      const cantidad = contarPrevias(alumno)
+
+      if (debeTodasLasMaterias(alumno, anio)) {
+        resumen.todas++
+      } else if (cantidad === 0) {
+        resumen.promocionaron++
+      } else if (cantidad <= 2) {
+        resumen.unaODos++
+      } else if (cantidad <= 4) {
+        resumen.tresOCuatro++
+      } else {
+        resumen.cincoOMas++
+      }
+    })
+
+    return resumen
+  }
+
+  const relevamientoInspeccion = calcularRelevamientoPorAnio(Number(anioRelevamiento))
+
   return (
     <div style={{ marginTop: "40px" }}>
       <h2 style={{ color: "#1e3a5f" }}>
@@ -1424,7 +1550,14 @@ return true
             🛠 Herramientas de gestión
           </h3>
           <div style={panelHerramientas}>
-            <div style={bloqueHerramienta}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                gap: "10px",
+                flexWrap: "wrap"
+              }}
+            >
               <button
                 style={botonImprimir}
                 onClick={() => {
@@ -1434,10 +1567,66 @@ return true
                   setTurnoExamen("")
                 }}
               >
-                📋 Planilla de examen
+                📝 Planilla de examen
+              </button>
+
+              <button
+                style={botonImprimir}
+                onClick={() => setMostrarRelevamiento(!mostrarRelevamiento)}
+              >
+                {mostrarRelevamiento
+                  ? "📊 Ocultar relevamiento"
+                  : "📊 Mostrar relevamiento"}
               </button>
             </div>
+            {mostrarRelevamiento && (
+              <>
+                <div style={bloqueHerramienta}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: "10px"
+                    }}
+                  >
+                    <h3 style={{ margin: 0 }}>
+                      📊 Relevamiento para Inspección
+                    </h3>
 
+                    <button
+                      style={botonImprimir}
+                      onClick={() =>
+                        setMostrarRelevamiento(!mostrarRelevamiento)
+                      }
+                    >
+                      {mostrarRelevamiento ? "Ocultar" : "Mostrar"}
+                    </button>
+                  </div>
+
+                  <select
+                    value={anioRelevamiento}
+                    onChange={(e) => setAnioRelevamiento(e.target.value)}
+                    style={inputAlumno}
+                  >
+                    <option value="1">1° año</option>
+                    <option value="2">2° año</option>
+                    <option value="3">3° año</option>
+                    <option value="4">4° año</option>
+                    <option value="5">5° año</option>
+                    <option value="6">6° año</option>
+                  </select>
+
+                  <div style={{ marginTop: "12px", textAlign: "left", lineHeight: "1.8" }}>
+                    <p>✅ Promocionaron sin deber materias: <strong>{relevamientoInspeccion.promocionaron}</strong></p>
+                    <p>📘 Adeudan 1 o 2 materias: <strong>{relevamientoInspeccion.unaODos}</strong></p>
+                    <p>📙 Adeudan 3 o 4 materias: <strong>{relevamientoInspeccion.tresOCuatro}</strong></p>
+                    <p>📕 Adeudan 5 o más materias: <strong>{relevamientoInspeccion.cincoOMas}</strong></p>
+                    <p>⚠️ Adeudan todas las materias: <strong>{relevamientoInspeccion.todas}</strong></p>
+                  </div>
+                </div>
+              </>
+            )}
             <div style={bloqueHerramienta}>
               <h3 style={{ color: "#1e3a5f" }}>
                 🧾 Legajos por año
@@ -1467,6 +1656,8 @@ return true
               </button>
             </div>
           </div>
+
+
 
           {verPlanillaPrevias && (
             <div style={detalleCurso}>
@@ -2037,687 +2228,687 @@ return true
                 ))}
               </div>
             </div>
+            <select
+              value={nuevoAlumno.condicionFinal}
+              onChange={(e) =>
+                setNuevoAlumno({
+                  ...nuevoAlumno,
+                  condicionFinal: e.target.value
+                })
+              }
+            >
+              <option value="">Seleccionar condición</option>
+
+              <option value="Ingresante">
+                Ingresante al nivel
+              </option>
+
+              <option value="Reinscripto">
+                Reinscripto
+              </option>
+
+              <option value="Prom">
+                Prom
+              </option>
+
+              <option value="Rec">
+                Rec
+              </option>
+            </select>
+
+            <button
+              style={botonAgregar}
+              onClick={guardarAlumnoMatricula}
+              disabled={guardando}
+            >
+              {guardando
+                ? "Guardando..."
+                : alumnoEditando
+                  ? "Guardar cambios"
+                  : "Agregar estudiante"}
+            </button>
+
+            <button style={botonVolver} onClick={limpiarFormulario}>
+              Limpiar formulario
+            </button>
+          </div>
+
+          {alumnoMoviendo && (
+            <div id="movimiento-matricula" style={bloqueMovimiento}>
+              <h4>🔁 Movimiento de matrícula</h4>
+
+              <p>
+                {alumnoMoviendo.apellido}, {alumnoMoviendo.nombre}
+              </p>
+
               <select
-                value={nuevoAlumno.condicionFinal}
-                onChange={(e) =>
-                  setNuevoAlumno({
-                    ...nuevoAlumno,
-                    condicionFinal: e.target.value
-                  })
-                }
+                value={nuevoCurso}
+                onChange={(e) => setNuevoCurso(e.target.value)}
+                style={inputAlumno}
               >
-                <option value="">Seleccionar condición</option>
-
-                <option value="Ingresante">
-                  Ingresante al nivel
-                </option>
-
-                <option value="Reinscripto">
-                  Reinscripto
-                </option>
-
-                <option value="Prom">
-                  Prom
-                </option>
-
-                <option value="Rec">
-                  Rec
-                </option>
+                {[...cursosManana, ...cursosTarde].map((curso) => (
+                  <option key={curso} value={curso}>
+                    {curso}
+                  </option>
+                ))}
               </select>
 
-              <button
-                style={botonAgregar}
-                onClick={guardarAlumnoMatricula}
-                disabled={guardando}
+              <select
+                value={nuevoTurno}
+                onChange={(e) => setNuevoTurno(e.target.value)}
+                style={inputAlumno}
               >
-                {guardando
-                  ? "Guardando..."
-                  : alumnoEditando
-                    ? "Guardar cambios"
-                    : "Agregar estudiante"}
+                <option value="Mañana">Mañana</option>
+                <option value="Tarde">Tarde</option>
+              </select>
+
+              <button style={botonAgregarPrevia} onClick={moverAlumno}>
+                Mover estudiante
               </button>
-
-              <button style={botonVolver} onClick={limpiarFormulario}>
-                Limpiar formulario
-              </button>
-            </div>
-
-            {alumnoMoviendo && (
-              <div id="movimiento-matricula" style={bloqueMovimiento}>
-                <h4>🔁 Movimiento de matrícula</h4>
-
-                <p>
-                  {alumnoMoviendo.apellido}, {alumnoMoviendo.nombre}
-                </p>
-
-                <select
-                  value={nuevoCurso}
-                  onChange={(e) => setNuevoCurso(e.target.value)}
-                  style={inputAlumno}
-                >
-                  {[...cursosManana, ...cursosTarde].map((curso) => (
-                    <option key={curso} value={curso}>
-                      {curso}
-                    </option>
-                  ))}
-                </select>
-
-                <select
-                  value={nuevoTurno}
-                  onChange={(e) => setNuevoTurno(e.target.value)}
-                  style={inputAlumno}
-                >
-                  <option value="Mañana">Mañana</option>
-                  <option value="Tarde">Tarde</option>
-                </select>
-
-                <button style={botonAgregarPrevia} onClick={moverAlumno}>
-                  Mover estudiante
-                </button>
-                <button
-                  style={botonVolver}
-                  onClick={() => setAlumnoMoviendo(null)}
-                >
-                  Cancelar movimiento
-                </button>
-              </div>
-            )}
-
-            <div
-              className="no-print"
-              style={{
-                display: "flex",
-                gap: "10px",
-                marginBottom: "15px"
-              }}
-            >
               <button
                 style={botonVolver}
-                onClick={() => {
-                  setFiltroPrevia("")
-                  setFiltroAnioPrevia("")
-                }}
+                onClick={() => setAlumnoMoviendo(null)}
               >
-                Limpiar filtros
+                Cancelar movimiento
               </button>
             </div>
+          )}
 
-            <select
-              style={inputAlumno}
-              value={ordenCurso}
-              onChange={(e) => setOrdenCurso(e.target.value)}
-            >
-              <option value="apellido">Ordenar por apellido</option>
-              <option value="legajo">Ordenar por legajo</option>
-            </select>
-
-            <p
-              style={{
-                marginTop: "12px",
-                marginBottom: "5px",
-                fontWeight: "bold",
-                color: "#1e3a5f",
-                textAlign: "center"
+          <div
+            className="no-print"
+            style={{
+              display: "flex",
+              gap: "10px",
+              marginBottom: "15px"
+            }}
+          >
+            <button
+              style={botonVolver}
+              onClick={() => {
+                setFiltroPrevia("")
+                setFiltroAnioPrevia("")
               }}
             >
-              Filtro avanzado
-            </p>
-
-            <select
-              value={filtroAvanzado}
-              onChange={(e) => setFiltroAvanzado(e.target.value)}
-              style={{
-                padding: "8px",
-                borderRadius: "8px",
-                border: "1px solid #ccc",
-                marginTop: "12px",
-                marginBottom: "12px",
-                width: "220px",
-                display: "block",
-                marginLeft: "auto",
-                marginRight: "auto"
-              }}
-            >
-              <option value="todos">Todos</option>
-              <option value="prom">Sólo Prom</option>
-              <option value="rec">Sólo Rec</option>
-              <option value="previas">Con previas</option>
-              <option value="sinLegajo">Sin legajo</option>
-              <option value="sobreedad">Sobreedad</option>
-              <option value="ingresante">
-                Ingresantes
-              </option>
-
-              <option value="reinscripto">
-                Reinscriptos
-              </option>
-            </select>
-
-
-            <div style={tablaResponsive}>
-              <table style={tabla}>
-                <thead>
-                  <tr>
-                    <th style={{ ...celda, width: "220px" }}>
-                      Apellido y Nombre
-                    </th>
-                    <th style={celda}>DNI</th>
-                    <th style={celda}>Legajo</th>
-                    <th style={celda}>Libro/Folio</th>
-                    <th style={{ ...celda, width: "95px" }}>
-                      Fecha nacimiento
-                    </th>
-                    <th style={{ ...celda, width: "55px" }}>Edad</th>
-                    <th style={{ ...celda, width: "240px" }}>
-                      Pendientes
-                    </th>
-                    <th style={{ ...celda, width: "65px" }}>Cond.</th>
-                    <th style={{ ...celda, width: "140px" }}>Acciones</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {alumnosDelCurso.length === 0 && (
-                    <tr>
-                      <td style={celda} colSpan="9">
-                        Todavía no hay estudiantes cargados en este curso.
-                      </td>
-                    </tr>
-                  )}
-
-                  {alumnosFiltrados.map((alumno) => (
-                    <tr key={alumno._id}>
-                      <td style={celda}>
-                        {alumno.apellido}, {alumno.nombre}
-                      </td>
-
-                      <td style={celda}>{formatearDNI(alumno.dni)}</td>
-
-                      <td style={celda}>
-                        {alumno.legajoNumero && alumno.legajoAnio
-                          ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
-                          : "-"}
-                      </td>
-
-                      <td style={celda}>
-                        {alumno.libroMatriz && alumno.folioMatriz
-                          ? `${alumno.libroMatriz}/${alumno.folioMatriz}`
-                          : "-"}
-                      </td>
-
-                      <td style={celda}>
-                        {formatearFecha(alumno.fechaNacimiento)}
-                      </td>
-
-                      <td style={celda}>
-                        {calcularEdadAl30Junio(alumno.fechaNacimiento)}
-                        {tieneSobreedad(alumno) && (
-                          <span style={alertaSobreedad}>⚠️</span>
-                        )}
-                      </td>
-
-                      <td style={celda}>
-                        {Array.isArray(alumno.materiasPendientes)
-                          ? alumno.materiasPendientes
-                            .map(
-                              (previa) =>
-                                previa.asignatura === "----------"
-                                  ? "----------"
-                                  : `${previa.asignatura} (${previa.anio})`
-                            )
-                            .join(", ")
-                          : ""}
-                      </td>
-
-                      <td style={celda}>{alumno.condicionFinal}</td>
-
-                      <td
-                        style={{
-                          ...celda,
-                          whiteSpace: "nowrap"
-                        }}
-                        className="no-print"
-                      >
-                        <button
-                          style={botonEditar}
-                          onClick={() => editarAlumno(alumno)}
-                        >
-                          ✏️
-                        </button>
-
-
-                        <button
-                          style={botonMover}
-                          onClick={() => {
-                            prepararMovimiento(alumno)
-
-                            setTimeout(() => {
-                              document
-                                .getElementById("movimiento-matricula")
-                                ?.scrollIntoView({
-                                  behavior: "smooth",
-                                  block: "start"
-                                })
-                            }, 100)
-                          }}
-                        >
-                          🔁
-                        </button>
-
-                        <button
-                          style={botonEliminar}
-                          onClick={() => eliminarAlumnoMatricula(alumno._id)}
-                        >
-                          🗑️
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+              Limpiar filtros
+            </button>
           </div>
-      )}
+
+          <select
+            style={inputAlumno}
+            value={ordenCurso}
+            onChange={(e) => setOrdenCurso(e.target.value)}
+          >
+            <option value="apellido">Ordenar por apellido</option>
+            <option value="legajo">Ordenar por legajo</option>
+          </select>
+
+          <p
+            style={{
+              marginTop: "12px",
+              marginBottom: "5px",
+              fontWeight: "bold",
+              color: "#1e3a5f",
+              textAlign: "center"
+            }}
+          >
+            Filtro avanzado
+          </p>
+
+          <select
+            value={filtroAvanzado}
+            onChange={(e) => setFiltroAvanzado(e.target.value)}
+            style={{
+              padding: "8px",
+              borderRadius: "8px",
+              border: "1px solid #ccc",
+              marginTop: "12px",
+              marginBottom: "12px",
+              width: "220px",
+              display: "block",
+              marginLeft: "auto",
+              marginRight: "auto"
+            }}
+          >
+            <option value="todos">Todos</option>
+            <option value="prom">Sólo Prom</option>
+            <option value="rec">Sólo Rec</option>
+            <option value="previas">Con previas</option>
+            <option value="sinLegajo">Sin legajo</option>
+            <option value="sobreedad">Sobreedad</option>
+            <option value="ingresante">
+              Ingresantes
+            </option>
+
+            <option value="reinscripto">
+              Reinscriptos
+            </option>
+          </select>
+
+
+          <div style={tablaResponsive}>
+            <table style={tabla}>
+              <thead>
+                <tr>
+                  <th style={{ ...celda, width: "220px" }}>
+                    Apellido y Nombre
+                  </th>
+                  <th style={celda}>DNI</th>
+                  <th style={celda}>Legajo</th>
+                  <th style={celda}>Libro/Folio</th>
+                  <th style={{ ...celda, width: "95px" }}>
+                    Fecha nacimiento
+                  </th>
+                  <th style={{ ...celda, width: "55px" }}>Edad</th>
+                  <th style={{ ...celda, width: "240px" }}>
+                    Pendientes
+                  </th>
+                  <th style={{ ...celda, width: "65px" }}>Cond.</th>
+                  <th style={{ ...celda, width: "140px" }}>Acciones</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {alumnosDelCurso.length === 0 && (
+                  <tr>
+                    <td style={celda} colSpan="9">
+                      Todavía no hay estudiantes cargados en este curso.
+                    </td>
+                  </tr>
+                )}
+
+                {alumnosFiltrados.map((alumno) => (
+                  <tr key={alumno._id}>
+                    <td style={celda}>
+                      {alumno.apellido}, {alumno.nombre}
+                    </td>
+
+                    <td style={celda}>{formatearDNI(alumno.dni)}</td>
+
+                    <td style={celda}>
+                      {alumno.legajoNumero && alumno.legajoAnio
+                        ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
+                        : "-"}
+                    </td>
+
+                    <td style={celda}>
+                      {alumno.libroMatriz && alumno.folioMatriz
+                        ? `${alumno.libroMatriz}/${alumno.folioMatriz}`
+                        : "-"}
+                    </td>
+
+                    <td style={celda}>
+                      {formatearFecha(alumno.fechaNacimiento)}
+                    </td>
+
+                    <td style={celda}>
+                      {calcularEdadAl30Junio(alumno.fechaNacimiento)}
+                      {tieneSobreedad(alumno) && (
+                        <span style={alertaSobreedad}>⚠️</span>
+                      )}
+                    </td>
+
+                    <td style={celda}>
+                      {Array.isArray(alumno.materiasPendientes)
+                        ? alumno.materiasPendientes
+                          .map(
+                            (previa) =>
+                              previa.asignatura === "----------"
+                                ? "----------"
+                                : `${previa.asignatura} (${previa.anio})`
+                          )
+                          .join(", ")
+                        : ""}
+                    </td>
+
+                    <td style={celda}>{alumno.condicionFinal}</td>
+
+                    <td
+                      style={{
+                        ...celda,
+                        whiteSpace: "nowrap"
+                      }}
+                      className="no-print"
+                    >
+                      <button
+                        style={botonEditar}
+                        onClick={() => editarAlumno(alumno)}
+                      >
+                        ✏️
+                      </button>
+
+
+                      <button
+                        style={botonMover}
+                        onClick={() => {
+                          prepararMovimiento(alumno)
+
+                          setTimeout(() => {
+                            document
+                              .getElementById("movimiento-matricula")
+                              ?.scrollIntoView({
+                                behavior: "smooth",
+                                block: "start"
+                              })
+                          }, 100)
+                        }}
+                      >
+                        🔁
+                      </button>
+
+                      <button
+                        style={botonEliminar}
+                        onClick={() => eliminarAlumnoMatricula(alumno._id)}
+                      >
+                        🗑️
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      )
-      }
-
-      const contenedorTurnos = {
-        display: "flex",
-      flexDirection: "column",
-      gap: "35px",
-      marginTop: "25px"
+      )}
+    </div>
+  )
 }
 
-      const bloqueTurno = {
-        backgroundColor: "#eef7f6",
-      border: "2px solid #c7e3df",
-      padding: "18px 24px",
-      borderRadius: "26px",
-      boxShadow: "0 8px 22px rgba(0,0,0,0.08)",
-      marginBottom: "22px"
+const contenedorTurnos = {
+  display: "flex",
+  flexDirection: "column",
+  gap: "35px",
+  marginTop: "25px"
 }
 
-      const tituloTurno = {
-        color: "#0f766e",
-      marginBottom: "10px",
-      fontSize: "21px",
-      textAlign: "center",
-      fontWeight: "bold"
+const bloqueTurno = {
+  backgroundColor: "#eef7f6",
+  border: "2px solid #c7e3df",
+  padding: "18px 24px",
+  borderRadius: "26px",
+  boxShadow: "0 8px 22px rgba(0,0,0,0.08)",
+  marginBottom: "22px"
 }
 
-      const grillaCursos = {
-        display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-      gap: "10px"
+const tituloTurno = {
+  color: "#0f766e",
+  marginBottom: "10px",
+  fontSize: "21px",
+  textAlign: "center",
+  fontWeight: "bold"
 }
 
-      const tarjetaCurso = {
-        backgroundColor: "white",
-      padding: "18px",
-      borderRadius: "14px",
-      boxShadow: "0 3px 8px rgba(0,0,0,0.08)",
-      textAlign: "center"
+const grillaCursos = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+  gap: "10px"
 }
 
-      const textoCantidad = {
-        color: "#666",
-      fontSize: "14px"
+const tarjetaCurso = {
+  backgroundColor: "white",
+  padding: "18px",
+  borderRadius: "14px",
+  boxShadow: "0 3px 8px rgba(0,0,0,0.08)",
+  textAlign: "center"
 }
 
-      const botonCurso = {
-        backgroundColor: "#0f766e",
-      color: "white",
-      border: "none",
-      padding: "8px 12px",
-      borderRadius: "8px",
-      cursor: "pointer",
-      transition: "0.2s"
+const textoCantidad = {
+  color: "#666",
+  fontSize: "14px"
 }
 
-      const detalleCurso = {
-        marginTop: "35px",
-      backgroundColor: "white",
-      padding: "25px",
-      borderRadius: "15px",
-      boxShadow: "0 3px 8px rgba(0,0,0,0.08)"
+const botonCurso = {
+  backgroundColor: "#0f766e",
+  color: "white",
+  border: "none",
+  padding: "8px 12px",
+  borderRadius: "8px",
+  cursor: "pointer",
+  transition: "0.2s"
 }
 
-      const botonVolver = {
-        backgroundColor: "#e9f5f5",
-      color: "#1e5f5c",
-      border: "1px solid #cfd8e3",
-      padding: "8px 12px",
-      borderRadius: "8px",
-      cursor: "pointer",
-      marginBottom: "15px",
-      fontWeight: "bold"
+const detalleCurso = {
+  marginTop: "35px",
+  backgroundColor: "white",
+  padding: "25px",
+  borderRadius: "15px",
+  boxShadow: "0 3px 8px rgba(0,0,0,0.08)"
 }
 
-      const formularioAlumno = {
-        display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-      gap: "14px",
-      marginBottom: "22px",
-      marginTop: "22px",
-      alignItems: "center"
-}
-      const inputAlumno = {
-        padding: "12px",
-      borderRadius: "8px",
-      border: "1px solid #ccc",
-      minWidth: "0",
-      width: "92%"
+const botonVolver = {
+  backgroundColor: "#e9f5f5",
+  color: "#1e5f5c",
+  border: "1px solid #cfd8e3",
+  padding: "8px 12px",
+  borderRadius: "8px",
+  cursor: "pointer",
+  marginBottom: "15px",
+  fontWeight: "bold"
 }
 
-      const botonAgregar = {
-        backgroundColor: "#4cb3aa",
-      color: "white",
-      border: "none",
-      borderRadius: "8px",
-      cursor: "pointer",
-      fontWeight: "bold",
-      gridColumn: "auto",
-      padding: "8px 20px" 
-       
+const formularioAlumno = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+  gap: "14px",
+  marginBottom: "22px",
+  marginTop: "22px",
+  alignItems: "center"
+}
+const inputAlumno = {
+  padding: "12px",
+  borderRadius: "8px",
+  border: "1px solid #ccc",
+  minWidth: "0",
+  width: "92%"
 }
 
-      const tabla = {
-        width: "100%",
-      minWidth: "850px",
-      borderCollapse: "collapse",
-      marginTop: "15px"
+const botonAgregar = {
+  backgroundColor: "#4cb3aa",
+  color: "white",
+  border: "none",
+  borderRadius: "8px",
+  cursor: "pointer",
+  fontWeight: "bold",
+  gridColumn: "auto",
+  padding: "8px 20px"
+
 }
 
-      const celda = {
-        border: "1px solid #ddd",
-      padding: "8px",
-      textAlign: "center",
-      fontSize: "13px"
-}
-      const bloquePrevias = {
-        display: "grid",
-      gridTemplateColumns: "2fr 90px 130px 1fr",
-      gap: "8px",
-      alignItems: "center",
-      gridColumn: "1 / 5"
+const tabla = {
+  width: "100%",
+  minWidth: "850px",
+  borderCollapse: "collapse",
+  marginTop: "15px"
 }
 
-      const listaPreviasInline = {
-      display: "flex",
-      flexWrap: "wrap",
-      gap: "6px",
-      alignItems: "center",
-     gridColumn: "1 / -1",
-     marginTop: "4px" 
+const celda = {
+  border: "1px solid #ddd",
+  padding: "8px",
+  textAlign: "center",
+  fontSize: "13px"
 }
- 
-
-      const chipPrevia = {
-        backgroundColor: "#eef7f6",
-      border: "1px solid #c7e3df",
-      borderRadius: "20px",
-      padding: "4px 10px",
-      fontSize: "12px",
-      display: "flex",
-      alignItems: "center",
-      gap: "6px"
+const bloquePrevias = {
+  display: "grid",
+  gridTemplateColumns: "2fr 90px 130px 1fr",
+  gap: "8px",
+  alignItems: "center",
+  gridColumn: "1 / 5"
 }
 
-      const botonEditar = {
-        backgroundColor: "#dbe7f5",
-      color: "#1e3a5f",
-      border: "none",
-      padding: "6px 8px",
-      borderRadius: "10px",
-      cursor: "pointer",
-      fontWeight: "bold",
-      marginRight: "4px"
-}
-
-      const botonEliminar = {
-        backgroundColor: "#f7dede",
-      color: "#8b2e2e",
-      border: "none",
-      padding: "6px 8px",
-      borderRadius: "10px",
-      cursor: "pointer",
-      fontWeight: "bold",
-      marginRight: "4px"
-}
-      const botonAgregarPrevia = {
-        backgroundColor: "#e9eef5",
-      color: "#1e3a5f",
-      border: "1px solid #cfd8e3",
-      borderRadius: "8px",
-      cursor: "pointer",
-      fontWeight: "bold",
-      padding: "10px"
-}
-      const botonImprimir = {
-        backgroundColor: "#e9eef5",
-      color: "#1e3a5f",
-      border: "1px solid #cfd8e3",
-      padding: "8px 12px",
-      borderRadius: "8px",
-      cursor: "pointer",
-      fontWeight: "bold",
-      marginLeft: "8px",
-      marginBottom: "15px"
-}
-
-      const botonMover = {
-        backgroundColor: "#eef5ee",
-      color: "#2f6b3f",
-      border: "none",
-      padding: "6px 8px",
-      borderRadius: "10px",
-      cursor: "pointer",
-      fontWeight: "bold",
-      marginRight: "4px"
-}
-
-      const bloqueMovimiento = {
-        backgroundColor: "#f8fafc",
-      border: "1px solid #dbe4ee",
-      borderRadius: "12px",
-      padding: "15px",
-      marginBottom: "20px"
-}
-      const bloqueEstadisticas = {
-        display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-      gap: "15px",
-      marginTop: "20px",
-      marginBottom: "20px"
-}
-
-      const tarjetaEstadistica = {
-        backgroundColor: "#f8fafc",
-      border: "1px solid #dbe4ee",
-      borderRadius: "16px",
-      padding: "18px",
-      textAlign: "center",
-      boxShadow: "0 3px 8px rgba(0,0,0,0.05)"
-}
-      const alertaSobreedad = {
-        marginLeft: "6px",
-      fontSize: "13px"
-}
-      const bloqueEdades = {
-        marginTop: "20px",
-      marginBottom: "15px",
-      textAlign: "center"
-}
-
-      const grillaEdades = {
-        display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))",
-      gap: "10px",
-      marginTop: "10px"
-}
-
-      const tarjetaEdad = {
-        backgroundColor: "#f8fafc",
-      border: "1px solid #dbe4ee",
-      borderRadius: "14px",
-      padding: "12px",
-      textAlign: "center",
-      boxShadow: "0 2px 6px rgba(0,0,0,0.05)"
-}
-      const mensajeNoEncontrado = {
-        backgroundColor: "#fff3cd",
-      padding: "12px",
-      borderRadius: "10px",
-      color: "#856404",
-      marginBottom: "15px",
-      textAlign: "center"
-}
-      const bloqueBusquedaGeneral = {
-        backgroundColor: "#f8fafc",
-      border: "2px solid #cfe3e8",
-      borderRadius: "14px",
-      padding: "4px",
-      marginBottom: "20px",
-      boxShadow: "0 3px 8px rgba(0,0,0,0.05)"
-}
-
-      const inputBusquedaPrincipal = {
-        width: "90%",
-      maxWidth: "500px",
-      padding: "10px",
-      border: "2px solid #bfd4dc",
-      borderRadius: "10px",
-      fontSize: "15px"
-}
-
-      const listaResultadosBusqueda = {
-        display: "flex",
-      flexDirection: "column",
-      gap: "10px"
-}
-
-      const itemResultadoBusqueda = {
-        backgroundColor: "white",
-      border: "1px solid #dbe4ee",
-      borderRadius: "12px",
-      padding: "12px",
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center"
-}
-      const bloqueLegajos = {
-        backgroundColor: "#f8fafc",
-      border: "1px solid #dbe4ee",
-      borderRadius: "18px",
-      padding: "20px",
-      marginBottom: "25px",
-      boxShadow: "0 3px 8px rgba(0,0,0,0.05)"
+const listaPreviasInline = {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "6px",
+  alignItems: "center",
+  gridColumn: "1 / -1",
+  marginTop: "4px"
 }
 
 
-      const panelHerramientas = {
-        backgroundColor: "#ffffff",
-      border: "2px solid #c7dde3",
-      borderRadius: "18px",
-      padding: "14px",
-      marginTop: "20px",
-      marginBottom: "20px",
-      boxShadow: "0 8px 18px rgba(0,0,0,0.08)"
+const chipPrevia = {
+  backgroundColor: "#eef7f6",
+  border: "1px solid #c7e3df",
+  borderRadius: "20px",
+  padding: "4px 10px",
+  fontSize: "12px",
+  display: "flex",
+  alignItems: "center",
+  gap: "6px"
 }
 
-      const bloqueHerramienta = {
-        backgroundColor: "#f8fbff",
-      border: "1px solid #dbeafe",
-      borderRadius: "14px",
-      padding: "12px",
-      boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
-      textAlign: "center"
+const botonEditar = {
+  backgroundColor: "#dbe7f5",
+  color: "#1e3a5f",
+  border: "none",
+  padding: "6px 8px",
+  borderRadius: "10px",
+  cursor: "pointer",
+  fontWeight: "bold",
+  marginRight: "4px"
 }
 
-      const panelAlertas = {
-        backgroundColor: "#fff7ed",
-      border: "1px solid #fed7aa",
-      borderRadius: "18px",
-      padding: "18px",
-      marginBottom: "20px",
-      boxShadow: "0 3px 8px rgba(0,0,0,0.05)"
+const botonEliminar = {
+  backgroundColor: "#f7dede",
+  color: "#8b2e2e",
+  border: "none",
+  padding: "6px 8px",
+  borderRadius: "10px",
+  cursor: "pointer",
+  fontWeight: "bold",
+  marginRight: "4px"
+}
+const botonAgregarPrevia = {
+  backgroundColor: "#e9eef5",
+  color: "#1e3a5f",
+  border: "1px solid #cfd8e3",
+  borderRadius: "8px",
+  cursor: "pointer",
+  fontWeight: "bold",
+  padding: "10px"
+}
+const botonImprimir = {
+  backgroundColor: "#e9eef5",
+  color: "#1e3a5f",
+  border: "1px solid #cfd8e3",
+  padding: "8px 12px",
+  borderRadius: "8px",
+  cursor: "pointer",
+  fontWeight: "bold",
+  marginLeft: "8px",
+  marginBottom: "15px"
 }
 
-      const grillaAlertas = {
-        display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-      gap: "12px"
+const botonMover = {
+  backgroundColor: "#eef5ee",
+  color: "#2f6b3f",
+  border: "none",
+  padding: "6px 8px",
+  borderRadius: "10px",
+  cursor: "pointer",
+  fontWeight: "bold",
+  marginRight: "4px"
 }
 
-      const tarjetaAlerta = {
-        backgroundColor: "white",
-      border: "1px solid #fed7aa",
-      borderRadius: "14px",
-      padding: "12px",
-      textAlign: "center",
-      boxShadow: "0 2px 6px rgba(0,0,0,0.04)",
-      cursor: "pointer",
-      transition: "0.2s",
-      transform: "scale(1)"
+const bloqueMovimiento = {
+  backgroundColor: "#f8fafc",
+  border: "1px solid #dbe4ee",
+  borderRadius: "12px",
+  padding: "15px",
+  marginBottom: "20px"
 }
-      const grillaFicha = {
-        display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-      gap: "18px",
-      marginTop: "20px",
-      backgroundColor: "#ffffff",
-      border: "2px solid #c7dde3",
-      borderRadius: "18px",
-      padding: "25px",
-      boxShadow: "0 8px 18px rgba(0,0,0,0.08)"
+const bloqueEstadisticas = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+  gap: "15px",
+  marginTop: "20px",
+  marginBottom: "20px"
 }
 
-      const campoFicha = {
-        backgroundColor: "#f8fbff",
-      border: "1px solid #dbeafe",
-      borderRadius: "14px",
-      padding: "16px",
-      boxShadow: "0 2px 6px rgba(0,0,0,0.05)"
+const tarjetaEstadistica = {
+  backgroundColor: "#f8fafc",
+  border: "1px solid #dbe4ee",
+  borderRadius: "16px",
+  padding: "18px",
+  textAlign: "center",
+  boxShadow: "0 3px 8px rgba(0,0,0,0.05)"
 }
-      const tituloFicha = {
-        backgroundColor: "#eaf6f8",
-      borderLeft: "5px solid #167a7f",
-      borderRadius: "8px",
-      padding: "12px",
-      marginBottom: "20px",
-      textAlign: "center",
-      color: "#1e3a5f"
+const alertaSobreedad = {
+  marginLeft: "6px",
+  fontSize: "13px"
 }
-      const alertaAnalitico = {
-        backgroundColor: "#fff7ed",
-      border: "1px solid #fdba74",
-      color: "#9a3412",
-      padding: "8px",
-      borderRadius: "10px",
-      fontWeight: "bold",
-      marginTop: "8px",
-      fontSize: "13px"
+const bloqueEdades = {
+  marginTop: "20px",
+  marginBottom: "15px",
+  textAlign: "center"
 }
-      const botonCerrarFicha = {
-        backgroundColor: "#e9f5f5",
-      color: "#1e5f5c",
-      border: "1px solid #cfd8e3",
-      padding: "10px 18px",
-      borderRadius: "8px",
-      cursor: "pointer",
-      fontWeight: "bold",
-      boxShadow: "0 2px 6px rgba(0,0,0,0.06)"
+
+const grillaEdades = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))",
+  gap: "10px",
+  marginTop: "10px"
 }
-      const nombreFicha = {
-        display: "inline-block",
-      marginTop: "6px",
-      fontSize: "16px",
-      color: "#1e3a5f",
-      fontWeight: "bold"
+
+const tarjetaEdad = {
+  backgroundColor: "#f8fafc",
+  border: "1px solid #dbe4ee",
+  borderRadius: "14px",
+  padding: "12px",
+  textAlign: "center",
+  boxShadow: "0 2px 6px rgba(0,0,0,0.05)"
 }
-      const tablaResponsive = {
-        width: "100%",
-      overflowX: "auto",
-      WebkitOverflowScrolling: "touch"
+const mensajeNoEncontrado = {
+  backgroundColor: "#fff3cd",
+  padding: "12px",
+  borderRadius: "10px",
+  color: "#856404",
+  marginBottom: "15px",
+  textAlign: "center"
+}
+const bloqueBusquedaGeneral = {
+  backgroundColor: "#f8fafc",
+  border: "2px solid #cfe3e8",
+  borderRadius: "14px",
+  padding: "4px",
+  marginBottom: "20px",
+  boxShadow: "0 3px 8px rgba(0,0,0,0.05)"
+}
+
+const inputBusquedaPrincipal = {
+  width: "90%",
+  maxWidth: "500px",
+  padding: "10px",
+  border: "2px solid #bfd4dc",
+  borderRadius: "10px",
+  fontSize: "15px"
+}
+
+const listaResultadosBusqueda = {
+  display: "flex",
+  flexDirection: "column",
+  gap: "10px"
+}
+
+const itemResultadoBusqueda = {
+  backgroundColor: "white",
+  border: "1px solid #dbe4ee",
+  borderRadius: "12px",
+  padding: "12px",
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center"
+}
+const bloqueLegajos = {
+  backgroundColor: "#f8fafc",
+  border: "1px solid #dbe4ee",
+  borderRadius: "18px",
+  padding: "20px",
+  marginBottom: "25px",
+  boxShadow: "0 3px 8px rgba(0,0,0,0.05)"
+}
+
+
+const panelHerramientas = {
+  backgroundColor: "#ffffff",
+  border: "2px solid #c7dde3",
+  borderRadius: "18px",
+  padding: "14px",
+  marginTop: "20px",
+  marginBottom: "20px",
+  boxShadow: "0 8px 18px rgba(0,0,0,0.08)"
+}
+
+const bloqueHerramienta = {
+  backgroundColor: "#f8fbff",
+  border: "1px solid #dbeafe",
+  borderRadius: "14px",
+  padding: "12px",
+  boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+  textAlign: "center"
+}
+
+const panelAlertas = {
+  backgroundColor: "#fff7ed",
+  border: "1px solid #fed7aa",
+  borderRadius: "18px",
+  padding: "18px",
+  marginBottom: "20px",
+  boxShadow: "0 3px 8px rgba(0,0,0,0.05)"
+}
+
+const grillaAlertas = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+  gap: "12px"
+}
+
+const tarjetaAlerta = {
+  backgroundColor: "white",
+  border: "1px solid #fed7aa",
+  borderRadius: "14px",
+  padding: "12px",
+  textAlign: "center",
+  boxShadow: "0 2px 6px rgba(0,0,0,0.04)",
+  cursor: "pointer",
+  transition: "0.2s",
+  transform: "scale(1)"
+}
+const grillaFicha = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+  gap: "18px",
+  marginTop: "20px",
+  backgroundColor: "#ffffff",
+  border: "2px solid #c7dde3",
+  borderRadius: "18px",
+  padding: "25px",
+  boxShadow: "0 8px 18px rgba(0,0,0,0.08)"
+}
+
+const campoFicha = {
+  backgroundColor: "#f8fbff",
+  border: "1px solid #dbeafe",
+  borderRadius: "14px",
+  padding: "16px",
+  boxShadow: "0 2px 6px rgba(0,0,0,0.05)"
+}
+const tituloFicha = {
+  backgroundColor: "#eaf6f8",
+  borderLeft: "5px solid #167a7f",
+  borderRadius: "8px",
+  padding: "12px",
+  marginBottom: "20px",
+  textAlign: "center",
+  color: "#1e3a5f"
+}
+const alertaAnalitico = {
+  backgroundColor: "#fff7ed",
+  border: "1px solid #fdba74",
+  color: "#9a3412",
+  padding: "8px",
+  borderRadius: "10px",
+  fontWeight: "bold",
+  marginTop: "8px",
+  fontSize: "13px"
+}
+const botonCerrarFicha = {
+  backgroundColor: "#e9f5f5",
+  color: "#1e5f5c",
+  border: "1px solid #cfd8e3",
+  padding: "10px 18px",
+  borderRadius: "8px",
+  cursor: "pointer",
+  fontWeight: "bold",
+  boxShadow: "0 2px 6px rgba(0,0,0,0.06)"
+}
+const nombreFicha = {
+  display: "inline-block",
+  marginTop: "6px",
+  fontSize: "16px",
+  color: "#1e3a5f",
+  fontWeight: "bold"
+}
+const tablaResponsive = {
+  width: "100%",
+  overflowX: "auto",
+  WebkitOverflowScrolling: "touch"
 }
