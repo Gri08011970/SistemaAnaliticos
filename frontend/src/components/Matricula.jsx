@@ -1139,7 +1139,7 @@ export default function Matricula() {
       "Introducción a la Química",
       "Historia",
       "Geografía",
-      "Art. Leng. Danza",
+      "Art. Leng. Danza", 
       "Imágenes y Nuevos Medios",
       "Imágenes y Procedimientos"
     ]
@@ -1157,19 +1157,23 @@ export default function Matricula() {
     return obtenerPreviasValidas(alumno).length
   }
 
-  function debeTodasLasMaterias(alumno, anio) {
-    const previasValidas = obtenerPreviasValidas(alumno)
+ function debeTodasLasMaterias(alumno, anio) {
+  const materiasDelAnio = materiasPorAnio[anio]
 
-    const materiasDelAnio = materiasPorAnio[anio] || []
-
-    return materiasDelAnio.every((materia) =>
-      previasValidas.some(
-        (previa) =>
-          previa.asignatura === materia &&
-          Number(previa.anio) === Number(anio)
-      )
-    )
+  if (!materiasDelAnio || materiasDelAnio.length === 0) {
+    return false
   }
+
+  const previasValidas = obtenerPreviasValidas(alumno)
+
+  return materiasDelAnio.every((materia) =>
+    previasValidas.some(
+      (previa) =>
+        previa.asignatura === materia &&
+        Number(previa.anio) === Number(anio)
+    )
+  )
+}
 
   function calcularRelevamientoPorAnio(anio) {
     const alumnosDelAnio = alumnosMatricula.filter(
