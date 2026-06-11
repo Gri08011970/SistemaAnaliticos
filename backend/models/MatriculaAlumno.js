@@ -9,6 +9,16 @@ const matriculaAlumnoSchema = new mongoose.Schema({
   legajoNumero: String,
   legajoAnio: String,
 
+  nacionalidad: {
+  type: String,
+  default: ""
+},
+
+sexo: {
+  type: String,
+  default: ""
+},
+
   libroMatriz: String,
   folioMatriz: String,
 

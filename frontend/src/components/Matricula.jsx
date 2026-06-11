@@ -51,7 +51,9 @@ export default function Matricula() {
     folioMatriz: "",
     fechaNacimiento: "",
     materiasPendientes: [],
-    condicionFinal: ""
+    condicionFinal: "",
+    nacionalidad: "",
+    sexo: ""
   })
 
   useEffect(() => {
@@ -84,7 +86,9 @@ export default function Matricula() {
       materiasPendientes: Array.isArray(alumno.materiasPendientes)
         ? alumno.materiasPendientes
         : [],
-      condicionFinal: alumno.condicionFinal || ""
+      condicionFinal: alumno.condicionFinal || "",
+      nacionalidad: alumno.nacionalidad || "",
+      sexo: alumno.sexo || ""
     })
 
     setTimeout(() => {
@@ -108,7 +112,9 @@ export default function Matricula() {
       legajoAnio: "",
       fechaNacimiento: "",
       condicionFinal: "",
-      materiasPendientes: []
+      materiasPendientes: [],
+      nacionalidad: "",
+      sexo: ""
     })
 
     setPreviaSeleccionada("")
@@ -181,6 +187,7 @@ export default function Matricula() {
         await axios.put(`/api/matricula/${alumnoEditando._id}`, alumnoAGuardar)
         setAlumnoEditando(null)
       } else {
+        console.log(alumnoAGuardar)
         await axios.post("/api/matricula", alumnoAGuardar)
       }
 
@@ -194,7 +201,9 @@ export default function Matricula() {
         folioMatriz: "",
         fechaNacimiento: "",
         materiasPendientes: [],
-        condicionFinal: ""
+        condicionFinal: "",
+        nacionalidad: "",
+        sexo: ""
       })
 
       obtenerMatricula()
@@ -612,7 +621,7 @@ export default function Matricula() {
 
           .nombre {
             text-align: left;
-          }
+          } 
 
           @page {
             size: landscape;
@@ -1139,7 +1148,7 @@ export default function Matricula() {
       "Introducción a la Química",
       "Historia",
       "Geografía",
-      "Art. Leng. Danza", 
+      "Art. Leng. Danza",
       "Imágenes y Nuevos Medios",
       "Imágenes y Procedimientos"
     ]
@@ -1157,23 +1166,23 @@ export default function Matricula() {
     return obtenerPreviasValidas(alumno).length
   }
 
- function debeTodasLasMaterias(alumno, anio) {
-  const materiasDelAnio = materiasPorAnio[anio]
+  function debeTodasLasMaterias(alumno, anio) {
+    const materiasDelAnio = materiasPorAnio[anio]
 
-  if (!materiasDelAnio || materiasDelAnio.length === 0) {
-    return false
-  }
+    if (!materiasDelAnio || materiasDelAnio.length === 0) {
+      return false
+    }
 
-  const previasValidas = obtenerPreviasValidas(alumno)
+    const previasValidas = obtenerPreviasValidas(alumno)
 
-  return materiasDelAnio.every((materia) =>
-    previasValidas.some(
-      (previa) =>
-        previa.asignatura === materia &&
-        Number(previa.anio) === Number(anio)
+    return materiasDelAnio.every((materia) =>
+      previasValidas.some(
+        (previa) =>
+          previa.asignatura === materia &&
+          Number(previa.anio) === Number(anio)
+      )
     )
-  )
-}
+  }
 
   function calcularRelevamientoPorAnio(anio) {
     const alumnosDelAnio = alumnosMatricula.filter(
@@ -2148,17 +2157,41 @@ export default function Matricula() {
                 setNuevoAlumno({ ...nuevoAlumno, legajoAnio: e.target.value })
               }
             />
-            <input
-              placeholder="Libro matriz"
+
+            <select
               style={inputAlumno}
-              value={nuevoAlumno.libroMatriz}
+              value={nuevoAlumno.nacionalidad}
               onChange={(e) =>
                 setNuevoAlumno({
                   ...nuevoAlumno,
-                  libroMatriz: e.target.value
+                  nacionalidad: e.target.value
                 })
               }
-            />
+            >
+              <option value="">Nacionalidad</option>
+              <option value="Argentina">Argentina</option>
+              <option value="Boliviana">Boliviana</option>
+              <option value="Paraguaya">Paraguaya</option>
+              <option value="Peruana">Peruana</option>
+              <option value="Chilena">Chilena</option>
+              <option value="Otros">Otros</option>
+            </select>
+
+            <select
+              style={inputAlumno}
+              value={nuevoAlumno.sexo}
+              onChange={(e) =>
+                setNuevoAlumno({
+                  ...nuevoAlumno,
+                  sexo: e.target.value
+                })
+              }
+            >
+              <option value="">Sexo</option>
+              <option value="Mujer">Mujer</option>
+              <option value="Varón">Varón</option>
+            </select>
+
 
             <input
               placeholder="Folio matriz"
@@ -2398,6 +2431,9 @@ export default function Matricula() {
                   </th>
                   <th style={celda}>DNI</th>
                   <th style={celda}>Legajo</th>
+
+                  <th style={celda}>Nacionalidad</th>
+                  <th style={celda}>Sexo</th>
                   <th style={celda}>Libro/Folio</th>
                   <th style={{ ...celda, width: "95px" }}>
                     Fecha nacimiento
@@ -2414,14 +2450,20 @@ export default function Matricula() {
               <tbody>
                 {alumnosDelCurso.length === 0 && (
                   <tr>
-                    <td style={celda} colSpan="9">
+                    <td style={celda} colSpan="11">
                       Todavía no hay estudiantes cargados en este curso.
                     </td>
                   </tr>
                 )}
 
                 {alumnosFiltrados.map((alumno) => (
-                  <tr key={alumno._id}>
+                  <tr
+                    key={alumno._id}
+                    style={{
+                      backgroundColor:
+                        alumno.sexo === "Varón" ? "#eeeeee" : "white"
+                    }}
+                  > 
                     <td style={celda}>
                       {alumno.apellido}, {alumno.nombre}
                     </td>
@@ -2435,6 +2477,16 @@ export default function Matricula() {
                     </td>
 
                     <td style={celda}>
+                      {String(alumno.nacionalidad || "-")}
+                    </td>
+
+                    <td style={celda}>
+                      {String(alumno.sexo || "-")}
+                    </td>
+
+
+                    <td style={celda}>
+
                       {alumno.libroMatriz && alumno.folioMatriz
                         ? `${alumno.libroMatriz}/${alumno.folioMatriz}`
                         : "-"}
