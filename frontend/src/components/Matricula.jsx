@@ -496,85 +496,98 @@ export default function Matricula() {
     )
   })
 
-  function imprimirCurso() {
-    if (!cursoSeleccionado) return
+ function imprimirCurso() {
+  if (!cursoSeleccionado) return
 
-    const mostrarLegajo = alumnosFiltrados.some(
-      (alumno) => alumno.legajoNumero || alumno.legajoAnio
-    )
+  const mostrarLegajo = alumnosFiltrados.some(
+    (alumno) => alumno.legajoNumero || alumno.legajoAnio
+  )
 
-    const mostrarFechaNacimiento = alumnosFiltrados.some(
-      (alumno) => alumno.fechaNacimiento
-    )
+  const mostrarFechaNacimiento = alumnosFiltrados.some(
+    (alumno) => alumno.fechaNacimiento
+  )
 
-    const mostrarEdad = mostrarFechaNacimiento
+  const mostrarEdad = mostrarFechaNacimiento
 
-    const mostrarCondicion = alumnosFiltrados.some(
-      (alumno) => alumno.condicionFinal
-    )
+  const mostrarCondicion = alumnosFiltrados.some(
+    (alumno) => alumno.condicionFinal
+  )
 
-    const mostrarPendientes = alumnosFiltrados.some(
-      (alumno) =>
-        Array.isArray(alumno.materiasPendientes) &&
-        alumno.materiasPendientes.length > 0
-    )
+  const mostrarPendientes = alumnosFiltrados.some(
+    (alumno) =>
+      Array.isArray(alumno.materiasPendientes) &&
+      alumno.materiasPendientes.length > 0
+  )
 
-    const filas = alumnosFiltrados
-      .map(
-        (alumno, index) => `
-        <tr>
+  const filas = alumnosFiltrados
+    .map(
+      (alumno, index) => `
+        <tr class="${alumno.sexo === "Varón" ? "fila-varon" : ""}">
           <td>${index + 1}</td>
           <td class="nombre">${alumno.apellido || ""}, ${alumno.nombre || ""}</td>
           <td>${formatearDNI(alumno.dni)}</td>
 
-          ${mostrarLegajo
-            ? `<td>${alumno.legajoNumero && alumno.legajoAnio
-              ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
+          ${
+            mostrarLegajo
+              ? `<td>${
+                  alumno.legajoNumero && alumno.legajoAnio
+                    ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
+                    : ""
+                }</td>`
               : ""
-            }</td>`
-            : ""
           }
 
-          ${mostrarFechaNacimiento
-            ? `<td>${alumno.fechaNacimiento ? formatearFecha(alumno.fechaNacimiento) : ""}</td>`
-            : ""
-          }
-
-          ${mostrarEdad
-            ? `<td>${alumno.fechaNacimiento
-              ? calcularEdadAl30Junio(alumno.fechaNacimiento)
+          ${
+            mostrarFechaNacimiento
+              ? `<td>${
+                  alumno.fechaNacimiento
+                    ? formatearFecha(alumno.fechaNacimiento)
+                    : ""
+                }</td>`
               : ""
-            }</td>`
-            : ""
           }
 
-          ${mostrarCondicion
-            ? `<td>${alumno.condicionFinal || ""}</td>`
-            : ""
-          }
-
-          ${mostrarPendientes
-            ? `<td>${Array.isArray(alumno.materiasPendientes)
-              ? alumno.materiasPendientes
-                .map((previa) => `${previa.asignatura} (${previa.anio})`)
-                .join(", ")
+          ${
+            mostrarEdad
+              ? `<td>${
+                  alumno.fechaNacimiento
+                    ? calcularEdadAl30Junio(alumno.fechaNacimiento)
+                    : ""
+                }</td>`
               : ""
-            }</td>`
-            : ""
+          }
+
+          ${mostrarCondicion ? `<td>${alumno.condicionFinal || ""}</td>` : ""}
+
+          ${
+            mostrarPendientes
+              ? `<td>${
+                  Array.isArray(alumno.materiasPendientes)
+                    ? alumno.materiasPendientes
+                        .map((previa) => `${previa.asignatura} (${previa.anio})`)
+                        .join(", ")
+                    : ""
+                }</td>`
+              : ""
           }
         </tr>
       `
-      )
-      .join("")
+    )
+    .join("")
 
-    const ventana = window.open("", "_blank")
+  const ventana = window.open("", "_blank")
 
-    ventana.document.write(`
+  ventana.document.write(`
     <html>
       <head>
         <title>Lista de matrícula por curso</title>
 
         <style>
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+
           body {
             font-family: Arial, sans-serif;
             padding: 28px;
@@ -615,13 +628,17 @@ export default function Matricula() {
           }
 
           th {
-            background-color: #1e3a5f;
-            color: white;
+            background-color: #1e3a5f !important;
+            color: white !important;
           }
 
           .nombre {
             text-align: left;
-          } 
+          }
+
+          .fila-varon td {
+            background-color: #eeeeee !important;
+          }
 
           @page {
             size: landscape;
@@ -663,11 +680,9 @@ export default function Matricula() {
     </html>
   `)
 
-    ventana.document.close()
-    ventana.print()
-  }
-
-
+  ventana.document.close()
+  ventana.print()
+}
   function formatearDNI(dni) {
     if (!dni) return ""
 
