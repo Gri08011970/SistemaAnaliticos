@@ -637,7 +637,7 @@ export default function Matricula() {
           }
 
           .fila-varon td {
-            background-color: #eeeeee !important;
+            background-color:  #d9d9d9  !important;
           }
 
           @page {
@@ -682,7 +682,7 @@ export default function Matricula() {
 
   ventana.document.close()
   ventana.print()
-}
+} 
   function formatearDNI(dni) {
     if (!dni) return ""
 

@@ -328,3 +328,21 @@ body {
     font-size: 14px !important;
   }
 }
+@media print {
+
+  body * {
+    visibility: hidden;
+  }
+
+  #parte-diario,
+  #parte-diario * {
+    visibility: visible;
+  }
+
+  #parte-diario {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}

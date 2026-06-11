@@ -425,7 +425,23 @@ export default function App() {
             </p>
 
             {seccionActiva === "parteDiario" && (
-              <div style={parteDiario}>
+              <div id="parte-diario" style={parteDiario}>
+                <div
+                  className="no-print"
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    marginBottom: "15px"
+                  }}
+                >
+                  <button
+                    style={botonMenu}
+                    onClick={() => window.print()}
+                  >
+                    🖨️ Imprimir Parte Diario
+                  </button>
+                </div>
+
                 <h2 style={tituloParteDiario}>📋 Parte Diario Automático</h2>
 
                 <div style={grillaParteDiario}>
@@ -455,6 +471,7 @@ export default function App() {
                             </tr>
                           )
                         })}
+
                         <tr style={filaTotalBasico}>
                           <td style={celdaParteNegrita}>TOTAL CICLO BÁSICO</td>
                           <td style={celdaParteNegrita}>
@@ -493,7 +510,6 @@ export default function App() {
                             {totalParteDiario(cursosManana, "Mañana").total}
                           </td>
                         </tr>
-
                       </tbody>
                     </table>
                   </div>
@@ -563,56 +579,58 @@ export default function App() {
                             {totalParteDiario(cursosTarde, "Tarde").total}
                           </td>
                         </tr>
-
-
                       </tbody>
                     </table>
-                    <div
-                      style={{
-                        marginTop: "20px",
-                        borderRadius: "10px",
-                        overflow: "hidden"
-                      }}
-                    >
-                      <table style={{ ...tablaParte, width: "100%" }}>
-                        <tbody>
-                          <tr
-                            style={{
-                              backgroundColor: "#1e3a5f",
-                              color: "white",
-                              fontWeight: "bold",
-                              fontSize: "16px"
-                            }}
-                          >
-                            <td style={{ padding: "14px" }}>
-                              TOTAL GENERAL ESCUELA
-                            </td>
-
-                            <td style={{ padding: "14px", textAlign: "center" }}>
-                              {totalParteDiario(cursosManana, "Mañana").mujeres +
-                                totalParteDiario(cursosTarde, "Tarde").mujeres}
-                            </td>
-
-                            <td style={{ padding: "14px", textAlign: "center" }}>
-                              {totalParteDiario(cursosManana, "Mañana").varones +
-                                totalParteDiario(cursosTarde, "Tarde").varones}
-                            </td>
-
-                            <td style={{ padding: "14px", textAlign: "center" }}>
-                              {totalParteDiario(cursosManana, "Mañana").total +
-                                totalParteDiario(cursosTarde, "Tarde").total}
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-
-
                   </div>
+                </div>
+
+                <div
+                  style={{
+                    marginTop: "20px",
+                    borderRadius: "10px",
+                    overflow: "hidden",
+                    display: "flex",
+                    justifyContent: "center"
+                  }}
+                >
+                  <table
+                    style={{
+                      ...tablaParte,
+                      width: "70%",
+                      minWidth: "450px"
+                    }}
+                  >
+                    <tbody>
+                      <tr
+                        style={{
+                          backgroundColor: "#1e3a5f",
+                          color: "white",
+                          fontWeight: "bold",
+                          fontSize: "16px"
+                        }}
+                      >
+                        <td style={{ padding: "14px" }}>TOTAL GENERAL ESCUELA</td>
+
+                        <td style={{ padding: "14px", textAlign: "center" }}>
+                          {totalParteDiario(cursosManana, "Mañana").mujeres +
+                            totalParteDiario(cursosTarde, "Tarde").mujeres}
+                        </td>
+
+                        <td style={{ padding: "14px", textAlign: "center" }}>
+                          {totalParteDiario(cursosManana, "Mañana").varones +
+                            totalParteDiario(cursosTarde, "Tarde").varones}
+                        </td>
+
+                        <td style={{ padding: "14px", textAlign: "center" }}>
+                          {totalParteDiario(cursosManana, "Mañana").total +
+                            totalParteDiario(cursosTarde, "Tarde").total}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
             )}
-
             {seccionActiva === "formulario" && (
               <>
                 <ImportarExcel importarEstudiantes={importarEstudiantes} />
@@ -915,4 +933,8 @@ const celdaParteTotal = {
   fontWeight: "bold",
   backgroundColor: "#dcefeb",
   fontSize: "15px"
+}
+
+const parteDiarioRef = {
+  backgroundColor: "white"
 }
