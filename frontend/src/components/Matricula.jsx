@@ -1194,7 +1194,17 @@ export default function Matricula() {
       unaODos: 0,
       tresOCuatro: 0,
       cincoOMas: 0,
-      todas: 0
+      todas: 0,
+
+      extranjeros: 0,
+      boliviana: 0,
+      paraguaya: 0,
+      peruana: 0,
+      chilena: 0,
+      otros: 0,
+
+      recursantes: 0,
+      recursantesVarones: 0
     }
 
     alumnosDelAnio.forEach((alumno) => {
@@ -1211,6 +1221,26 @@ export default function Matricula() {
       } else {
         resumen.cincoOMas++
       }
+
+      if (alumno.condicionFinal === "Rec") {
+        resumen.recursantes++
+
+        if (alumno.sexo === "Varón") {
+          resumen.recursantesVarones++
+        }
+      }
+
+      const nacionalidad = alumno.nacionalidad || ""
+
+      if (nacionalidad && nacionalidad !== "Argentina") {
+        resumen.extranjeros++
+      }
+
+      if (nacionalidad === "Boliviana") resumen.boliviana++
+      if (nacionalidad === "Paraguaya") resumen.paraguaya++
+      if (nacionalidad === "Peruana") resumen.peruana++
+      if (nacionalidad === "Chilena") resumen.chilena++
+      if (nacionalidad === "Otros") resumen.otros++
     })
 
     return resumen
@@ -1636,6 +1666,19 @@ export default function Matricula() {
                     <p>📙 Adeudan 3 o 4 materias: <strong>{relevamientoInspeccion.tresOCuatro}</strong></p>
                     <p>📕 Adeudan 5 o más materias: <strong>{relevamientoInspeccion.cincoOMas}</strong></p>
                     <p>⚠️ Adeudan todas las materias: <strong>{relevamientoInspeccion.todas}</strong></p>
+                    <hr style={{ margin: "12px 0" }} />
+
+                    <p>🌎 Extranjeros: <strong>{relevamientoInspeccion.extranjeros}</strong></p>
+                    <p>🇧🇴 Boliviana: <strong>{relevamientoInspeccion.boliviana}</strong></p>
+                    <p>🇵🇾 Paraguaya: <strong>{relevamientoInspeccion.paraguaya}</strong></p>
+                    <p>🇵🇪 Peruana: <strong>{relevamientoInspeccion.peruana}</strong></p>
+                    <p>🇨🇱 Chilena: <strong>{relevamientoInspeccion.chilena}</strong></p>
+                    <p>🌐 Otros: <strong>{relevamientoInspeccion.otros}</strong></p>
+
+                    <hr style={{ margin: "12px 0" }} />
+
+                    <p>🔁 Recursantes: <strong>{relevamientoInspeccion.recursantes}</strong></p>
+                    <p>👦 Recursantes varones: <strong>{relevamientoInspeccion.recursantesVarones}</strong></p>
                   </div>
                 </div>
               </>
@@ -2463,7 +2506,7 @@ export default function Matricula() {
                       backgroundColor:
                         alumno.sexo === "Varón" ? "#eeeeee" : "white"
                     }}
-                  > 
+                  >
                     <td style={celda}>
                       {alumno.apellido}, {alumno.nombre}
                     </td>
