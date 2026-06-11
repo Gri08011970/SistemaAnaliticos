@@ -1657,7 +1657,7 @@ export default function Matricula() {
                     <option value="3">3° año</option>
                     <option value="4">4° año</option>
                     <option value="5">5° año</option>
-                    <option value="6">6° año</option>
+                    <option value="6">6° año</option> 
                   </select>
 
                   <div style={{ marginTop: "12px", textAlign: "left", lineHeight: "1.8" }}>

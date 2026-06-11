@@ -136,6 +136,7 @@ export default function PlanillaElevacion({
     ventana.print()
   }
 
+ 
   return (
     <div style={contenedor}>
 
