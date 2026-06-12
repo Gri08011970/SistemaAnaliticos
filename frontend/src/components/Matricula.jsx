@@ -2537,10 +2537,13 @@ export default function Matricula() {
 
 
                     <td style={celda}>
-                      {alumno.libroFolio ||
-                        (alumno.libroMatriz && alumno.folioMatriz
-                          ? `${alumno.libroMatriz}/${alumno.folioMatriz}`
-                          : "-")}
+                      {alumno.libroMatriz && alumno.folioMatriz
+                        ? `${alumno.libroMatriz}/${alumno.folioMatriz}`
+                        : alumno.folioMatriz
+                          ? alumno.folioMatriz
+                          : alumno.libroMatriz
+                            ? alumno.libroMatriz
+                            : "-"}
                     </td>
 
                     <td style={celda}>
