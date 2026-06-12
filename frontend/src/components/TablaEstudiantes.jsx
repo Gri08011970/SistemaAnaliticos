@@ -422,7 +422,7 @@ export default function TablaEstudiantes({
       </table>
     </div>
   )
-}
+} 
 
 const estiloTabla = {
   width: "100%",
