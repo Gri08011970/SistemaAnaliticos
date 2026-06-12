@@ -41,7 +41,7 @@ export default function Matricula() {
   const [pedidosAnaliticos, setPedidosAnaliticos] = useState([])
   const [alumnoSeleccionado, setAlumnoSeleccionado] = useState(null)
   const [anioRelevamiento, setAnioRelevamiento] = useState("1")
- 
+
   const [nuevoAlumno, setNuevoAlumno] = useState({
     apellido: "",
     nombre: "",
@@ -1255,8 +1255,8 @@ export default function Matricula() {
   }
 
   const relevamientoInspeccion = calcularRelevamientoPorAnio(Number(anioRelevamiento))
- 
- 
+
+
   return (
     <div style={{ marginTop: "40px" }}>
       <h2 style={{ color: "#1e3a5f" }}>
@@ -2537,10 +2537,10 @@ export default function Matricula() {
 
 
                     <td style={celda}>
-
-                      {alumno.libroMatriz && alumno.folioMatriz
-                        ? `${alumno.libroMatriz}/${alumno.folioMatriz}`
-                        : "-"}
+                      {alumno.libroFolio ||
+                        (alumno.libroMatriz && alumno.folioMatriz
+                          ? `${alumno.libroMatriz}/${alumno.folioMatriz}`
+                          : "-")}
                     </td>
 
                     <td style={celda}>
@@ -2619,7 +2619,7 @@ export default function Matricula() {
     </div>
   )
 }
- 
+
 
 const bloqueTurno = {
   backgroundColor: "#eef7f6",
