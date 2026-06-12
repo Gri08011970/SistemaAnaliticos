@@ -41,6 +41,7 @@ export default function Matricula() {
   const [pedidosAnaliticos, setPedidosAnaliticos] = useState([])
   const [alumnoSeleccionado, setAlumnoSeleccionado] = useState(null)
   const [anioRelevamiento, setAnioRelevamiento] = useState("1")
+ 
   const [nuevoAlumno, setNuevoAlumno] = useState({
     apellido: "",
     nombre: "",
@@ -496,88 +497,80 @@ export default function Matricula() {
     )
   })
 
- function imprimirCurso() {
-  if (!cursoSeleccionado) return
+  function imprimirCurso() {
+    if (!cursoSeleccionado) return
 
-  const mostrarLegajo = alumnosFiltrados.some(
-    (alumno) => alumno.legajoNumero || alumno.legajoAnio
-  )
+    const mostrarLegajo = alumnosFiltrados.some(
+      (alumno) => alumno.legajoNumero || alumno.legajoAnio
+    )
 
-  const mostrarFechaNacimiento = alumnosFiltrados.some(
-    (alumno) => alumno.fechaNacimiento
-  )
+    const mostrarFechaNacimiento = alumnosFiltrados.some(
+      (alumno) => alumno.fechaNacimiento
+    )
 
-  const mostrarEdad = mostrarFechaNacimiento
+    const mostrarEdad = mostrarFechaNacimiento
 
-  const mostrarCondicion = alumnosFiltrados.some(
-    (alumno) => alumno.condicionFinal
-  )
+    const mostrarCondicion = alumnosFiltrados.some(
+      (alumno) => alumno.condicionFinal
+    )
 
-  const mostrarPendientes = alumnosFiltrados.some(
-    (alumno) =>
-      Array.isArray(alumno.materiasPendientes) &&
-      alumno.materiasPendientes.length > 0
-  )
+    const mostrarPendientes = alumnosFiltrados.some(
+      (alumno) =>
+        Array.isArray(alumno.materiasPendientes) &&
+        alumno.materiasPendientes.length > 0
+    )
 
-  const filas = alumnosFiltrados
-    .map(
-      (alumno, index) => `
+    const filas = alumnosFiltrados
+      .map(
+        (alumno, index) => `
         <tr class="${alumno.sexo === "Varón" ? "fila-varon" : ""}">
           <td>${index + 1}</td>
           <td class="nombre">${alumno.apellido || ""}, ${alumno.nombre || ""}</td>
           <td>${formatearDNI(alumno.dni)}</td>
 
-          ${
-            mostrarLegajo
-              ? `<td>${
-                  alumno.legajoNumero && alumno.legajoAnio
-                    ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
-                    : ""
-                }</td>`
+          ${mostrarLegajo
+            ? `<td>${alumno.legajoNumero && alumno.legajoAnio
+              ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
               : ""
+            }</td>`
+            : ""
           }
 
-          ${
-            mostrarFechaNacimiento
-              ? `<td>${
-                  alumno.fechaNacimiento
-                    ? formatearFecha(alumno.fechaNacimiento)
-                    : ""
-                }</td>`
+          ${mostrarFechaNacimiento
+            ? `<td>${alumno.fechaNacimiento
+              ? formatearFecha(alumno.fechaNacimiento)
               : ""
+            }</td>`
+            : ""
           }
 
-          ${
-            mostrarEdad
-              ? `<td>${
-                  alumno.fechaNacimiento
-                    ? calcularEdadAl30Junio(alumno.fechaNacimiento)
-                    : ""
-                }</td>`
+          ${mostrarEdad
+            ? `<td>${alumno.fechaNacimiento
+              ? calcularEdadAl30Junio(alumno.fechaNacimiento)
               : ""
+            }</td>`
+            : ""
           }
 
           ${mostrarCondicion ? `<td>${alumno.condicionFinal || ""}</td>` : ""}
 
-          ${
-            mostrarPendientes
-              ? `<td>${
-                  Array.isArray(alumno.materiasPendientes)
-                    ? alumno.materiasPendientes
-                        .map((previa) => `${previa.asignatura} (${previa.anio})`)
-                        .join(", ")
-                    : ""
-                }</td>`
+          ${mostrarPendientes
+            ? `<td>${Array.isArray(alumno.materiasPendientes)
+              ? alumno.materiasPendientes
+                .map((previa) => `${previa.asignatura} (${previa.anio})`)
+                .join(", ")
               : ""
+            }</td>`
+            : ""
           }
         </tr>
       `
-    )
-    .join("")
+      )
+      .join("")
 
-  const ventana = window.open("", "_blank")
+    const ventana = window.open("", "_blank")
 
-  ventana.document.write(`
+    ventana.document.write(`
     <html>
       <head>
         <title>Lista de matrícula por curso</title>
@@ -680,9 +673,9 @@ export default function Matricula() {
     </html>
   `)
 
-  ventana.document.close()
-  ventana.print()
-} 
+    ventana.document.close()
+    ventana.print()
+  }
   function formatearDNI(dni) {
     if (!dni) return ""
 
@@ -1262,7 +1255,8 @@ export default function Matricula() {
   }
 
   const relevamientoInspeccion = calcularRelevamientoPorAnio(Number(anioRelevamiento))
-
+ 
+ 
   return (
     <div style={{ marginTop: "40px" }}>
       <h2 style={{ color: "#1e3a5f" }}>
@@ -1672,7 +1666,7 @@ export default function Matricula() {
                     <option value="3">3° año</option>
                     <option value="4">4° año</option>
                     <option value="5">5° año</option>
-                    <option value="6">6° año</option> 
+                    <option value="6">6° año</option>
                   </select>
 
                   <div style={{ marginTop: "12px", textAlign: "left", lineHeight: "1.8" }}>
@@ -2479,12 +2473,11 @@ export default function Matricula() {
             </option>
           </select>
 
-
           <div style={tablaResponsive}>
             <table style={tabla}>
               <thead>
                 <tr>
-                  <th style={{ ...celda, width: "220px" }}>
+                  <th style={{ ...celda, width: "280px" }}>
                     Apellido y Nombre
                   </th>
                   <th style={celda}>DNI</th>
@@ -2626,13 +2619,7 @@ export default function Matricula() {
     </div>
   )
 }
-
-const contenedorTurnos = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "35px",
-  marginTop: "25px"
-}
+ 
 
 const bloqueTurno = {
   backgroundColor: "#eef7f6",
@@ -3023,6 +3010,12 @@ const nombreFicha = {
 }
 const tablaResponsive = {
   width: "100%",
-  overflowX: "auto",
-  WebkitOverflowScrolling: "touch"
+  overflowX: "auto"
 }
+
+const contenedorTurnos = {
+  display: "flex",
+  flexDirection: "column",
+  gap: "18px",
+  marginTop: "25px"
+} 
