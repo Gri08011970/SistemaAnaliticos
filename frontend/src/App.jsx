@@ -295,7 +295,7 @@ export default function App() {
                   marginBottom: "30px"
                 }}
               >
-               <br /> Escuela Educación Secundaria N°140 "Florencio Molina Campos"
+                <br /> Escuela Educación Secundaria N°140 "Florencio Molina Campos"
               </p>
             </>
           )}
@@ -305,8 +305,8 @@ export default function App() {
 
           <div style={contenedorInicio}>
             <div style={tarjetaInicio}>
-              <h3>Gestión de pedidos de analíticos </h3> 
-                 <p> carga, seguimiento, estados y planilla de eleve.</p>
+              <h3>Gestión de pedidos de analíticos </h3>
+              <p> carga, seguimiento, estados y planilla de eleve.</p>
 
               <button
                 style={botonMenu}
@@ -601,16 +601,32 @@ export default function App() {
                       minWidth: "450px"
                     }}
                   >
+                    <thead>
+                      <tr
+                        style={{
+                          backgroundColor:  "#465b72",
+                          color: "white"
+                        }}
+                      >
+                        <th style={{ padding: "10px" }}></th>
+                        <th style={{ padding: "10px" }}>Mujeres</th>
+                        <th style={{ padding: "10px" }}>Varones</th>
+                        <th style={{ padding: "10px" }}>Total</th>
+                      </tr>
+                    </thead>
+
                     <tbody>
                       <tr
                         style={{
-                          backgroundColor: "#1e3a5f",
+                          backgroundColor: "#20354b",
                           color: "white",
                           fontWeight: "bold",
                           fontSize: "16px"
                         }}
                       >
-                        <td style={{ padding: "14px" }}>TOTAL GENERAL ESCUELA</td>
+                        <td style={{ padding: "14px" }}>
+                          TOTAL GENERAL ESCUELA
+                        </td>
 
                         <td style={{ padding: "14px", textAlign: "center" }}>
                           {totalParteDiario(cursosManana, "Mañana").mujeres +
@@ -628,6 +644,7 @@ export default function App() {
                         </td>
                       </tr>
                     </tbody>
+
                   </table>
                 </div>
               </div>
@@ -909,7 +926,7 @@ const celdaParteNegrita = {
   ...celdaParte,
   fontWeight: "bold",
   backgroundColor: "#eef7f6"
-}
+} 
 const filaTotalBasico = {
   backgroundColor: "#fff7ed",
   fontWeight: "bold",

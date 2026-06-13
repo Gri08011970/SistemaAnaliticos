@@ -286,20 +286,30 @@ export default function Matricula() {
           alumno.estadoMatricula === "Activo"
       )
       .sort((a, b) => {
-
         if (ordenCurso === "legajo") {
-
           const anioA = Number(a.legajoAnio || 0)
           const anioB = Number(b.legajoAnio || 0)
 
-          if (anioA !== anioB) {
-            return anioB - anioA
-          }
+          if (anioA !== anioB) return anioB - anioA
 
           const numeroA = Number(a.legajoNumero || 0)
           const numeroB = Number(b.legajoNumero || 0)
 
           return numeroA - numeroB
+        }
+
+        if (ordenCurso === "matriz") {
+          const matrizA = Number(
+            String(a.folioMatriz || a.libroMatriz || "999999")
+              .split("/")[0]
+          )
+
+          const matrizB = Number(
+            String(b.folioMatriz || b.libroMatriz || "999999")
+              .split("/")[0]
+          )
+
+          return matrizA - matrizB
         }
 
         return `${a.apellido} ${a.nombre}`.localeCompare(
@@ -1634,176 +1644,176 @@ export default function Matricula() {
           )}
 
           <h3 style={tituloFicha}>
-  🛠 Herramientas de gestión
-</h3>
+            🛠 Herramientas de gestión
+          </h3>
 
-<div style={panelHerramientas}>
-  <div
-    style={{
-      display: "flex",
-      justifyContent: "center",
-      gap: "10px",
-      flexWrap: "wrap"
-    }}
-  >
-    <button
-      style={botonImprimir}
-      onClick={() => {
-        setVerPlanillaPrevias(!verPlanillaPrevias)
-        setMateriaExamen("")
-        setAnioExamen("")
-        setTurnoExamen("")
-      }}
-    >
-      📝 Planilla de examen
-    </button>
+          <div style={panelHerramientas}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                gap: "10px",
+                flexWrap: "wrap"
+              }}
+            >
+              <button
+                style={botonImprimir}
+                onClick={() => {
+                  setVerPlanillaPrevias(!verPlanillaPrevias)
+                  setMateriaExamen("")
+                  setAnioExamen("")
+                  setTurnoExamen("")
+                }}
+              >
+                📝 Planilla de examen
+              </button>
 
-    <button
-      style={botonImprimir}
-      onClick={() => setMostrarRelevamiento(!mostrarRelevamiento)}
-    >
-      {mostrarRelevamiento
-        ? "📊 Ocultar relevamiento"
-        : "📊 Mostrar relevamiento"}
-    </button>
+              <button
+                style={botonImprimir}
+                onClick={() => setMostrarRelevamiento(!mostrarRelevamiento)}
+              >
+                {mostrarRelevamiento
+                  ? "📊 Ocultar relevamiento"
+                  : "📊 Mostrar relevamiento"}
+              </button>
 
-    <button
-      style={botonImprimir}
-      onClick={() => setVerRecursantes(!verRecursantes)}
-    >
-      🔁 {verRecursantes ? "Ocultar recursantes" : "Ver recursantes"}
-    </button>
-  </div>
+              <button
+                style={botonImprimir}
+                onClick={() => setVerRecursantes(!verRecursantes)}
+              >
+                🔁 {verRecursantes ? "Ocultar recursantes" : "Ver recursantes"}
+              </button>
+            </div>
 
-  {mostrarRelevamiento && (
-    <div style={bloqueHerramienta}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "10px"
-        }}
-      >
-        <h3 style={{ margin: 0 }}>
-          📊 Relevamiento para Inspección
-        </h3>
+            {mostrarRelevamiento && (
+              <div style={bloqueHerramienta}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "10px"
+                  }}
+                >
+                  <h3 style={{ margin: 0 }}>
+                    📊 Relevamiento para Inspección
+                  </h3>
 
-        <button
-          style={botonImprimir}
-          onClick={() => setMostrarRelevamiento(false)}
-        >
-          Ocultar
-        </button>
-      </div>
+                  <button
+                    style={botonImprimir}
+                    onClick={() => setMostrarRelevamiento(false)}
+                  >
+                    Ocultar
+                  </button>
+                </div>
 
-      <select
-        value={anioRelevamiento}
-        onChange={(e) => setAnioRelevamiento(e.target.value)}
-        style={inputAlumno}
-      >
-        <option value="1">1° año</option>
-        <option value="2">2° año</option>
-        <option value="3">3° año</option>
-        <option value="4">4° año</option>
-        <option value="5">5° año</option>
-        <option value="6">6° año</option>
-      </select>
+                <select
+                  value={anioRelevamiento}
+                  onChange={(e) => setAnioRelevamiento(e.target.value)}
+                  style={inputAlumno}
+                >
+                  <option value="1">1° año</option>
+                  <option value="2">2° año</option>
+                  <option value="3">3° año</option>
+                  <option value="4">4° año</option>
+                  <option value="5">5° año</option>
+                  <option value="6">6° año</option>
+                </select>
 
-      <div style={{ marginTop: "12px", textAlign: "left", lineHeight: "1.8" }}>
-        <p>✅ Promocionaron sin deber materias: <strong>{relevamientoInspeccion.promocionaron}</strong></p>
-        <p>📘 Adeudan 1 o 2 materias: <strong>{relevamientoInspeccion.unaODos}</strong></p>
-        <p>📙 Adeudan 3 o 4 materias: <strong>{relevamientoInspeccion.tresOCuatro}</strong></p>
-        <p>📕 Adeudan 5 o más materias: <strong>{relevamientoInspeccion.cincoOMas}</strong></p>
-        <p>⚠️ Adeudan todas las materias: <strong>{relevamientoInspeccion.todas}</strong></p>
+                <div style={{ marginTop: "12px", textAlign: "left", lineHeight: "1.8" }}>
+                  <p>✅ Promocionaron sin deber materias: <strong>{relevamientoInspeccion.promocionaron}</strong></p>
+                  <p>📘 Adeudan 1 o 2 materias: <strong>{relevamientoInspeccion.unaODos}</strong></p>
+                  <p>📙 Adeudan 3 o 4 materias: <strong>{relevamientoInspeccion.tresOCuatro}</strong></p>
+                  <p>📕 Adeudan 5 o más materias: <strong>{relevamientoInspeccion.cincoOMas}</strong></p>
+                  <p>⚠️ Adeudan todas las materias: <strong>{relevamientoInspeccion.todas}</strong></p>
 
-        <hr style={{ margin: "12px 0" }} />
+                  <hr style={{ margin: "12px 0" }} />
 
-        <p>🌎 Extranjeros: <strong>{relevamientoInspeccion.extranjeros}</strong></p>
-        <p>🇧🇴 Boliviana: <strong>{relevamientoInspeccion.boliviana}</strong></p>
-        <p>🇵🇾 Paraguaya: <strong>{relevamientoInspeccion.paraguaya}</strong></p>
-        <p>🇵🇪 Peruana: <strong>{relevamientoInspeccion.peruana}</strong></p>
-        <p>🇨🇱 Chilena: <strong>{relevamientoInspeccion.chilena}</strong></p>
-        <p>🌐 Otros: <strong>{relevamientoInspeccion.otros}</strong></p>
+                  <p>🌎 Extranjeros: <strong>{relevamientoInspeccion.extranjeros}</strong></p>
+                  <p>🇧🇴 Boliviana: <strong>{relevamientoInspeccion.boliviana}</strong></p>
+                  <p>🇵🇾 Paraguaya: <strong>{relevamientoInspeccion.paraguaya}</strong></p>
+                  <p>🇵🇪 Peruana: <strong>{relevamientoInspeccion.peruana}</strong></p>
+                  <p>🇨🇱 Chilena: <strong>{relevamientoInspeccion.chilena}</strong></p>
+                  <p>🌐 Otros: <strong>{relevamientoInspeccion.otros}</strong></p>
 
-        <hr style={{ margin: "12px 0" }} />
+                  <hr style={{ margin: "12px 0" }} />
 
-        <p>🔁 Recursantes: <strong>{relevamientoInspeccion.recursantes}</strong></p>
-        <p>👦 Recursantes varones: <strong>{relevamientoInspeccion.recursantesVarones}</strong></p>
-      </div>
-    </div>
-  )}
-
-  <div style={bloqueHerramienta}>
-    <h3 style={{ color: "#1e3a5f" }}>
-      🧾 Legajos por año
-    </h3>
-
-    <select
-      style={inputAlumno}
-      value={anioLegajoFiltro}
-      onChange={(e) => setAnioLegajoFiltro(e.target.value)}
-    >
-      <option value="">Seleccionar año de legajo</option>
-
-      {aniosLegajoDisponibles.map((anio) => (
-        <option key={anio} value={anio}>
-          {anio}
-        </option>
-      ))}
-    </select>
-  </div>
-
-  <div style={bloqueHerramienta}>
-    <h3 style={{ color: "#1e3a5f" }}>
-      📦 Legajos para archivo
-    </h3>
-
-    {!anioLegajoFiltro ? (
-      <p>Seleccioná un año de legajo para ver los faltantes.</p>
-    ) : (
-      <>
-        <p>
-          Año seleccionado: <strong>{anioLegajoFiltro}</strong>
-        </p>
-
-        <p>
-          Legajos faltantes:{" "}
-          <strong>{obtenerLegajosFaltantes(anioLegajoFiltro).length}</strong>
-        </p>
-
-        <button
-          style={botonImprimir}
-          onClick={() => setMostrarLegajosArchivo(!mostrarLegajosArchivo)}
-        >
-          {mostrarLegajosArchivo ? "Ocultar detalle" : "Ver detalle"}
-        </button>
-
-        {mostrarLegajosArchivo && (
-          <div
-            style={{
-              marginTop: "12px",
-              padding: "12px",
-              border: "1px solid #c7dde3",
-              borderRadius: "10px",
-              backgroundColor: "#f7fafb"
-            }}
-          >
-            {obtenerLegajosFaltantes(anioLegajoFiltro).length === 0 ? (
-              <p>No hay legajos faltantes en este año.</p>
-            ) : (
-              <p>
-                {obtenerLegajosFaltantes(anioLegajoFiltro)
-                  .map((numero) => `${numero}/${anioLegajoFiltro}`)
-                  .join(" - ")}
-              </p>
+                  <p>🔁 Recursantes: <strong>{relevamientoInspeccion.recursantes}</strong></p>
+                  <p>👦 Recursantes varones: <strong>{relevamientoInspeccion.recursantesVarones}</strong></p>
+                </div>
+              </div>
             )}
+
+            <div style={bloqueHerramienta}>
+              <h3 style={{ color: "#1e3a5f" }}>
+                🧾 Legajos por año
+              </h3>
+
+              <select
+                style={inputAlumno}
+                value={anioLegajoFiltro}
+                onChange={(e) => setAnioLegajoFiltro(e.target.value)}
+              >
+                <option value="">Seleccionar año de legajo</option>
+
+                {aniosLegajoDisponibles.map((anio) => (
+                  <option key={anio} value={anio}>
+                    {anio}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div style={bloqueHerramienta}>
+              <h3 style={{ color: "#1e3a5f" }}>
+                📦 Legajos para archivo
+              </h3>
+
+              {!anioLegajoFiltro ? (
+                <p>Seleccioná un año de legajo para ver los faltantes.</p>
+              ) : (
+                <>
+                  <p>
+                    Año seleccionado: <strong>{anioLegajoFiltro}</strong>
+                  </p>
+
+                  <p>
+                    Legajos faltantes:{" "}
+                    <strong>{obtenerLegajosFaltantes(anioLegajoFiltro).length}</strong>
+                  </p>
+
+                  <button
+                    style={botonImprimir}
+                    onClick={() => setMostrarLegajosArchivo(!mostrarLegajosArchivo)}
+                  >
+                    {mostrarLegajosArchivo ? "Ocultar detalle" : "Ver detalle"}
+                  </button>
+
+                  {mostrarLegajosArchivo && (
+                    <div
+                      style={{
+                        marginTop: "12px",
+                        padding: "12px",
+                        border: "1px solid #c7dde3",
+                        borderRadius: "10px",
+                        backgroundColor: "#f7fafb"
+                      }}
+                    >
+                      {obtenerLegajosFaltantes(anioLegajoFiltro).length === 0 ? (
+                        <p>No hay legajos faltantes en este año.</p>
+                      ) : (
+                        <p>
+                          {obtenerLegajosFaltantes(anioLegajoFiltro)
+                            .map((numero) => `${numero}/${anioLegajoFiltro}`)
+                            .join(" - ")}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
-        )}
-      </>
-    )}
-  </div>
-</div>
 
 
           {verPlanillaPrevias && (
@@ -2511,6 +2521,7 @@ export default function Matricula() {
           >
             <option value="apellido">Ordenar por apellido</option>
             <option value="legajo">Ordenar por legajo</option>
+            <option value="matriz">Ordenar por Libro/Folio</option>
           </select>
 
           <p
