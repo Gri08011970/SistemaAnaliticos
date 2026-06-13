@@ -595,57 +595,54 @@ export default function App() {
                   }}
                 >
                   <table
-                    style={{
-                      ...tablaParte,
-                      width: "70%",
-                      minWidth: "450px"
-                    }}
-                  >
-                    <thead>
-                      <tr
-                        style={{
-                          backgroundColor:  "#465b72",
-                          color: "white"
-                        }}
-                      >
-                        <th style={{ padding: "10px" }}></th>
-                        <th style={{ padding: "10px" }}>Mujeres</th>
-                        <th style={{ padding: "10px" }}>Varones</th>
-                        <th style={{ padding: "10px" }}>Total</th>
-                      </tr>
-                    </thead>
+  style={{
+    ...tablaParte,
+    width: "70%",
+    minWidth: "450px"
+  }}
+>
+  <thead>
+    <tr
+      style={{
+        backgroundColor: "#5f7f99",
+        color: "white"
+      }}
+    >
+      <th style={{ padding: "10px" }}></th>
+      <th style={{ padding: "10px" }}>Turno Mañana</th>
+      <th style={{ padding: "10px" }}>Turno Tarde</th>
+      <th style={{ padding: "10px" }}>Total</th>
+    </tr>
+  </thead>
 
-                    <tbody>
-                      <tr
-                        style={{
-                          backgroundColor: "#20354b",
-                          color: "white",
-                          fontWeight: "bold",
-                          fontSize: "16px"
-                        }}
-                      >
-                        <td style={{ padding: "14px" }}>
-                          TOTAL GENERAL ESCUELA
-                        </td>
+  <tbody>
+    <tr
+      style={{
+        backgroundColor: "#1e3a5f",
+        color: "white",
+        fontWeight: "bold",
+        fontSize: "16px"
+      }}
+    >
+      <td style={{ padding: "14px", textAlign: "center" }}>
+        TOTAL GENERAL ESCUELA
+      </td>
 
-                        <td style={{ padding: "14px", textAlign: "center" }}>
-                          {totalParteDiario(cursosManana, "Mañana").mujeres +
-                            totalParteDiario(cursosTarde, "Tarde").mujeres}
-                        </td>
+      <td style={{ padding: "14px", textAlign: "center" }}>
+        {totalParteDiario(cursosManana, "Mañana").total}
+      </td>
 
-                        <td style={{ padding: "14px", textAlign: "center" }}>
-                          {totalParteDiario(cursosManana, "Mañana").varones +
-                            totalParteDiario(cursosTarde, "Tarde").varones}
-                        </td>
+      <td style={{ padding: "14px", textAlign: "center" }}>
+        {totalParteDiario(cursosTarde, "Tarde").total}
+      </td>
 
-                        <td style={{ padding: "14px", textAlign: "center" }}>
-                          {totalParteDiario(cursosManana, "Mañana").total +
-                            totalParteDiario(cursosTarde, "Tarde").total}
-                        </td>
-                      </tr>
-                    </tbody>
-
-                  </table>
+      <td style={{ padding: "14px", textAlign: "center" }}>
+        {totalParteDiario(cursosManana, "Mañana").total +
+          totalParteDiario(cursosTarde, "Tarde").total}
+      </td>
+    </tr>
+  </tbody>
+</table>
                 </div>
               </div>
             )}
@@ -926,7 +923,7 @@ const celdaParteNegrita = {
   ...celdaParte,
   fontWeight: "bold",
   backgroundColor: "#eef7f6"
-} 
+}
 const filaTotalBasico = {
   backgroundColor: "#fff7ed",
   fontWeight: "bold",
