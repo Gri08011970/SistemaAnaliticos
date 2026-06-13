@@ -41,6 +41,7 @@ export default function Matricula() {
   const [pedidosAnaliticos, setPedidosAnaliticos] = useState([])
   const [alumnoSeleccionado, setAlumnoSeleccionado] = useState(null)
   const [anioRelevamiento, setAnioRelevamiento] = useState("1")
+  const [mostrarLegajosArchivo, setMostrarLegajosArchivo] = useState(false)
 
   const [nuevoAlumno, setNuevoAlumno] = useState({
     apellido: "",
@@ -1256,6 +1257,40 @@ export default function Matricula() {
 
   const relevamientoInspeccion = calcularRelevamientoPorAnio(Number(anioRelevamiento))
 
+  function obtenerNumerosLegajoPorAnio(anio) {
+    return alumnosMatricula
+      .filter((alumno) => String(alumno.legajoAnio) === String(anio))
+      .map((alumno) => Number(alumno.legajoNumero))
+      .filter((numero) => !isNaN(numero))
+      .sort((a, b) => a - b)
+  }
+
+  function obtenerNumerosLegajoPorAnio(anio) {
+    return alumnosMatricula
+      .filter((alumno) => String(alumno.legajoAnio) === String(anio))
+      .map((alumno) => Number(alumno.legajoNumero))
+      .filter((numero) => !isNaN(numero))
+      .sort((a, b) => a - b)
+  }
+
+  function obtenerLegajosFaltantes(anio) {
+    const numeros = obtenerNumerosLegajoPorAnio(anio)
+
+    if (numeros.length === 0) return []
+
+    const menor = Math.min(...numeros)
+    const mayor = Math.max(...numeros)
+
+    const faltantes = []
+
+    for (let numero = menor; numero <= mayor; numero++) {
+      if (!numeros.includes(numero)) {
+        faltantes.push(numero)
+      }
+    }
+
+    return faltantes
+  }
 
   return (
     <div style={{ marginTop: "40px" }}>
@@ -1611,7 +1646,7 @@ export default function Matricula() {
               }}
             >
               <button
-                style={botonImprimir}
+                style={botonImprimir} 
                 onClick={() => {
                   setVerPlanillaPrevias(!verPlanillaPrevias)
                   setMateriaExamen("")
@@ -1710,6 +1745,55 @@ export default function Matricula() {
                   </option>
                 ))}
               </select>
+            </div>
+            <div style={bloqueHerramienta}>
+              <h3 style={{ color: "#1e3a5f" }}>
+                📦 Legajos para archivo
+              </h3>
+
+              {!anioLegajoFiltro ? (
+                <p>Seleccioná un año de legajo para ver los faltantes.</p>
+              ) : (
+                <>
+                  <p>
+                    Año seleccionado: <strong>{anioLegajoFiltro}</strong>
+                  </p>
+
+                  <p>
+                    Legajos faltantes:{" "}
+                    <strong>{obtenerLegajosFaltantes(anioLegajoFiltro).length}</strong>
+                  </p>
+
+                  <button
+                    style={botonImprimir}
+                    onClick={() => setMostrarLegajosArchivo(!mostrarLegajosArchivo)}
+                  >
+                    {mostrarLegajosArchivo ? "Ocultar detalle" : "Ver detalle"}
+                  </button>
+
+                  {mostrarLegajosArchivo && (
+                    <div
+                      style={{
+                        marginTop: "12px",
+                        padding: "12px",
+                        border: "1px solid #c7dde3",
+                        borderRadius: "10px",
+                        backgroundColor: "#f7fafb"
+                      }}
+                    >
+                      {obtenerLegajosFaltantes(anioLegajoFiltro).length === 0 ? (
+                        <p>No hay legajos faltantes en este año.</p>
+                      ) : (
+                        <p>
+                          {obtenerLegajosFaltantes(anioLegajoFiltro)
+                            .map((numero) => `${numero}/${anioLegajoFiltro}`)
+                            .join(" - ")}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
 
             <div style={bloqueHerramienta}>

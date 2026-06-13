@@ -295,7 +295,7 @@ export default function App() {
                   marginBottom: "30px"
                 }}
               >
-                Escuela Educación Secundaria N°140 "Florencio Molina Campos"
+               <br /> Escuela Educación Secundaria N°140 "Florencio Molina Campos"
               </p>
             </>
           )}
@@ -305,8 +305,8 @@ export default function App() {
 
           <div style={contenedorInicio}>
             <div style={tarjetaInicio}>
-              <h3>Gestión de pedidos de analíticos</h3>
-              <p>Carga, seguimiento, estados y planilla de eleve.</p>
+              <h3>Gestión de pedidos de analíticos </h3> 
+                 <p> carga, seguimiento, estados y planilla de eleve.</p>
 
               <button
                 style={botonMenu}
