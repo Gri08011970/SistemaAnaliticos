@@ -260,7 +260,7 @@ export default function Matricula() {
   } finally {
     setGuardando(false)
   }
-}
+} 
   const cursosManana = [
     "1°1°", "1°2°",
     "2°1°", "2°2°",
@@ -569,7 +569,39 @@ export default function Matricula() {
         alumno.materiasPendientes.length > 0
     )
 
-    const filas = alumnosFiltrados
+    const alumnosParaImprimir = [...alumnosFiltrados].sort((a, b) => {
+  if (ordenCurso === "legajo") {
+    const anioA = Number(a.legajoAnio || 0)
+    const anioB = Number(b.legajoAnio || 0)
+
+    if (anioA !== anioB) return anioB - anioA
+
+    const numeroA = Number(a.legajoNumero || 999999)
+    const numeroB = Number(b.legajoNumero || 999999)
+
+    return numeroA - numeroB
+  }
+
+  if (ordenCurso === "matriz") {
+    const matrizA = Number(
+      String(a.folioMatriz || a.libroMatriz || "999999").split("/")[0]
+    )
+
+    const matrizB = Number(
+      String(b.folioMatriz || b.libroMatriz || "999999").split("/")[0]
+    )
+
+    return matrizA - matrizB
+  }
+
+  return `${a.apellido} ${a.nombre}`.localeCompare(
+    `${b.apellido} ${b.nombre}`,
+    "es",
+    { sensitivity: "base" }
+  )
+})
+
+    const filas = alumnosParaImprimir
       .map(
         (alumno, index) => `
         <tr class="${alumno.sexo === "Varón" ? "fila-varon" : ""}">
@@ -698,7 +730,7 @@ export default function Matricula() {
           - Turno ${cursoSeleccionado.turno}
         </h3>
 
-        <p>Cantidad de estudiantes: ${alumnosFiltrados.length}</p>
+        <p>Cantidad de estudiantes: ${alumnosParaImprimir.length}</p>
 
         <table>
           <thead>
@@ -725,6 +757,7 @@ export default function Matricula() {
     ventana.document.close()
     ventana.print()
   }
+
   function formatearDNI(dni) {
     if (!dni) return ""
 
