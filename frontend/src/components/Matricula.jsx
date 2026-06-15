@@ -939,7 +939,7 @@ export default function Matricula() {
 
   async function obtenerPedidosAnaliticos() {
     try {
-      const respuesta = await axios.get("/alumnos")
+      const respuesta = await axios.get("/alumnos") 
       console.log("PEDIDOS ANALITICOS")
       console.log(respuesta.data)
 
@@ -3061,7 +3061,7 @@ const mensajeNoEncontrado = {
   textAlign: "center"
 }
 const bloqueBusquedaGeneral = {
-  backgroundColor: "#f8fafc",
+  backgroundColor: "#c2edf3",
   border: "2px solid #cfe3e8",
   borderRadius: "14px",
   padding: "4px",

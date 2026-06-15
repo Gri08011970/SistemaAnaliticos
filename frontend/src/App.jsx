@@ -615,7 +615,7 @@ export default function App() {
     </tr>
   </thead>
 
-  <tbody>
+  <tbody> 
     <tr
       style={{
         backgroundColor: "#1e3a5f",
