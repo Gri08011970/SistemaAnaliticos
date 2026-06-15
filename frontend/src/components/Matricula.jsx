@@ -172,95 +172,95 @@ export default function Matricula() {
     setAnioPrevia("")
   }
 
- async function guardarAlumnoMatricula() {
-  if (guardando) return
+  async function guardarAlumnoMatricula() {
+    if (guardando) return
 
-  setGuardando(true)
+    setGuardando(true)
 
-  try {
-    const legajoNuevo = `${nuevoAlumno.legajoNumero || ""}/${nuevoAlumno.legajoAnio || ""}`
+    try {
+      const legajoNuevo = `${nuevoAlumno.legajoNumero || ""}/${nuevoAlumno.legajoAnio || ""}`
 
-    const matrizNueva = String(
-      nuevoAlumno.folioMatriz || nuevoAlumno.libroMatriz || ""
-    ).trim()
-
-    const legajoRepetido = alumnosMatricula.some((alumno) => {
-      if (alumnoEditando && alumno._id === alumnoEditando._id) return false
-
-      const legajoExistente = `${alumno.legajoNumero || ""}/${alumno.legajoAnio || ""}`
-
-      return (
-        nuevoAlumno.legajoNumero &&
-        nuevoAlumno.legajoAnio &&
-        legajoExistente === legajoNuevo
-      )
-    })
-
-    const matrizRepetida = alumnosMatricula.some((alumno) => {
-      if (alumnoEditando && alumno._id === alumnoEditando._id) return false
-
-      const matrizExistente = String(
-        alumno.folioMatriz || alumno.libroMatriz || ""
+      const matrizNueva = String(
+        nuevoAlumno.folioMatriz || nuevoAlumno.libroMatriz || ""
       ).trim()
 
-      return matrizNueva && matrizExistente === matrizNueva
-    })
+      const legajoRepetido = alumnosMatricula.some((alumno) => {
+        if (alumnoEditando && alumno._id === alumnoEditando._id) return false
 
-    if (legajoRepetido) {
-      alert("Ya existe un estudiante cargado con ese número/año de legajo.")
+        const legajoExistente = `${alumno.legajoNumero || ""}/${alumno.legajoAnio || ""}`
+
+        return (
+          nuevoAlumno.legajoNumero &&
+          nuevoAlumno.legajoAnio &&
+          legajoExistente === legajoNuevo
+        )
+      })
+
+      const matrizRepetida = alumnosMatricula.some((alumno) => {
+        if (alumnoEditando && alumno._id === alumnoEditando._id) return false
+
+        const matrizExistente = String(
+          alumno.folioMatriz || alumno.libroMatriz || ""
+        ).trim()
+
+        return matrizNueva && matrizExistente === matrizNueva
+      })
+
+      if (legajoRepetido) {
+        alert("Ya existe un estudiante cargado con ese número/año de legajo.")
+        setGuardando(false)
+        return
+      }
+
+      if (matrizRepetida) {
+        alert("Ya existe un estudiante cargado con ese libro/folio de matriz.")
+        setGuardando(false)
+        return
+      }
+
+      const alumnoAGuardar = {
+        ...nuevoAlumno,
+        curso: cursoSeleccionado.curso,
+        turno: cursoSeleccionado.turno,
+        estadoMatricula: "Activo"
+      }
+
+      if (alumnoEditando) {
+        await axios.put(`/api/matricula/${alumnoEditando._id}`, alumnoAGuardar)
+        setAlumnoEditando(null)
+      } else {
+        console.log(alumnoAGuardar)
+        await axios.post("/api/matricula", alumnoAGuardar)
+      }
+
+      setNuevoAlumno({
+        apellido: "",
+        nombre: "",
+        dni: "",
+        legajoNumero: "",
+        legajoAnio: "",
+        libroMatriz: "",
+        folioMatriz: "",
+        fechaNacimiento: "",
+        materiasPendientes: [],
+        condicionFinal: "",
+        nacionalidad: "",
+        sexo: ""
+      })
+
+      obtenerMatricula()
+    } catch (error) {
+      if (error.response?.status === 400) {
+        alert(error.response.data.mensaje)
+        return
+      }
+
+      console.log(error)
+      alert("Error al guardar estudiante")
+    } finally {
       setGuardando(false)
-      return
     }
-
-    if (matrizRepetida) {
-      alert("Ya existe un estudiante cargado con ese libro/folio de matriz.")
-      setGuardando(false)
-      return
-    }
-
-    const alumnoAGuardar = {
-      ...nuevoAlumno,
-      curso: cursoSeleccionado.curso,
-      turno: cursoSeleccionado.turno,
-      estadoMatricula: "Activo"
-    }
-
-    if (alumnoEditando) {
-      await axios.put(`/api/matricula/${alumnoEditando._id}`, alumnoAGuardar)
-      setAlumnoEditando(null)
-    } else {
-      console.log(alumnoAGuardar)
-      await axios.post("/api/matricula", alumnoAGuardar)
-    }
-
-    setNuevoAlumno({
-      apellido: "",
-      nombre: "",
-      dni: "",
-      legajoNumero: "",
-      legajoAnio: "",
-      libroMatriz: "",
-      folioMatriz: "",
-      fechaNacimiento: "",
-      materiasPendientes: [],
-      condicionFinal: "",
-      nacionalidad: "",
-      sexo: ""
-    })
-
-    obtenerMatricula()
-  } catch (error) {
-    if (error.response?.status === 400) {
-      alert(error.response.data.mensaje)
-      return
-    }
-
-    console.log(error)
-    alert("Error al guardar estudiante")
-  } finally {
-    setGuardando(false)
   }
-} 
   const cursosManana = [
     "1°1°", "1°2°",
     "2°1°", "2°2°",
@@ -337,17 +337,29 @@ export default function Matricula() {
         }
 
         if (ordenCurso === "matriz") {
-          const matrizA = Number(
-            String(a.folioMatriz || a.libroMatriz || "999999")
-              .split("/")[0]
-          )
+          const obtenerMatriz = (alumno) => {
+            const valor = String(alumno.folioMatriz || alumno.libroMatriz || "").trim()
 
-          const matrizB = Number(
-            String(b.folioMatriz || b.libroMatriz || "999999")
-              .split("/")[0]
-          )
+            if (!valor || valor === "-") {
+              return { libro: 999999, folio: 999999 }
+            }
 
-          return matrizA - matrizB
+            const partes = valor.split("/")
+
+            return {
+              libro: Number(partes[0] || 999999),
+              folio: Number(partes[1] || 999999)
+            }
+          }
+
+          const matrizA = obtenerMatriz(a)
+          const matrizB = obtenerMatriz(b)
+
+          if (matrizA.libro !== matrizB.libro) {
+            return matrizA.libro - matrizB.libro
+          }
+
+          return matrizA.folio - matrizB.folio
         }
 
         return `${a.apellido} ${a.nombre}`.localeCompare(
@@ -570,36 +582,36 @@ export default function Matricula() {
     )
 
     const alumnosParaImprimir = [...alumnosFiltrados].sort((a, b) => {
-  if (ordenCurso === "legajo") {
-    const anioA = Number(a.legajoAnio || 0)
-    const anioB = Number(b.legajoAnio || 0)
+      if (ordenCurso === "legajo") {
+        const anioA = Number(a.legajoAnio || 0)
+        const anioB = Number(b.legajoAnio || 0)
 
-    if (anioA !== anioB) return anioB - anioA
+        if (anioA !== anioB) return anioB - anioA
 
-    const numeroA = Number(a.legajoNumero || 999999)
-    const numeroB = Number(b.legajoNumero || 999999)
+        const numeroA = Number(a.legajoNumero || 999999)
+        const numeroB = Number(b.legajoNumero || 999999)
 
-    return numeroA - numeroB
-  }
+        return numeroA - numeroB
+      }
 
-  if (ordenCurso === "matriz") {
-    const matrizA = Number(
-      String(a.folioMatriz || a.libroMatriz || "999999").split("/")[0]
-    )
+      if (ordenCurso === "matriz") {
+        const matrizA = Number(
+          String(a.folioMatriz || a.libroMatriz || "999999").split("/")[0]
+        )
 
-    const matrizB = Number(
-      String(b.folioMatriz || b.libroMatriz || "999999").split("/")[0]
-    )
+        const matrizB = Number(
+          String(b.folioMatriz || b.libroMatriz || "999999").split("/")[0]
+        )
 
-    return matrizA - matrizB
-  }
+        return matrizA - matrizB
+      }
 
-  return `${a.apellido} ${a.nombre}`.localeCompare(
-    `${b.apellido} ${b.nombre}`,
-    "es",
-    { sensitivity: "base" }
-  )
-})
+      return `${a.apellido} ${a.nombre}`.localeCompare(
+        `${b.apellido} ${b.nombre}`,
+        "es",
+        { sensitivity: "base" }
+      )
+    })
 
     const filas = alumnosParaImprimir
       .map(
@@ -719,7 +731,7 @@ export default function Matricula() {
             margin: 12mm;
           }
         </style>
-      </head>
+      </head> 
 
       <body>
         <h2>Escuela Educación Secundaria N°140</h2>
@@ -1653,16 +1665,16 @@ export default function Matricula() {
 
                 <div style={campoFicha}>
                   <strong>Libro/Folio</strong>
-                   <p>
-                     {alumnoSeleccionado.libroMatriz && alumnoSeleccionado.folioMatriz
+                  <p>
+                    {alumnoSeleccionado.libroMatriz && alumnoSeleccionado.folioMatriz
                       ? `${alumnoSeleccionado.libroMatriz}/${alumnoSeleccionado.folioMatriz}`
                       : alumnoSeleccionado.folioMatriz
                         ? alumnoSeleccionado.folioMatriz
                         : alumnoSeleccionado.libroMatriz
                           ? alumnoSeleccionado.libroMatriz
-                        : "Sin cargar"}
-                    </p>
-                      
+                          : "Sin cargar"}
+                  </p>
+
                 </div>
 
                 <div style={campoFicha}>
