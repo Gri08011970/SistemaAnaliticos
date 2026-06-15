@@ -316,7 +316,7 @@ export default function Matricula() {
   ]
 
   const alumnosDelCurso = cursoSeleccionado
-    ? alumnosMatricula
+    ? alumnosMatricula 
       .filter(
         (alumno) =>
           alumno.curso === cursoSeleccionado.curso &&
@@ -565,6 +565,10 @@ export default function Matricula() {
       (alumno) => alumno.legajoNumero || alumno.legajoAnio
     )
 
+    const mostrarMatriz = alumnosFiltrados.some(
+      (alumno) => alumno.folioMatriz || alumno.libroMatriz
+   )
+
     const mostrarFechaNacimiento = alumnosFiltrados.some(
       (alumno) => alumno.fechaNacimiento
     )
@@ -628,6 +632,12 @@ export default function Matricula() {
             }</td>`
             : ""
           }
+
+         ${mostrarMatriz
+          ? `<td>${alumno.folioMatriz || alumno.libroMatriz || ""}</td>`
+          : ""
+    }
+  
 
           ${mostrarFechaNacimiento
             ? `<td>${alumno.fechaNacimiento
@@ -751,6 +761,7 @@ export default function Matricula() {
               <th>Apellido y Nombre</th>
               <th>DNI</th>
               ${mostrarLegajo ? "<th>Legajo</th>" : ""}
+              ${mostrarMatriz ? "<th>Libro/Folio</th>" : ""}
               ${mostrarFechaNacimiento ? "<th>Fecha nac.</th>" : ""}
               ${mostrarEdad ? "<th>Edad</th>" : ""}
               ${mostrarCondicion ? "<th>Cond.</th>" : ""}
