@@ -42,6 +42,8 @@ export default function Matricula() {
   const [alumnoSeleccionado, setAlumnoSeleccionado] = useState(null)
   const [anioRelevamiento, setAnioRelevamiento] = useState("1")
   const [mostrarLegajosArchivo, setMostrarLegajosArchivo] = useState(false)
+  const [libroMatrizFiltro, setLibroMatrizFiltro] = useState("")
+  const [mostrarMatrizArchivo, setMostrarMatrizArchivo] = useState(false)
 
   const [nuevoAlumno, setNuevoAlumno] = useState({
     apellido: "",
@@ -316,7 +318,7 @@ export default function Matricula() {
   ]
 
   const alumnosDelCurso = cursoSeleccionado
-    ? alumnosMatricula 
+    ? alumnosMatricula
       .filter(
         (alumno) =>
           alumno.curso === cursoSeleccionado.curso &&
@@ -567,7 +569,7 @@ export default function Matricula() {
 
     const mostrarMatriz = alumnosFiltrados.some(
       (alumno) => alumno.folioMatriz || alumno.libroMatriz
-   )
+    )
 
     const mostrarFechaNacimiento = alumnosFiltrados.some(
       (alumno) => alumno.fechaNacimiento
@@ -634,9 +636,9 @@ export default function Matricula() {
           }
 
          ${mostrarMatriz
-          ? `<td>${alumno.folioMatriz || alumno.libroMatriz || ""}</td>`
-          : ""
-    }
+            ? `<td>${alumno.folioMatriz || alumno.libroMatriz || ""}</td>`
+            : ""
+          }
   
 
           ${mostrarFechaNacimiento
@@ -939,7 +941,7 @@ export default function Matricula() {
 
   async function obtenerPedidosAnaliticos() {
     try {
-      const respuesta = await axios.get("/alumnos") 
+      const respuesta = await axios.get("/alumnos")
       console.log("PEDIDOS ANALITICOS")
       console.log(respuesta.data)
 
@@ -1129,6 +1131,17 @@ export default function Matricula() {
     )
   ].sort((a, b) => Number(b) - Number(a))
 
+  const librosMatrizDisponibles = [
+    ...new Set(
+      alumnosMatricula
+        .map((alumno) => {
+          const matriz = String(alumno.folioMatriz || alumno.libroMatriz || "").trim()
+          return matriz.includes("/") ? matriz.split("/")[0] : alumno.libroMatriz
+        })
+        .filter(Boolean)
+    )
+  ].sort((a, b) => Number(a) - Number(b))
+
   const alumnosPorLegajo = alumnosMatricula
     .filter((alumno) =>
       anioLegajoFiltro
@@ -1139,6 +1152,25 @@ export default function Matricula() {
       Number(a.legajoNumero || 0) -
       Number(b.legajoNumero || 0)
     )
+
+    const alumnosPorMatriz = alumnosMatricula
+  .filter((alumno) => {
+    const valor = String(alumno.folioMatriz || alumno.libroMatriz || "").trim()
+    const libro = valor.includes("/") ? valor.split("/")[0] : alumno.libroMatriz
+
+    return libroMatrizFiltro
+      ? String(libro) === String(libroMatrizFiltro)
+      : false
+  })
+  .sort((a, b) => {
+    const obtenerFolio = (alumno) => {
+      const valor = String(alumno.folioMatriz || alumno.libroMatriz || "").trim()
+      const partes = valor.split("/")
+      return Number(partes[1] || 999999)
+    }
+
+    return obtenerFolio(a) - obtenerFolio(b)
+  })
   const alumnosRecursantes = alumnosMatricula
     .filter((alumno) => alumno.condicionFinal === "Rec")
     .sort((a, b) => {
@@ -1390,6 +1422,40 @@ export default function Matricula() {
     for (let numero = menor; numero <= mayor; numero++) {
       if (!numeros.includes(numero)) {
         faltantes.push(numero)
+      }
+    }
+
+    return faltantes
+  }
+
+  function obtenerFoliosPorLibro(libro) {
+    return alumnosMatricula
+      .map((alumno) => String(alumno.folioMatriz || alumno.libroMatriz || "").trim())
+      .filter((matriz) => matriz.includes("/"))
+      .map((matriz) => {
+        const [libroNum, folioNum] = matriz.split("/")
+        return {
+          libro: libroNum,
+          folio: Number(folioNum) 
+        }
+      })
+      .filter((item) => String(item.libro) === String(libro) && item.folio)
+      .map((item) => item.folio)
+      .sort((a, b) => a - b)
+  }
+
+  function obtenerFoliosFaltantes(libro) {
+    const folios = obtenerFoliosPorLibro(libro)
+
+    if (folios.length === 0) return []
+
+    const menor = Math.min(...folios)
+    const mayor = Math.max(...folios)
+    const faltantes = []
+
+    for (let folio = menor; folio <= mayor; folio++) {
+      if (!folios.includes(folio)) {
+        faltantes.push(folio)
       }
     }
 
@@ -1845,7 +1911,7 @@ export default function Matricula() {
 
             <div style={bloqueHerramienta}>
               <h3 style={{ color: "#1e3a5f" }}>
-                🧾 Legajos por año
+                🧾 Legajos y matriz por año / libro
               </h3>
 
               <select
@@ -1861,116 +1927,333 @@ export default function Matricula() {
                   </option>
                 ))}
               </select>
+
+              <br />
+              <br />
+
+              <select
+                style={inputAlumno}
+                value={libroMatrizFiltro}
+                onChange={(e) => setLibroMatrizFiltro(e.target.value)}
+              >
+                <option value="">Seleccionar libro matriz</option>
+
+                {librosMatrizDisponibles.map((libro) => (
+                  <option key={libro} value={libro}>
+                    Libro {libro}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div style={bloqueHerramienta}>
               <h3 style={{ color: "#1e3a5f" }}>
-                📦 Legajos para archivo
+                📦 Legajos y matriz para archivo
               </h3>
 
-              {!anioLegajoFiltro ? (
-                <p>Seleccioná un año de legajo para ver los faltantes.</p>
+              {!anioLegajoFiltro && !libroMatrizFiltro ? (
+                <p>Seleccioná un año de legajo o un libro matriz.</p>
               ) : (
                 <>
-                  <p>
-                    Año seleccionado: <strong>{anioLegajoFiltro}</strong>
-                  </p>
+                  {anioLegajoFiltro && (
+                    <>
+                      <p>
+                        Año de legajo: <strong>{anioLegajoFiltro}</strong>
+                      </p>
 
-                  <p>
-                    Legajos faltantes:{" "}
-                    <strong>{obtenerLegajosFaltantes(anioLegajoFiltro).length}</strong>
-                  </p>
+                      <p>
+                        Legajos faltantes:{" "}
+                        <strong>{obtenerLegajosFaltantes(anioLegajoFiltro).length}</strong>
+                      </p>
 
-                  <button
-                    style={botonImprimir}
-                    onClick={() => setMostrarLegajosArchivo(!mostrarLegajosArchivo)}
-                  >
-                    {mostrarLegajosArchivo ? "Ocultar detalle" : "Ver detalle"}
-                  </button>
+                      <button
+                        style={botonImprimir}
+                        onClick={() => setMostrarLegajosArchivo(!mostrarLegajosArchivo)}
+                      >
+                        {mostrarLegajosArchivo ? "Ocultar legajos" : "Ver legajos"}
+                      </button>
 
-                  {mostrarLegajosArchivo && (
-                    <div
-                      style={{
-                        marginTop: "12px",
-                        padding: "12px",
-                        border: "1px solid #c7dde3",
-                        borderRadius: "10px",
-                        backgroundColor: "#f7fafb"
-                      }}
-                    >
-                      {obtenerLegajosFaltantes(anioLegajoFiltro).length === 0 ? (
-                        <p>No hay legajos faltantes en este año.</p>
-                      ) : (
-                        <p>
-                          {obtenerLegajosFaltantes(anioLegajoFiltro)
-                            .map((numero) => `${numero}/${anioLegajoFiltro}`)
-                            .join(" - ")}
-                        </p>
+                      {mostrarLegajosArchivo && (
+                        <div style={{
+                          marginTop: "12px",
+                          padding: "12px",
+                          border: "1px solid #c7dde3",
+                          borderRadius: "10px",
+                          backgroundColor: "#f7fafb"
+                        }}>
+                          {obtenerLegajosFaltantes(anioLegajoFiltro).length === 0 ? (
+                            <p>No hay legajos faltantes.</p>
+                          ) : (
+                            <p>
+                              {obtenerLegajosFaltantes(anioLegajoFiltro)
+                                .map((numero) => `${numero}/${anioLegajoFiltro}`)
+                                .join(" - ")}
+                            </p>
+                          )}
+                        </div>
                       )}
-                    </div>
+                    </>
+                  )}
+
+                  {libroMatrizFiltro && (
+  <div style={detalleCurso}>
+    <h3 style={{ color: "#1e3a5f" }}>
+      📖 Listado de matriz - Libro {libroMatrizFiltro}
+    </h3>
+
+    <p>
+      Cantidad de registros del libro {libroMatrizFiltro}: {alumnosPorMatriz.length}
+    </p>
+
+    <table style={tabla}>
+      <thead>
+        <tr>
+          <th style={celda}>Libro/Folio</th>
+          <th style={celda}>Apellido y Nombre</th>
+          <th style={celda}>DNI</th>
+          <th style={celda}>Curso</th>
+          <th style={celda}>Turno</th>
+          <th style={celda}>Legajo</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {alumnosPorMatriz.map((alumno) => (
+          <tr key={alumno._id}>
+            <td style={celda}>
+              {alumno.folioMatriz || alumno.libroMatriz || "-"}
+            </td>
+
+            <td style={celda}>
+              {alumno.apellido}, {alumno.nombre}
+            </td>
+
+            <td style={celda}>{formatearDNI(alumno.dni)}</td>
+            <td style={celda}>{alumno.curso}</td>
+            <td style={celda}>{alumno.turno}</td>
+
+            <td style={celda}>
+              {alumno.legajoNumero && alumno.legajoAnio
+                ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
+                : "-"}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+)}
+
+                  {libroMatrizFiltro && (
+                    <>
+                      <hr />
+
+                      <p>
+                        Libro matriz: <strong>{libroMatrizFiltro}</strong>
+                      </p>
+
+                      <p>
+                        Folios faltantes:{" "}
+                        <strong>{obtenerFoliosFaltantes(libroMatrizFiltro).length}</strong>
+                      </p>
+
+                      <button
+                        style={botonImprimir}
+                        onClick={() => setMostrarMatrizArchivo(!mostrarMatrizArchivo)}
+                      >
+                        {mostrarMatrizArchivo ? "Ocultar folios" : "Ver folios"}
+                      </button>
+
+                      {mostrarMatrizArchivo && (
+                        <div style={{
+                          marginTop: "12px",
+                          padding: "12px",
+                          border: "1px solid #c7dde3",
+                          borderRadius: "10px",
+                          backgroundColor: "#f7fafb"
+                        }}>
+                          {obtenerFoliosFaltantes(libroMatrizFiltro).length === 0 ? (
+                            <p>No hay folios faltantes.</p>
+                          ) : (
+                            <p>
+                              {obtenerFoliosFaltantes(libroMatrizFiltro).join(" - ")}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </>
                   )}
                 </>
               )}
             </div>
-          </div>
-
-
-          {verPlanillaPrevias && (
-            <div style={detalleCurso}>
-              <h3 style={{ color: "#1e3a5f" }}>
-                📋 Planilla de examen por previas
-              </h3>
-
-              <div style={{ display: "flex", gap: "10px", marginBottom: "15px" }}>
-                <select
-                  style={inputAlumno}
-                  value={materiaExamen}
-                  onChange={(e) => setMateriaExamen(e.target.value)}
-                >
-                  <option value="">Seleccionar asignatura</option>
-                  {asignaturas.map((asignatura) => (
-                    <option key={asignatura} value={asignatura}>
-                      {asignatura}
-                    </option>
-                  ))}
-                </select>
-
-                <select
-                  style={inputAlumno}
-                  value={anioExamen}
-                  onChange={(e) => setAnioExamen(e.target.value)}
-                >
-                  <option value="">Seleccionar año</option>
-                  {aniosMateria.map((anio) => (
-                    <option key={anio} value={anio}>
-                      {anio}
-                    </option>
-                  ))}
-                </select>
-
-                <select
-                  style={inputAlumno}
-                  value={turnoExamen}
-                  onChange={(e) => setTurnoExamen(e.target.value)}
-                >
-                  <option value="">Todos los turnos</option>
-                  <option value="Mañana">Turno Mañana</option>
-                  <option value="Tarde">Turno Tarde</option>
-                </select>
-              </div>
-
-              <div id="planilla-previas-imprimir">
+            {verPlanillaPrevias && (
+              <div style={detalleCurso}>
                 <h3 style={{ color: "#1e3a5f" }}>
                   📋 Planilla de examen por previas
                 </h3>
 
-                <p>Cantidad de estudiantes: {alumnosParaExamen.length}</p>
+                <div style={{ display: "flex", gap: "10px", marginBottom: "15px" }}>
+                  <select
+                    style={inputAlumno}
+                    value={materiaExamen}
+                    onChange={(e) => setMateriaExamen(e.target.value)}
+                  >
+                    <option value="">Seleccionar asignatura</option>
+                    {asignaturas.map((asignatura) => (
+                      <option key={asignatura} value={asignatura}>
+                        {asignatura}
+                      </option>
+                    ))}
+                  </select>
 
-                {alumnosParaExamen.length === 0 && (
-                  <p style={mensajeNoEncontrado}>
-                    No hay estudiantes para esa materia, año y turno.
-                  </p>
-                )}
+                  <select
+                    style={inputAlumno}
+                    value={anioExamen}
+                    onChange={(e) => setAnioExamen(e.target.value)}
+                  >
+                    <option value="">Seleccionar año</option>
+                    {aniosMateria.map((anio) => (
+                      <option key={anio} value={anio}>
+                        {anio}
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    style={inputAlumno}
+                    value={turnoExamen}
+                    onChange={(e) => setTurnoExamen(e.target.value)}
+                  >
+                    <option value="">Todos los turnos</option>
+                    <option value="Mañana">Turno Mañana</option>
+                    <option value="Tarde">Turno Tarde</option>
+                  </select>
+                </div>
+
+                <div id="planilla-previas-imprimir">
+                  <h3 style={{ color: "#1e3a5f" }}>
+                    📋 Planilla de examen por previas
+                  </h3>
+
+                  <p>Cantidad de estudiantes: {alumnosParaExamen.length}</p>
+
+                  {alumnosParaExamen.length === 0 && (
+                    <p style={mensajeNoEncontrado}>
+                      No hay estudiantes para esa materia, año y turno.
+                    </p>
+                  )}
+
+                  <table style={tabla}>
+                    <thead>
+                      <tr>
+                        <th style={celda}>Apellido y Nombre</th>
+                        <th style={celda}>DNI</th>
+                        <th style={celda}>Curso</th>
+                        <th style={celda}>Turno</th>
+                        <th style={celda}>Materia</th>
+                        <th style={celda}>Año</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {alumnosParaExamen.map((alumno) =>
+                        alumno.materiasPendientes
+                          .filter((previa) => {
+                            if (previa.asignatura === "----------") return false
+                            const coincideMateria =
+                              !materiaExamen || previa.asignatura === materiaExamen
+
+                            const coincideAnio =
+                              !anioExamen || previa.anio === anioExamen
+
+                            return coincideMateria && coincideAnio
+                          })
+                          .map((previa, index) => (
+                            <tr key={`${alumno._id}-${index}`}>
+                              <td style={celda}>
+                                {alumno.apellido}, {alumno.nombre}
+                              </td>
+                              <td style={celda}>{formatearDNI(alumno.dni)}</td>
+                              <td style={celda}>{alumno.curso}</td>
+                              <td style={celda}>{alumno.turno}</td>
+                              <td style={celda}>{previa.asignatura}</td>
+                              <td style={celda}>{previa.anio}</td>
+                            </tr>
+                          ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "12px",
+                    justifyContent: "center",
+                    marginTop: "10px"
+                  }}
+                >
+                  <button style={botonImprimir} onClick={imprimirPlanillaPrevias}>
+                    🖨️ Imprimir planilla
+                  </button>
+
+                  <button style={botonVolver} onClick={cerrarPlanillaPrevias}>
+                    Cerrar planilla
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {anioLegajoFiltro && (
+              <div style={detalleCurso}>
+                <h3 style={{ color: "#1e3a5f" }}>
+                  🧾 Listado de legajos {anioLegajoFiltro}
+                </h3>
+
+                <p>
+                  Cantidad de legajos {anioLegajoFiltro}: {alumnosPorLegajo.length}
+                </p>
+
+                <table style={tabla}>
+                  <thead>
+                    <tr>
+                      <th style={celda}>Legajo</th>
+                      <th style={celda}>Apellido y Nombre</th>
+                      <th style={celda}>DNI</th>
+                      <th style={celda}>Curso</th>
+                      <th style={celda}>Turno</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {alumnosPorLegajo.map((alumno) => (
+                      <tr key={alumno._id}>
+                        <td style={celda}>
+                          {alumno.legajoNumero && alumno.legajoAnio
+                            ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
+                            : "-"}
+                        </td>
+
+                        <td style={celda}>
+                          {alumno.apellido}, {alumno.nombre}
+                        </td>
+                        <td style={celda}>{formatearDNI(alumno.dni)}</td>
+                        <td style={celda}>{alumno.curso}</td>
+                        <td style={celda}>{alumno.turno}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {verRecursantes && (
+              <div style={detalleCurso}>
+                <h3 style={{ color: "#1e3a5f" }}>
+                  🔁 Estudiantes recursantes
+                </h3>
+
+                <p>Total de recursantes: {alumnosRecursantes.length}</p>
 
                 <table style={tabla}>
                   <thead>
@@ -1979,1238 +2262,1129 @@ export default function Matricula() {
                       <th style={celda}>DNI</th>
                       <th style={celda}>Curso</th>
                       <th style={celda}>Turno</th>
-                      <th style={celda}>Materia</th>
-                      <th style={celda}>Año</th>
+                      <th style={celda}>Legajo</th>
                     </tr>
                   </thead>
 
                   <tbody>
-                    {alumnosParaExamen.map((alumno) =>
-                      alumno.materiasPendientes
-                        .filter((previa) => {
-                          if (previa.asignatura === "----------") return false
-                          const coincideMateria =
-                            !materiaExamen || previa.asignatura === materiaExamen
-
-                          const coincideAnio =
-                            !anioExamen || previa.anio === anioExamen
-
-                          return coincideMateria && coincideAnio
-                        })
-                        .map((previa, index) => (
-                          <tr key={`${alumno._id}-${index}`}>
-                            <td style={celda}>
-                              {alumno.apellido}, {alumno.nombre}
-                            </td>
-                            <td style={celda}>{formatearDNI(alumno.dni)}</td>
-                            <td style={celda}>{alumno.curso}</td>
-                            <td style={celda}>{alumno.turno}</td>
-                            <td style={celda}>{previa.asignatura}</td>
-                            <td style={celda}>{previa.anio}</td>
-                          </tr>
-                        ))
-                    )}
+                    {alumnosRecursantes.map((alumno) => (
+                      <tr key={alumno._id}>
+                        <td style={celda}>
+                          {alumno.apellido}, {alumno.nombre}
+                        </td>
+                        <td style={celda}>{formatearDNI(alumno.dni)}</td>
+                        <td style={celda}>{alumno.curso}</td>
+                        <td style={celda}>{alumno.turno}</td>
+                        <td style={celda}>
+                          {alumno.legajoNumero && alumno.legajoAnio
+                            ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
+                            : "-"}
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  gap: "12px",
-                  justifyContent: "center",
-                  marginTop: "10px"
-                }}
-              >
-                <button style={botonImprimir} onClick={imprimirPlanillaPrevias}>
-                  🖨️ Imprimir planilla
-                </button>
-
-                <button style={botonVolver} onClick={cerrarPlanillaPrevias}>
-                  Cerrar planilla
-                </button>
-              </div>
-            </div>
-          )}
-
-          {anioLegajoFiltro && (
-            <div style={detalleCurso}>
-              <h3 style={{ color: "#1e3a5f" }}>
-                🧾 Listado de legajos {anioLegajoFiltro}
-              </h3>
-
-              <p>
-                Cantidad de legajos {anioLegajoFiltro}: {alumnosPorLegajo.length}
-              </p>
-
-              <table style={tabla}>
-                <thead>
-                  <tr>
-                    <th style={celda}>Legajo</th>
-                    <th style={celda}>Apellido y Nombre</th>
-                    <th style={celda}>DNI</th>
-                    <th style={celda}>Curso</th>
-                    <th style={celda}>Turno</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {alumnosPorLegajo.map((alumno) => (
-                    <tr key={alumno._id}>
-                      <td style={celda}>
-                        {alumno.legajoNumero && alumno.legajoAnio
-                          ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
-                          : "-"}
-                      </td>
-
-                      <td style={celda}>
-                        {alumno.apellido}, {alumno.nombre}
-                      </td>
-                      <td style={celda}>{formatearDNI(alumno.dni)}</td>
-                      <td style={celda}>{alumno.curso}</td>
-                      <td style={celda}>{alumno.turno}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {verRecursantes && (
-            <div style={detalleCurso}>
-              <h3 style={{ color: "#1e3a5f" }}>
-                🔁 Estudiantes recursantes
-              </h3>
-
-              <p>Total de recursantes: {alumnosRecursantes.length}</p>
-
-              <table style={tabla}>
-                <thead>
-                  <tr>
-                    <th style={celda}>Apellido y Nombre</th>
-                    <th style={celda}>DNI</th>
-                    <th style={celda}>Curso</th>
-                    <th style={celda}>Turno</th>
-                    <th style={celda}>Legajo</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {alumnosRecursantes.map((alumno) => (
-                    <tr key={alumno._id}>
-                      <td style={celda}>
-                        {alumno.apellido}, {alumno.nombre}
-                      </td>
-                      <td style={celda}>{formatearDNI(alumno.dni)}</td>
-                      <td style={celda}>{alumno.curso}</td>
-                      <td style={celda}>{alumno.turno}</td>
-                      <td style={celda}>
-                        {alumno.legajoNumero && alumno.legajoAnio
-                          ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
-                          : "-"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          <div style={contenedorTurnos}>
-            <div style={bloqueTurno}>
-              <div
-                onClick={() => setMostrarTurnoManana(!mostrarTurnoManana)}
-                style={{
-                  ...tituloTurno,
-                  cursor: "pointer",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center"
-                }}
-              >
-                <span>📚 Turno Mañana</span>
-
-                <span style={{ fontSize: "18px" }}>
-                  {mostrarTurnoManana ? "▼" : "▶"}
-                </span>
-              </div>
-
-              {mostrarTurnoManana && (
-                <div style={grillaCursos}>
-                  {cursosManana.map((curso) => (
-                    <div
-                      key={curso}
-                      style={{
-                        ...tarjetaCurso,
-                        backgroundImage: fotosPreceptores[`${curso}-Mañana`]
-                          ? `linear-gradient(rgba(255,255,255,0.50), rgba(255,255,255,0.50)), url(${fotosPreceptores[`${curso}-Mañana`]})`
-                          : "none",
-                        backgroundSize: "cover",
-                        backgroundPosition: "center"
-                      }}
-                    >
-                      <h4>{curso}</h4>
-
-                      <p style={textoCantidad}>
-                        {contarAlumnos(curso, "Mañana")} estudiantes
-                      </p>
-
-                      <button
-                        style={botonCurso}
-                        onClick={() =>
-                          setCursoSeleccionado({
-                            curso,
-                            turno: "Mañana"
-                          })
-                        }
-                      >
-                        Ver curso
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div style={bloqueTurno}>
-              <div
-                onClick={() => setMostrarTurnoTarde(!mostrarTurnoTarde)}
-                style={{
-                  ...tituloTurno,
-                  cursor: "pointer",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center"
-                }}
-              >
-                <span>📚 Turno Tarde</span>
-
-                <span style={{ fontSize: "18px" }}>
-                  {mostrarTurnoTarde ? "▼" : "▶"}
-                </span>
-              </div>
-
-              {mostrarTurnoTarde && (
-                <div style={grillaCursos}>
-                  {cursosTarde.map((curso) => (
-                    <div
-                      key={curso}
-                      style={{
-                        ...tarjetaCurso,
-                        backgroundImage: fotosPreceptores[`${curso}-Tarde`]
-                          ? `linear-gradient(rgba(255,255,255,0.50), rgba(255,255,255,0.50)), url(${fotosPreceptores[`${curso}-Tarde`]})`
-                          : "none",
-                        backgroundSize: "cover",
-                        backgroundPosition: "center"
-                      }}
-                    >
-                      <h4>{curso}</h4>
-
-                      <p style={textoCantidad}>
-                        {contarAlumnos(curso, "Tarde")} estudiantes
-                      </p>
-
-                      <button
-                        style={botonCurso}
-                        onClick={() =>
-                          setCursoSeleccionado({
-                            curso,
-                            turno: "Tarde"
-                          })
-                        }
-                      >
-                        Ver curso
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </>
-      )}
-
-      {cursoSeleccionado && (
-        <div style={detalleCurso} className="area-impresion">
-          <div className="no-print">
-            <button style={botonVolver} onClick={() => setCursoSeleccionado(null)}>
-              Volver a todos los cursos
-            </button>
-
-            <button style={botonImprimir} onClick={imprimirCurso}>
-              🖨️ Imprimir curso
-            </button>
-
-            <button
-              style={botonImprimir}
-              onClick={() => setVerEstadisticasCurso(!verEstadisticasCurso)}
-            >
-              📊 Estadísticas
-            </button>
-
-            <button style={botonImprimir} onClick={exportarExcel}>
-              Exportar Excel
-            </button>
-
-            <label
-              style={{
-                ...botonImprimir,
-                padding: "6px 8px",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "4px",
-                cursor: "pointer",
-                fontSize: "12px",
-                lineHeight: "1.6"
-              }}
-            >
-              📂 Cargar Excel
-
-              <input
-                type="file"
-                accept=".xls,.xlsx"
-                onChange={importarReporteOficial}
-                style={{ display: "none" }}
-              />
-            </label>
-          </div>
-
-
-
-          <div id="curso-imprimir">
-            <h3 style={{ color: "#1e3a5f" }}>
-              Curso: {cursoSeleccionado.curso} - Turno {cursoSeleccionado.turno}
-            </h3>
-
-            <p>Cantidad de estudiantes: {alumnosDelCurso.length}</p>
-
-            {verEstadisticasCurso && (
-              <>
-                <div style={bloqueEstadisticas}>
-                  <div style={tarjetaEstadistica}>
-                    <h3>Total</h3>
-                    <p>{totalEstudiantes}</p>
-                  </div>
-
-                  <div style={tarjetaEstadistica}>
-                    <h3>Prom</h3>
-                    <p>{totalProm} ({porcentajeProm}%)</p>
-                  </div>
-
-                  <div style={tarjetaEstadistica}>
-                    <h3>Rec</h3>
-                    <p>{totalRec} ({porcentajeRec}%)</p>
-                  </div>
-
-                  <div style={tarjetaEstadistica}>
-                    <h3>Ingresantes</h3>
-                    <p>{totalIngresantes}</p>
-                  </div>
-
-                  <div style={tarjetaEstadistica}>
-                    <h3>Reinscriptos</h3>
-                    <p>{totalReinscriptos}</p>
-                  </div>
-
-                  <div style={tarjetaEstadistica}>
-                    <h3>Con previas</h3>
-                    <p>{totalConPrevias}</p>
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    ...tarjetaEstadistica,
-                    maxWidth: "180px",
-                    margin: "20px auto 10px auto"
-                  }}
-                >
-                  <h3>Sobreedad</h3>
-                  <p>{totalSobreedad}</p>
-                </div>
-              </>
             )}
 
-            <div style={bloqueEdades}>
-              <h3 style={{ color: "#1e3a5f" }}>
-                Edades del curso
-              </h3>
+            <div style={contenedorTurnos}>
+              <div style={bloqueTurno}>
+                <div
+                  onClick={() => setMostrarTurnoManana(!mostrarTurnoManana)}
+                  style={{
+                    ...tituloTurno,
+                    cursor: "pointer",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center"
+                  }}
+                >
+                  <span>📚 Turno Mañana</span>
 
-              <div style={grillaEdades}>
-                {Object.entries(edadesDelCurso)
-                  .sort((a, b) => Number(a[0]) - Number(b[0]))
-                  .map(([edad, cantidad]) => (
-                    <div key={edad} style={tarjetaEdad}>
-                      <strong>{edad} años</strong>
-                      <p>{cantidad}</p>
-                    </div>
-                  ))}
-              </div>
-            </div>
-          </div>
+                  <span style={{ fontSize: "18px" }}>
+                    {mostrarTurnoManana ? "▼" : "▶"}
+                  </span>
+                </div>
 
+                {mostrarTurnoManana && (
+                  <div style={grillaCursos}>
+                    {cursosManana.map((curso) => (
+                      <div
+                        key={curso}
+                        style={{
+                          ...tarjetaCurso,
+                          backgroundImage: fotosPreceptores[`${curso}-Mañana`]
+                            ? `linear-gradient(rgba(255,255,255,0.50), rgba(255,255,255,0.50)), url(${fotosPreceptores[`${curso}-Mañana`]})`
+                            : "none",
+                          backgroundSize: "cover",
+                          backgroundPosition: "center"
+                        }}
+                      >
+                        <h4>{curso}</h4>
 
+                        <p style={textoCantidad}>
+                          {contarAlumnos(curso, "Mañana")} estudiantes
+                        </p>
 
-          <div
-            id="formulario-matricula"
-            style={formularioAlumno}
-            className="no-print"
-          >
-            <input
-              placeholder="Apellido"
-              style={inputAlumno}
-              value={nuevoAlumno.apellido}
-              onChange={(e) =>
-                setNuevoAlumno({ ...nuevoAlumno, apellido: e.target.value })
-              }
-            />
-
-            <input
-              placeholder="Nombre"
-              style={inputAlumno}
-              value={nuevoAlumno.nombre}
-              onChange={(e) =>
-                setNuevoAlumno({ ...nuevoAlumno, nombre: e.target.value })
-              }
-            />
-
-            <input
-              placeholder="DNI"
-              style={inputAlumno}
-              value={nuevoAlumno.dni}
-              onChange={(e) =>
-                setNuevoAlumno({ ...nuevoAlumno, dni: e.target.value })
-              }
-            />
-
-            <input
-              placeholder="N° legajo"
-              style={inputAlumno}
-              value={nuevoAlumno.legajoNumero}
-              onChange={(e) =>
-                setNuevoAlumno({ ...nuevoAlumno, legajoNumero: e.target.value })
-              }
-            />
-
-            <input
-              placeholder="Año legajo"
-              style={inputAlumno}
-              value={nuevoAlumno.legajoAnio}
-              onChange={(e) =>
-                setNuevoAlumno({ ...nuevoAlumno, legajoAnio: e.target.value })
-              }
-            />
-
-            <select
-              style={inputAlumno}
-              value={nuevoAlumno.nacionalidad}
-              onChange={(e) =>
-                setNuevoAlumno({
-                  ...nuevoAlumno,
-                  nacionalidad: e.target.value
-                })
-              }
-            >
-              <option value="">Nacionalidad</option>
-              <option value="Argentina">Argentina</option>
-              <option value="Boliviana">Boliviana</option>
-              <option value="Paraguaya">Paraguaya</option>
-              <option value="Peruana">Peruana</option>
-              <option value="Chilena">Chilena</option>
-              <option value="Otros">Otros</option>
-            </select>
-
-            <select
-              style={inputAlumno}
-              value={nuevoAlumno.sexo}
-              onChange={(e) =>
-                setNuevoAlumno({
-                  ...nuevoAlumno,
-                  sexo: e.target.value
-                })
-              }
-            >
-              <option value="">Sexo</option>
-              <option value="Mujer">Mujer</option>
-              <option value="Varón">Varón</option>
-            </select>
-
-
-            <input
-              placeholder="Folio matriz"
-              style={inputAlumno}
-              value={nuevoAlumno.folioMatriz}
-              onChange={(e) =>
-                setNuevoAlumno({
-                  ...nuevoAlumno,
-                  folioMatriz: e.target.value
-                })
-              }
-            />
-
-            <input
-              type="date"
-              style={inputAlumno}
-              value={nuevoAlumno.fechaNacimiento}
-              onChange={(e) =>
-                setNuevoAlumno({ ...nuevoAlumno, fechaNacimiento: e.target.value })
-              }
-            />
-
-            <div style={bloquePrevias}>
-              <select
-                style={inputAlumno}
-                value={previaSeleccionada}
-                onChange={(e) => setPreviaSeleccionada(e.target.value)}
-              >
-                <option value="">Asignatura</option>
-                {asignaturas.map((asignatura) => (
-                  <option key={asignatura} value={asignatura}>
-                    {asignatura}
-                  </option>
-                ))}
-              </select>
-
-              <select
-                style={inputAlumno}
-                value={anioPrevia}
-                onChange={(e) => setAnioPrevia(e.target.value)}
-              >
-                <option value="">Año</option>
-                {aniosMateria.map((anio) => (
-                  <option key={anio} value={anio}>
-                    {anio}
-                  </option>
-                ))}
-              </select>
-
-              <button
-                type="button"
-                style={botonAgregarPrevia}
-                onClick={agregarPrevia}
-              >
-                Agregar previa
-              </button>
-
-              <div style={listaPreviasInline}>
-                {nuevoAlumno.materiasPendientes.map((previa, index) => (
-                  <div key={index} style={chipPrevia}>
-                    {previa.asignatura} ({previa.anio})
-
-                    <button
-                      type="button"
-                      style={botonEliminar}
-                      onClick={() => eliminarPrevia(index)}
-                    >
-                      🗑️
-                    </button>
+                        <button
+                          style={botonCurso}
+                          onClick={() =>
+                            setCursoSeleccionado({
+                              curso,
+                              turno: "Mañana"
+                            })
+                          }
+                        >
+                          Ver curso
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
+              </div>
+
+              <div style={bloqueTurno}> 
+                <div
+                  onClick={() => setMostrarTurnoTarde(!mostrarTurnoTarde)}
+                  style={{
+                    ...tituloTurno,
+                    cursor: "pointer",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center"
+                  }}
+                >
+                  <span>📚 Turno Tarde</span>
+
+                  <span style={{ fontSize: "18px" }}>
+                    {mostrarTurnoTarde ? "▼" : "▶"}
+                  </span>
+                </div>
+
+                {mostrarTurnoTarde && (
+                  <div style={grillaCursos}>
+                    {cursosTarde.map((curso) => (
+                      <div
+                        key={curso}
+                        style={{
+                          ...tarjetaCurso,
+                          backgroundImage: fotosPreceptores[`${curso}-Tarde`]
+                            ? `linear-gradient(rgba(255,255,255,0.50), rgba(255,255,255,0.50)), url(${fotosPreceptores[`${curso}-Tarde`]})`
+                            : "none",
+                          backgroundSize: "cover",
+                          backgroundPosition: "center"
+                        }}
+                      >
+                        <h4>{curso}</h4>
+
+                        <p style={textoCantidad}>
+                          {contarAlumnos(curso, "Tarde")} estudiantes
+                        </p>
+
+                        <button
+                          style={botonCurso}
+                          onClick={() =>
+                            setCursoSeleccionado({
+                              curso,
+                              turno: "Tarde"
+                            })
+                          }
+                        >
+                          Ver curso
+                        </button>
+                      </div>
+                    ))}
+                    </div>
+
+                )}
+                </div>
               </div>
             </div>
-            <select
-              value={nuevoAlumno.condicionFinal}
-              onChange={(e) =>
-                setNuevoAlumno({
-                  ...nuevoAlumno,
-                  condicionFinal: e.target.value
-                })
-              }
-            >
-              <option value="">Seleccionar condición</option>
+          </>
+        )}
 
-              <option value="Ingresante">
-                Ingresante al nivel
-              </option>
+        
+          {cursoSeleccionado && (
+            <div style={detalleCurso} className="area-impresion">
+              <div className="no-print">
+                <button style={botonVolver} onClick={() => setCursoSeleccionado(null)}>
+                  Volver a todos los cursos
+                </button>
 
-              <option value="Reinscripto">
-                Reinscripto
-              </option>
+                <button style={botonImprimir} onClick={imprimirCurso}>
+                  🖨️ Imprimir curso
+                </button>
 
-              <option value="Prom">
-                Prom
-              </option>
+                <button
+                  style={botonImprimir}
+                  onClick={() => setVerEstadisticasCurso(!verEstadisticasCurso)}
+                >
+                  📊 Estadísticas
+                </button>
 
-              <option value="Rec">
-                Rec
-              </option>
-            </select>
+                <button style={botonImprimir} onClick={exportarExcel}>
+                  Exportar Excel
+                </button>
 
-            <button
-              style={botonAgregar}
-              onClick={guardarAlumnoMatricula}
-              disabled={guardando}
-            >
-              {guardando
-                ? "Guardando..."
-                : alumnoEditando
-                  ? "Guardar cambios"
-                  : "Agregar estudiante"}
-            </button>
+                <label
+                  style={{
+                    ...botonImprimir,
+                    padding: "6px 8px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    cursor: "pointer",
+                    fontSize: "12px",
+                    lineHeight: "1.6"
+                  }}
+                >
+                  📂 Cargar Excel
 
-            <button style={botonVolver} onClick={limpiarFormulario}>
-              Limpiar formulario
-            </button>
-          </div>
+                  <input
+                    type="file"
+                    accept=".xls,.xlsx"
+                    onChange={importarReporteOficial}
+                    style={{ display: "none" }}
+                  />
+                </label>
+              </div>
 
-          {alumnoMoviendo && (
-            <div id="movimiento-matricula" style={bloqueMovimiento}>
-              <h4>🔁 Movimiento de matrícula</h4>
 
-              <p>
-                {alumnoMoviendo.apellido}, {alumnoMoviendo.nombre}
+
+              <div id="curso-imprimir">
+                <h3 style={{ color: "#1e3a5f" }}>
+                  Curso: {cursoSeleccionado.curso} - Turno {cursoSeleccionado.turno}
+                </h3>
+
+                <p>Cantidad de estudiantes: {alumnosDelCurso.length}</p>
+
+                {verEstadisticasCurso && (
+                  <>
+                    <div style={bloqueEstadisticas}>
+                      <div style={tarjetaEstadistica}>
+                        <h3>Total</h3>
+                        <p>{totalEstudiantes}</p>
+                      </div>
+
+                      <div style={tarjetaEstadistica}>
+                        <h3>Prom</h3>
+                        <p>{totalProm} ({porcentajeProm}%)</p>
+                      </div>
+
+                      <div style={tarjetaEstadistica}>
+                        <h3>Rec</h3>
+                        <p>{totalRec} ({porcentajeRec}%)</p>
+                      </div>
+
+                      <div style={tarjetaEstadistica}>
+                        <h3>Ingresantes</h3>
+                        <p>{totalIngresantes}</p>
+                      </div>
+
+                      <div style={tarjetaEstadistica}>
+                        <h3>Reinscriptos</h3>
+                        <p>{totalReinscriptos}</p>
+                      </div>
+
+                      <div style={tarjetaEstadistica}>
+                        <h3>Con previas</h3>
+                        <p>{totalConPrevias}</p>
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        ...tarjetaEstadistica,
+                        maxWidth: "180px",
+                        margin: "20px auto 10px auto"
+                      }}
+                    >
+                      <h3>Sobreedad</h3>
+                      <p>{totalSobreedad}</p>
+                    </div>
+                  </>
+                )}
+
+                <div style={bloqueEdades}>
+                  <h3 style={{ color: "#1e3a5f" }}>
+                    Edades del curso
+                  </h3>
+
+                  <div style={grillaEdades}>
+                    {Object.entries(edadesDelCurso)
+                      .sort((a, b) => Number(a[0]) - Number(b[0]))
+                      .map(([edad, cantidad]) => (
+                        <div key={edad} style={tarjetaEdad}>
+                          <strong>{edad} años</strong>
+                          <p>{cantidad}</p>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              </div>
+
+
+
+              <div
+                id="formulario-matricula"
+                style={formularioAlumno}
+                className="no-print"
+              >
+                <input
+                  placeholder="Apellido"
+                  style={inputAlumno}
+                  value={nuevoAlumno.apellido}
+                  onChange={(e) =>
+                    setNuevoAlumno({ ...nuevoAlumno, apellido: e.target.value })
+                  }
+                />
+
+                <input
+                  placeholder="Nombre"
+                  style={inputAlumno}
+                  value={nuevoAlumno.nombre}
+                  onChange={(e) =>
+                    setNuevoAlumno({ ...nuevoAlumno, nombre: e.target.value })
+                  }
+                />
+
+                <input
+                  placeholder="DNI"
+                  style={inputAlumno}
+                  value={nuevoAlumno.dni}
+                  onChange={(e) =>
+                    setNuevoAlumno({ ...nuevoAlumno, dni: e.target.value })
+                  }
+                />
+
+                <input
+                  placeholder="N° legajo"
+                  style={inputAlumno}
+                  value={nuevoAlumno.legajoNumero}
+                  onChange={(e) =>
+                    setNuevoAlumno({ ...nuevoAlumno, legajoNumero: e.target.value })
+                  }
+                />
+
+                <input
+                  placeholder="Año legajo"
+                  style={inputAlumno}
+                  value={nuevoAlumno.legajoAnio}
+                  onChange={(e) =>
+                    setNuevoAlumno({ ...nuevoAlumno, legajoAnio: e.target.value })
+                  }
+                />
+
+                <select
+                  style={inputAlumno}
+                  value={nuevoAlumno.nacionalidad}
+                  onChange={(e) =>
+                    setNuevoAlumno({
+                      ...nuevoAlumno,
+                      nacionalidad: e.target.value
+                    })
+                  }
+                >
+                  <option value="">Nacionalidad</option>
+                  <option value="Argentina">Argentina</option>
+                  <option value="Boliviana">Boliviana</option>
+                  <option value="Paraguaya">Paraguaya</option>
+                  <option value="Peruana">Peruana</option>
+                  <option value="Chilena">Chilena</option>
+                  <option value="Otros">Otros</option>
+                </select>
+
+                <select
+                  style={inputAlumno}
+                  value={nuevoAlumno.sexo}
+                  onChange={(e) =>
+                    setNuevoAlumno({
+                      ...nuevoAlumno,
+                      sexo: e.target.value
+                    })
+                  }
+                >
+                  <option value="">Sexo</option>
+                  <option value="Mujer">Mujer</option>
+                  <option value="Varón">Varón</option>
+                </select>
+
+
+                <input
+                  placeholder="Folio matriz"
+                  style={inputAlumno}
+                  value={nuevoAlumno.folioMatriz}
+                  onChange={(e) =>
+                    setNuevoAlumno({
+                      ...nuevoAlumno,
+                      folioMatriz: e.target.value
+                    })
+                  }
+                />
+
+                <input
+                  type="date"
+                  style={inputAlumno}
+                  value={nuevoAlumno.fechaNacimiento}
+                  onChange={(e) =>
+                    setNuevoAlumno({ ...nuevoAlumno, fechaNacimiento: e.target.value })
+                  }
+                />
+
+                <div style={bloquePrevias}>
+                  <select
+                    style={inputAlumno}
+                    value={previaSeleccionada}
+                    onChange={(e) => setPreviaSeleccionada(e.target.value)}
+                  >
+                    <option value="">Asignatura</option>
+                    {asignaturas.map((asignatura) => (
+                      <option key={asignatura} value={asignatura}>
+                        {asignatura}
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    style={inputAlumno}
+                    value={anioPrevia}
+                    onChange={(e) => setAnioPrevia(e.target.value)}
+                  >
+                    <option value="">Año</option>
+                    {aniosMateria.map((anio) => (
+                      <option key={anio} value={anio}>
+                        {anio}
+                      </option>
+                    ))}
+                  </select>
+
+                  <button
+                    type="button"
+                    style={botonAgregarPrevia}
+                    onClick={agregarPrevia}
+                  >
+                    Agregar previa
+                  </button>
+
+                  <div style={listaPreviasInline}>
+                    {nuevoAlumno.materiasPendientes.map((previa, index) => (
+                      <div key={index} style={chipPrevia}>
+                        {previa.asignatura} ({previa.anio})
+
+                        <button
+                          type="button"
+                          style={botonEliminar}
+                          onClick={() => eliminarPrevia(index)}
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <select
+                  value={nuevoAlumno.condicionFinal}
+                  onChange={(e) =>
+                    setNuevoAlumno({
+                      ...nuevoAlumno,
+                      condicionFinal: e.target.value
+                    })
+                  }
+                >
+                  <option value="">Seleccionar condición</option>
+
+                  <option value="Ingresante">
+                    Ingresante al nivel
+                  </option>
+
+                  <option value="Reinscripto">
+                    Reinscripto
+                  </option>
+
+                  <option value="Prom">
+                    Prom
+                  </option>
+
+                  <option value="Rec">
+                    Rec
+                  </option>
+                </select>
+
+                <button
+                  style={botonAgregar}
+                  onClick={guardarAlumnoMatricula}
+                  disabled={guardando}
+                >
+                  {guardando
+                    ? "Guardando..."
+                    : alumnoEditando
+                      ? "Guardar cambios"
+                      : "Agregar estudiante"}
+                </button>
+
+                <button style={botonVolver} onClick={limpiarFormulario}>
+                  Limpiar formulario
+                </button>
+              </div>
+
+              {alumnoMoviendo && (
+                <div id="movimiento-matricula" style={bloqueMovimiento}>
+                  <h4>🔁 Movimiento de matrícula</h4>
+
+                  <p>
+                    {alumnoMoviendo.apellido}, {alumnoMoviendo.nombre}
+                  </p>
+
+                  <select
+                    value={nuevoCurso}
+                    onChange={(e) => setNuevoCurso(e.target.value)}
+                    style={inputAlumno}
+                  >
+                    {[...cursosManana, ...cursosTarde].map((curso) => (
+                      <option key={curso} value={curso}>
+                        {curso}
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={nuevoTurno}
+                    onChange={(e) => setNuevoTurno(e.target.value)}
+                    style={inputAlumno}
+                  >
+                    <option value="Mañana">Mañana</option>
+                    <option value="Tarde">Tarde</option>
+                  </select>
+
+                  <button style={botonAgregarPrevia} onClick={moverAlumno}>
+                    Mover estudiante
+                  </button>
+                  <button
+                    style={botonVolver}
+                    onClick={() => setAlumnoMoviendo(null)}
+                  >
+                    Cancelar movimiento
+                  </button>
+                </div>
+              )}
+
+              <div
+                className="no-print"
+                style={{
+                  display: "flex",
+                  gap: "10px",
+                  marginBottom: "15px"
+                }}
+              >
+                <button
+                  style={botonVolver}
+                  onClick={() => {
+                    setFiltroPrevia("")
+                    setFiltroAnioPrevia("")
+                  }}
+                >
+                  Limpiar filtros
+                </button>
+              </div>
+
+              <select
+                style={inputAlumno}
+                value={ordenCurso}
+                onChange={(e) => setOrdenCurso(e.target.value)}
+              >
+                <option value="apellido">Ordenar por apellido</option>
+                <option value="legajo">Ordenar por legajo</option>
+                <option value="matriz">Ordenar por Libro/Folio</option>
+              </select>
+
+              <p
+                style={{
+                  marginTop: "12px",
+                  marginBottom: "5px",
+                  fontWeight: "bold",
+                  color: "#1e3a5f",
+                  textAlign: "center"
+                }}
+              >
+                Filtro avanzado
               </p>
 
               <select
-                value={nuevoCurso}
-                onChange={(e) => setNuevoCurso(e.target.value)}
-                style={inputAlumno}
+                value={filtroAvanzado}
+                onChange={(e) => setFiltroAvanzado(e.target.value)}
+                style={{
+                  padding: "8px",
+                  borderRadius: "8px",
+                  border: "1px solid #ccc",
+                  marginTop: "12px",
+                  marginBottom: "12px",
+                  width: "220px",
+                  display: "block",
+                  marginLeft: "auto",
+                  marginRight: "auto"
+                }}
               >
-                {[...cursosManana, ...cursosTarde].map((curso) => (
-                  <option key={curso} value={curso}>
-                    {curso}
-                  </option>
-                ))}
+                <option value="todos">Todos</option>
+                <option value="prom">Sólo Prom</option>
+                <option value="rec">Sólo Rec</option>
+                <option value="previas">Con previas</option>
+                <option value="sinLegajo">Sin legajo</option>
+                <option value="sobreedad">Sobreedad</option>
+                <option value="ingresante">
+                  Ingresantes
+                </option>
+
+                <option value="reinscripto">
+                  Reinscriptos
+                </option>
               </select>
 
-              <select
-                value={nuevoTurno}
-                onChange={(e) => setNuevoTurno(e.target.value)}
-                style={inputAlumno}
-              >
-                <option value="Mañana">Mañana</option>
-                <option value="Tarde">Tarde</option>
-              </select>
+              <div style={tablaResponsive}>
+                <table style={tabla}>
+                  <thead>
+                    <tr>
+                      <th style={{ ...celda, width: "280px" }}>
+                        Apellido y Nombre
+                      </th>
+                      <th style={celda}>DNI</th>
+                      <th style={celda}>Legajo</th>
 
-              <button style={botonAgregarPrevia} onClick={moverAlumno}>
-                Mover estudiante
-              </button>
-              <button
-                style={botonVolver}
-                onClick={() => setAlumnoMoviendo(null)}
-              >
-                Cancelar movimiento
-              </button>
-            </div>
-          )}
+                      <th style={celda}>Nacionalidad</th>
+                      <th style={celda}>Sexo</th>
+                      <th style={celda}>Libro/Folio</th>
+                      <th style={{ ...celda, width: "95px" }}>
+                        Fecha nacimiento
+                      </th>
+                      <th style={{ ...celda, width: "55px" }}>Edad</th>
+                      <th style={{ ...celda, width: "240px" }}>
+                        Pendientes
+                      </th>
+                      <th style={{ ...celda, width: "65px" }}>Cond.</th>
+                      <th style={{ ...celda, width: "140px" }}>Acciones</th>
+                    </tr>
+                  </thead>
 
-          <div
-            className="no-print"
-            style={{
-              display: "flex",
-              gap: "10px",
-              marginBottom: "15px"
-            }}
-          >
-            <button
-              style={botonVolver}
-              onClick={() => {
-                setFiltroPrevia("")
-                setFiltroAnioPrevia("")
-              }}
-            >
-              Limpiar filtros
-            </button>
-          </div>
+                  <tbody>
+                    {alumnosDelCurso.length === 0 && (
+                      <tr>
+                        <td style={celda} colSpan="11">
+                          Todavía no hay estudiantes cargados en este curso.
+                        </td>
+                      </tr>
+                    )}
 
-          <select
-            style={inputAlumno}
-            value={ordenCurso}
-            onChange={(e) => setOrdenCurso(e.target.value)}
-          >
-            <option value="apellido">Ordenar por apellido</option>
-            <option value="legajo">Ordenar por legajo</option>
-            <option value="matriz">Ordenar por Libro/Folio</option>
-          </select>
-
-          <p
-            style={{
-              marginTop: "12px",
-              marginBottom: "5px",
-              fontWeight: "bold",
-              color: "#1e3a5f",
-              textAlign: "center"
-            }}
-          >
-            Filtro avanzado
-          </p>
-
-          <select
-            value={filtroAvanzado}
-            onChange={(e) => setFiltroAvanzado(e.target.value)}
-            style={{
-              padding: "8px",
-              borderRadius: "8px",
-              border: "1px solid #ccc",
-              marginTop: "12px",
-              marginBottom: "12px",
-              width: "220px",
-              display: "block",
-              marginLeft: "auto",
-              marginRight: "auto"
-            }}
-          >
-            <option value="todos">Todos</option>
-            <option value="prom">Sólo Prom</option>
-            <option value="rec">Sólo Rec</option>
-            <option value="previas">Con previas</option>
-            <option value="sinLegajo">Sin legajo</option>
-            <option value="sobreedad">Sobreedad</option>
-            <option value="ingresante">
-              Ingresantes
-            </option>
-
-            <option value="reinscripto">
-              Reinscriptos
-            </option>
-          </select>
-
-          <div style={tablaResponsive}>
-            <table style={tabla}>
-              <thead>
-                <tr>
-                  <th style={{ ...celda, width: "280px" }}>
-                    Apellido y Nombre
-                  </th>
-                  <th style={celda}>DNI</th>
-                  <th style={celda}>Legajo</th>
-
-                  <th style={celda}>Nacionalidad</th>
-                  <th style={celda}>Sexo</th>
-                  <th style={celda}>Libro/Folio</th>
-                  <th style={{ ...celda, width: "95px" }}>
-                    Fecha nacimiento
-                  </th>
-                  <th style={{ ...celda, width: "55px" }}>Edad</th>
-                  <th style={{ ...celda, width: "240px" }}>
-                    Pendientes
-                  </th>
-                  <th style={{ ...celda, width: "65px" }}>Cond.</th>
-                  <th style={{ ...celda, width: "140px" }}>Acciones</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {alumnosDelCurso.length === 0 && (
-                  <tr>
-                    <td style={celda} colSpan="11">
-                      Todavía no hay estudiantes cargados en este curso.
-                    </td>
-                  </tr>
-                )}
-
-                {alumnosFiltrados.map((alumno) => (
-                  <tr
-                    key={alumno._id}
-                    style={{
-                      backgroundColor:
-                        alumno.sexo === "Varón" ? "#eeeeee" : "white"
-                    }}
-                  >
-                    <td style={celda}>
-                      {alumno.apellido}, {alumno.nombre}
-                    </td>
-
-                    <td style={celda}>{formatearDNI(alumno.dni)}</td>
-
-                    <td style={celda}>
-                      {alumno.legajoNumero && alumno.legajoAnio
-                        ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
-                        : "-"}
-                    </td>
-
-                    <td style={celda}>
-                      {String(alumno.nacionalidad || "-")}
-                    </td>
-
-                    <td style={celda}>
-                      {String(alumno.sexo || "-")}
-                    </td>
-
-
-                    <td style={celda}>
-                      {alumno.libroMatriz && alumno.folioMatriz
-                        ? `${alumno.libroMatriz}/${alumno.folioMatriz}`
-                        : alumno.folioMatriz
-                          ? alumno.folioMatriz
-                          : alumno.libroMatriz
-                            ? alumno.libroMatriz
-                            : "-"}
-                    </td>
-
-                    <td style={celda}>
-                      {formatearFecha(alumno.fechaNacimiento)}
-                    </td>
-
-                    <td style={celda}>
-                      {calcularEdadAl30Junio(alumno.fechaNacimiento)}
-                      {tieneSobreedad(alumno) && (
-                        <span style={alertaSobreedad}>⚠️</span>
-                      )}
-                    </td>
-
-                    <td style={celda}>
-                      {Array.isArray(alumno.materiasPendientes)
-                        ? alumno.materiasPendientes
-                          .map(
-                            (previa) =>
-                              previa.asignatura === "----------"
-                                ? "----------"
-                                : `${previa.asignatura} (${previa.anio})`
-                          )
-                          .join(", ")
-                        : ""}
-                    </td>
-
-                    <td style={celda}>{alumno.condicionFinal}</td>
-
-                    <td
-                      style={{
-                        ...celda,
-                        whiteSpace: "nowrap"
-                      }}
-                      className="no-print"
-                    >
-                      <button
-                        style={botonEditar}
-                        onClick={() => editarAlumno(alumno)}
-                      >
-                        ✏️
-                      </button>
-
-
-                      <button
-                        style={botonMover}
-                        onClick={() => {
-                          prepararMovimiento(alumno)
-
-                          setTimeout(() => {
-                            document
-                              .getElementById("movimiento-matricula")
-                              ?.scrollIntoView({
-                                behavior: "smooth",
-                                block: "start"
-                              })
-                          }, 100)
+                    {alumnosFiltrados.map((alumno) => (
+                      <tr
+                        key={alumno._id}
+                        style={{
+                          backgroundColor:
+                            alumno.sexo === "Varón" ? "#eeeeee" : "white"
                         }}
                       >
-                        🔁
-                      </button>
+                        <td style={celda}>
+                          {alumno.apellido}, {alumno.nombre}
+                        </td>
 
-                      <button
-                        style={botonEliminar}
-                        onClick={() => eliminarAlumnoMatricula(alumno._id)}
-                      >
-                        🗑️
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                        <td style={celda}>{formatearDNI(alumno.dni)}</td>
+
+                        <td style={celda}>
+                          {alumno.legajoNumero && alumno.legajoAnio
+                            ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
+                            : "-"}
+                        </td>
+
+                        <td style={celda}>
+                          {String(alumno.nacionalidad || "-")}
+                        </td>
+
+                        <td style={celda}>
+                          {String(alumno.sexo || "-")}
+                        </td>
+
+
+                        <td style={celda}>
+                          {alumno.libroMatriz && alumno.folioMatriz
+                            ? `${alumno.libroMatriz}/${alumno.folioMatriz}`
+                            : alumno.folioMatriz
+                              ? alumno.folioMatriz
+                              : alumno.libroMatriz
+                                ? alumno.libroMatriz
+                                : "-"}
+                        </td>
+
+                        <td style={celda}>
+                          {formatearFecha(alumno.fechaNacimiento)}
+                        </td>
+
+                        <td style={celda}>
+                          {calcularEdadAl30Junio(alumno.fechaNacimiento)}
+                          {tieneSobreedad(alumno) && (
+                            <span style={alertaSobreedad}>⚠️</span>
+                          )}
+                        </td>
+
+                        <td style={celda}>
+                          {Array.isArray(alumno.materiasPendientes)
+                            ? alumno.materiasPendientes
+                              .map(
+                                (previa) =>
+                                  previa.asignatura === "----------"
+                                    ? "----------"
+                                    : `${previa.asignatura} (${previa.anio})`
+                              )
+                              .join(", ")
+                            : ""}
+                        </td>
+
+                        <td style={celda}>{alumno.condicionFinal}</td>
+
+                        <td
+                          style={{
+                            ...celda,
+                            whiteSpace: "nowrap"
+                          }}
+                          className="no-print"
+                        >
+                          <button
+                            style={botonEditar}
+                            onClick={() => editarAlumno(alumno)}
+                          >
+                            ✏️
+                          </button>
+
+
+                          <button
+                            style={botonMover}
+                            onClick={() => {
+                              prepararMovimiento(alumno)
+
+                              setTimeout(() => {
+                                document
+                                  .getElementById("movimiento-matricula")
+                                  ?.scrollIntoView({
+                                    behavior: "smooth",
+                                    block: "start"
+                                  })
+                              }, 100)
+                            }}
+                          >
+                            🔁
+                          </button>
+
+                          <button
+                            style={botonEliminar}
+                            onClick={() => eliminarAlumnoMatricula(alumno._id)}
+                          >
+                            🗑️
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
-      )}
-    </div>
-  )
+      )
 }
 
 
-const bloqueTurno = {
-  backgroundColor: "#eef7f6",
-  border: "2px solid #c7e3df",
-  padding: "18px 24px",
-  borderRadius: "26px",
-  boxShadow: "0 8px 22px rgba(0,0,0,0.08)",
-  marginBottom: "22px"
+      const bloqueTurno = {
+        backgroundColor: "#eef7f6",
+      border: "2px solid #c7e3df",
+      padding: "18px 24px",
+      borderRadius: "26px",
+      boxShadow: "0 8px 22px rgba(0,0,0,0.08)",
+      marginBottom: "22px"
 }
 
-const tituloTurno = {
-  color: "#0f766e",
-  marginBottom: "10px",
-  fontSize: "21px",
-  textAlign: "center",
-  fontWeight: "bold"
+      const tituloTurno = {
+        color: "#0f766e",
+      marginBottom: "10px",
+      fontSize: "21px",
+      textAlign: "center",
+      fontWeight: "bold"
 }
 
-const grillaCursos = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-  gap: "10px"
+      const grillaCursos = {
+        display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+      gap: "10px"
 }
 
-const tarjetaCurso = {
-  backgroundColor: "white",
-  padding: "18px",
-  borderRadius: "14px",
-  boxShadow: "0 3px 8px rgba(0,0,0,0.08)",
-  textAlign: "center"
+      const tarjetaCurso = {
+        backgroundColor: "white",
+      padding: "18px",
+      borderRadius: "14px",
+      boxShadow: "0 3px 8px rgba(0,0,0,0.08)",
+      textAlign: "center"
 }
 
-const textoCantidad = {
-  color: "#666",
-  fontSize: "14px"
+      const textoCantidad = {
+        color: "#666",
+      fontSize: "14px"
 }
 
-const botonCurso = {
-  backgroundColor: "#0f766e",
-  color: "white",
-  border: "none",
-  padding: "8px 12px",
-  borderRadius: "8px",
-  cursor: "pointer",
-  transition: "0.2s"
+      const botonCurso = {
+        backgroundColor: "#0f766e",
+      color: "white",
+      border: "none",
+      padding: "8px 12px",
+      borderRadius: "8px",
+      cursor: "pointer",
+      transition: "0.2s"
 }
 
-const detalleCurso = {
-  marginTop: "35px",
-  backgroundColor: "white",
-  padding: "25px",
-  borderRadius: "15px",
-  boxShadow: "0 3px 8px rgba(0,0,0,0.08)"
+      const detalleCurso = {
+        marginTop: "35px",
+      backgroundColor: "white",
+      padding: "25px",
+      borderRadius: "15px",
+      boxShadow: "0 3px 8px rgba(0,0,0,0.08)"
 }
 
-const botonVolver = {
-  backgroundColor: "#e9f5f5",
-  color: "#1e5f5c",
-  border: "1px solid #cfd8e3",
-  padding: "8px 12px",
-  borderRadius: "8px",
-  cursor: "pointer",
-  marginBottom: "15px",
-  fontWeight: "bold"
+      const botonVolver = {
+        backgroundColor: "#e9f5f5",
+      color: "#1e5f5c",
+      border: "1px solid #cfd8e3",
+      padding: "8px 12px",
+      borderRadius: "8px",
+      cursor: "pointer",
+      marginBottom: "15px",
+      fontWeight: "bold"
 }
 
-const formularioAlumno = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-  gap: "14px",
-  marginBottom: "22px",
-  marginTop: "22px",
-  alignItems: "center"
+      const formularioAlumno = {
+        display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+      gap: "14px",
+      marginBottom: "22px",
+      marginTop: "22px",
+      alignItems: "center"
 }
-const inputAlumno = {
-  padding: "12px",
-  borderRadius: "8px",
-  border: "1px solid #ccc",
-  minWidth: "0",
-  width: "92%"
-}
-
-const botonAgregar = {
-  backgroundColor: "#4cb3aa",
-  color: "white",
-  border: "none",
-  borderRadius: "8px",
-  cursor: "pointer",
-  fontWeight: "bold",
-  gridColumn: "auto",
-  padding: "8px 20px"
-
+      const inputAlumno = {
+        padding: "12px",
+      borderRadius: "8px",
+      border: "1px solid #ccc",
+      minWidth: "0",
+      width: "92%"
 }
 
-const tabla = {
-  width: "100%",
-  minWidth: "850px",
-  borderCollapse: "collapse",
-  marginTop: "15px"
+      const botonAgregar = {
+        backgroundColor: "#4cb3aa",
+      color: "white",
+      border: "none",
+      borderRadius: "8px",
+      cursor: "pointer",
+      fontWeight: "bold",
+      gridColumn: "auto",
+      padding: "8px 20px"
+
 }
 
-const celda = {
-  border: "1px solid #ddd",
-  padding: "8px",
-  textAlign: "center",
-  fontSize: "13px"
-}
-const bloquePrevias = {
-  display: "grid",
-  gridTemplateColumns: "2fr 90px 130px 1fr",
-  gap: "8px",
-  alignItems: "center",
-  gridColumn: "1 / 5"
+      const tabla = {
+        width: "100%",
+      minWidth: "850px",
+      borderCollapse: "collapse",
+      marginTop: "15px"
 }
 
-const listaPreviasInline = {
-  display: "flex",
-  flexWrap: "wrap",
-  gap: "6px",
-  alignItems: "center",
-  gridColumn: "1 / -1",
-  marginTop: "4px"
+      const celda = {
+        border: "1px solid #ddd",
+      padding: "8px",
+      textAlign: "center",
+      fontSize: "13px"
+}
+      const bloquePrevias = {
+        display: "grid",
+      gridTemplateColumns: "2fr 90px 130px 1fr",
+      gap: "8px",
+      alignItems: "center",
+      gridColumn: "1 / 5"
 }
 
-
-const chipPrevia = {
-  backgroundColor: "#eef7f6",
-  border: "1px solid #c7e3df",
-  borderRadius: "20px",
-  padding: "4px 10px",
-  fontSize: "12px",
-  display: "flex",
-  alignItems: "center",
-  gap: "6px"
-}
-
-const botonEditar = {
-  backgroundColor: "#dbe7f5",
-  color: "#1e3a5f",
-  border: "none",
-  padding: "6px 8px",
-  borderRadius: "10px",
-  cursor: "pointer",
-  fontWeight: "bold",
-  marginRight: "4px"
-}
-
-const botonEliminar = {
-  backgroundColor: "#f7dede",
-  color: "#8b2e2e",
-  border: "none",
-  padding: "6px 8px",
-  borderRadius: "10px",
-  cursor: "pointer",
-  fontWeight: "bold",
-  marginRight: "4px"
-}
-const botonAgregarPrevia = {
-  backgroundColor: "#e9eef5",
-  color: "#1e3a5f",
-  border: "1px solid #cfd8e3",
-  borderRadius: "8px",
-  cursor: "pointer",
-  fontWeight: "bold",
-  padding: "10px"
-}
-const botonImprimir = {
-  backgroundColor: "#e9eef5",
-  color: "#1e3a5f",
-  border: "1px solid #cfd8e3",
-  padding: "8px 12px",
-  borderRadius: "8px",
-  cursor: "pointer",
-  fontWeight: "bold",
-  marginLeft: "8px",
-  marginBottom: "15px"
-}
-
-const botonMover = {
-  backgroundColor: "#eef5ee",
-  color: "#2f6b3f",
-  border: "none",
-  padding: "6px 8px",
-  borderRadius: "10px",
-  cursor: "pointer",
-  fontWeight: "bold",
-  marginRight: "4px"
-}
-
-const bloqueMovimiento = {
-  backgroundColor: "#f8fafc",
-  border: "1px solid #dbe4ee",
-  borderRadius: "12px",
-  padding: "15px",
-  marginBottom: "20px"
-}
-const bloqueEstadisticas = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-  gap: "15px",
-  marginTop: "20px",
-  marginBottom: "20px"
-}
-
-const tarjetaEstadistica = {
-  backgroundColor: "#f8fafc",
-  border: "1px solid #dbe4ee",
-  borderRadius: "16px",
-  padding: "18px",
-  textAlign: "center",
-  boxShadow: "0 3px 8px rgba(0,0,0,0.05)"
-}
-const alertaSobreedad = {
-  marginLeft: "6px",
-  fontSize: "13px"
-}
-const bloqueEdades = {
-  marginTop: "20px",
-  marginBottom: "15px",
-  textAlign: "center"
-}
-
-const grillaEdades = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))",
-  gap: "10px",
-  marginTop: "10px"
-}
-
-const tarjetaEdad = {
-  backgroundColor: "#f8fafc",
-  border: "1px solid #dbe4ee",
-  borderRadius: "14px",
-  padding: "12px",
-  textAlign: "center",
-  boxShadow: "0 2px 6px rgba(0,0,0,0.05)"
-}
-const mensajeNoEncontrado = {
-  backgroundColor: "#fff3cd",
-  padding: "12px",
-  borderRadius: "10px",
-  color: "#856404",
-  marginBottom: "15px",
-  textAlign: "center"
-}
-const bloqueBusquedaGeneral = {
-  backgroundColor: "#c2edf3",
-  border: "2px solid #cfe3e8",
-  borderRadius: "14px",
-  padding: "4px",
-  marginBottom: "20px",
-  boxShadow: "0 3px 8px rgba(0,0,0,0.05)"
-}
-
-const inputBusquedaPrincipal = {
-  width: "90%",
-  maxWidth: "500px",
-  padding: "10px",
-  border: "2px solid #bfd4dc",
-  borderRadius: "10px",
-  fontSize: "15px"
-}
-
-const listaResultadosBusqueda = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "10px"
-}
-
-const itemResultadoBusqueda = {
-  backgroundColor: "white",
-  border: "1px solid #dbe4ee",
-  borderRadius: "12px",
-  padding: "12px",
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center"
-}
-const bloqueLegajos = {
-  backgroundColor: "#f8fafc",
-  border: "1px solid #dbe4ee",
-  borderRadius: "18px",
-  padding: "20px",
-  marginBottom: "25px",
-  boxShadow: "0 3px 8px rgba(0,0,0,0.05)"
+      const listaPreviasInline = {
+        display: "flex",
+      flexWrap: "wrap",
+      gap: "6px",
+      alignItems: "center",
+      gridColumn: "1 / -1",
+      marginTop: "4px"
 }
 
 
-const panelHerramientas = {
-  backgroundColor: "#ffffff",
-  border: "2px solid #c7dde3",
-  borderRadius: "18px",
-  padding: "14px",
-  marginTop: "20px",
-  marginBottom: "20px",
-  boxShadow: "0 8px 18px rgba(0,0,0,0.08)"
+      const chipPrevia = {
+        backgroundColor: "#eef7f6",
+      border: "1px solid #c7e3df",
+      borderRadius: "20px",
+      padding: "4px 10px",
+      fontSize: "12px",
+      display: "flex",
+      alignItems: "center",
+      gap: "6px"
 }
 
-const bloqueHerramienta = {
-  backgroundColor: "#f8fbff",
-  border: "1px solid #dbeafe",
-  borderRadius: "14px",
-  padding: "12px",
-  boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
-  textAlign: "center"
+      const botonEditar = {
+        backgroundColor: "#dbe7f5",
+      color: "#1e3a5f",
+      border: "none",
+      padding: "6px 8px",
+      borderRadius: "10px",
+      cursor: "pointer",
+      fontWeight: "bold",
+      marginRight: "4px"
 }
 
-const panelAlertas = {
-  backgroundColor: "#fff7ed",
-  border: "1px solid #fed7aa",
-  borderRadius: "18px",
-  padding: "18px",
-  marginBottom: "20px",
-  boxShadow: "0 3px 8px rgba(0,0,0,0.05)"
+      const botonEliminar = {
+        backgroundColor: "#f7dede",
+      color: "#8b2e2e",
+      border: "none",
+      padding: "6px 8px",
+      borderRadius: "10px",
+      cursor: "pointer",
+      fontWeight: "bold",
+      marginRight: "4px"
+}
+      const botonAgregarPrevia = {
+        backgroundColor: "#e9eef5",
+      color: "#1e3a5f",
+      border: "1px solid #cfd8e3",
+      borderRadius: "8px",
+      cursor: "pointer",
+      fontWeight: "bold",
+      padding: "10px"
+}
+      const botonImprimir = {
+        backgroundColor: "#e9eef5",
+      color: "#1e3a5f",
+      border: "1px solid #cfd8e3",
+      padding: "8px 12px",
+      borderRadius: "8px",
+      cursor: "pointer",
+      fontWeight: "bold",
+      marginLeft: "8px",
+      marginBottom: "15px"
 }
 
-const grillaAlertas = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-  gap: "12px"
+      const botonMover = {
+        backgroundColor: "#eef5ee",
+      color: "#2f6b3f",
+      border: "none",
+      padding: "6px 8px",
+      borderRadius: "10px",
+      cursor: "pointer",
+      fontWeight: "bold",
+      marginRight: "4px"
 }
 
-const tarjetaAlerta = {
-  backgroundColor: "white",
-  border: "1px solid #fed7aa",
-  borderRadius: "14px",
-  padding: "12px",
-  textAlign: "center",
-  boxShadow: "0 2px 6px rgba(0,0,0,0.04)",
-  cursor: "pointer",
-  transition: "0.2s",
-  transform: "scale(1)"
+      const bloqueMovimiento = {
+        backgroundColor: "#f8fafc",
+      border: "1px solid #dbe4ee",
+      borderRadius: "12px",
+      padding: "15px",
+      marginBottom: "20px"
 }
-const grillaFicha = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-  gap: "18px",
-  marginTop: "20px",
-  backgroundColor: "#ffffff",
-  border: "2px solid #c7dde3",
-  borderRadius: "18px",
-  padding: "25px",
-  boxShadow: "0 8px 18px rgba(0,0,0,0.08)"
+      const bloqueEstadisticas = {
+        display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+      gap: "15px",
+      marginTop: "20px",
+      marginBottom: "20px"
 }
 
-const campoFicha = {
-  backgroundColor: "#f8fbff",
-  border: "1px solid #dbeafe",
-  borderRadius: "14px",
-  padding: "16px",
-  boxShadow: "0 2px 6px rgba(0,0,0,0.05)"
+      const tarjetaEstadistica = {
+        backgroundColor: "#f8fafc",
+      border: "1px solid #dbe4ee",
+      borderRadius: "16px",
+      padding: "18px",
+      textAlign: "center",
+      boxShadow: "0 3px 8px rgba(0,0,0,0.05)"
 }
-const tituloFicha = {
-  backgroundColor: "#eaf6f8",
-  borderLeft: "5px solid #167a7f",
-  borderRadius: "8px",
-  padding: "12px",
-  marginBottom: "20px",
-  textAlign: "center",
-  color: "#1e3a5f"
+      const alertaSobreedad = {
+        marginLeft: "6px",
+      fontSize: "13px"
 }
-const alertaAnalitico = {
-  backgroundColor: "#fff7ed",
-  border: "1px solid #fdba74",
-  color: "#9a3412",
-  padding: "8px",
-  borderRadius: "10px",
-  fontWeight: "bold",
-  marginTop: "8px",
-  fontSize: "13px"
-}
-const botonCerrarFicha = {
-  backgroundColor: "#e9f5f5",
-  color: "#1e5f5c",
-  border: "1px solid #cfd8e3",
-  padding: "10px 18px",
-  borderRadius: "8px",
-  cursor: "pointer",
-  fontWeight: "bold",
-  boxShadow: "0 2px 6px rgba(0,0,0,0.06)"
-}
-const nombreFicha = {
-  display: "inline-block",
-  marginTop: "6px",
-  fontSize: "16px",
-  color: "#1e3a5f",
-  fontWeight: "bold"
-}
-const tablaResponsive = {
-  width: "100%",
-  overflowX: "auto"
+      const bloqueEdades = {
+        marginTop: "20px",
+      marginBottom: "15px",
+      textAlign: "center"
 }
 
-const contenedorTurnos = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "18px",
-  marginTop: "25px"
+      const grillaEdades = {
+        display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))",
+      gap: "10px",
+      marginTop: "10px"
+}
+
+      const tarjetaEdad = {
+        backgroundColor: "#f8fafc",
+      border: "1px solid #dbe4ee",
+      borderRadius: "14px",
+      padding: "12px",
+      textAlign: "center",
+      boxShadow: "0 2px 6px rgba(0,0,0,0.05)"
+}
+      const mensajeNoEncontrado = {
+        backgroundColor: "#fff3cd",
+      padding: "12px",
+      borderRadius: "10px",
+      color: "#856404",
+      marginBottom: "15px",
+      textAlign: "center"
+}
+      const bloqueBusquedaGeneral = {
+        backgroundColor: "#c2edf3",
+      border: "2px solid #cfe3e8",
+      borderRadius: "14px",
+      padding: "4px",
+      marginBottom: "20px",
+      boxShadow: "0 3px 8px rgba(0,0,0,0.05)"
+}
+
+      const inputBusquedaPrincipal = {
+        width: "90%",
+      maxWidth: "500px",
+      padding: "10px",
+      border: "2px solid #bfd4dc",
+      borderRadius: "10px",
+      fontSize: "15px"
+}
+
+      const listaResultadosBusqueda = {
+        display: "flex",
+      flexDirection: "column",
+      gap: "10px"
+}
+
+      const itemResultadoBusqueda = {
+        backgroundColor: "white",
+      border: "1px solid #dbe4ee",
+      borderRadius: "12px",
+      padding: "12px",
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center"
+}
+      const bloqueLegajos = {
+        backgroundColor: "#f8fafc",
+      border: "1px solid #dbe4ee",
+      borderRadius: "18px",
+      padding: "20px",
+      marginBottom: "25px",
+      boxShadow: "0 3px 8px rgba(0,0,0,0.05)"
+}
+
+
+      const panelHerramientas = {
+        backgroundColor: "#ffffff",
+      border: "2px solid #c7dde3",
+      borderRadius: "18px",
+      padding: "14px",
+      marginTop: "20px",
+      marginBottom: "20px",
+      boxShadow: "0 8px 18px rgba(0,0,0,0.08)"
+}
+
+      const bloqueHerramienta = {
+        backgroundColor: "#f8fbff",
+      border: "1px solid #dbeafe",
+      borderRadius: "14px",
+      padding: "12px",
+      boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+      textAlign: "center"
+}
+
+      const panelAlertas = {
+        backgroundColor: "#fff7ed",
+      border: "1px solid #fed7aa",
+      borderRadius: "18px",
+      padding: "18px",
+      marginBottom: "20px",
+      boxShadow: "0 3px 8px rgba(0,0,0,0.05)"
+}
+
+      const grillaAlertas = {
+        display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+      gap: "12px"
+}
+
+      const tarjetaAlerta = {
+        backgroundColor: "white",
+      border: "1px solid #fed7aa",
+      borderRadius: "14px",
+      padding: "12px",
+      textAlign: "center",
+      boxShadow: "0 2px 6px rgba(0,0,0,0.04)",
+      cursor: "pointer",
+      transition: "0.2s",
+      transform: "scale(1)"
+}
+      const grillaFicha = {
+        display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+      gap: "18px",
+      marginTop: "20px",
+      backgroundColor: "#ffffff",
+      border: "2px solid #c7dde3",
+      borderRadius: "18px",
+      padding: "25px",
+      boxShadow: "0 8px 18px rgba(0,0,0,0.08)"
+}
+
+      const campoFicha = {
+        backgroundColor: "#f8fbff",
+      border: "1px solid #dbeafe",
+      borderRadius: "14px",
+      padding: "16px",
+      boxShadow: "0 2px 6px rgba(0,0,0,0.05)"
+}
+      const tituloFicha = {
+        backgroundColor: "#eaf6f8",
+      borderLeft: "5px solid #167a7f",
+      borderRadius: "8px",
+      padding: "12px",
+      marginBottom: "20px",
+      textAlign: "center",
+      color: "#1e3a5f"
+}
+      const alertaAnalitico = {
+        backgroundColor: "#fff7ed",
+      border: "1px solid #fdba74",
+      color: "#9a3412",
+      padding: "8px",
+      borderRadius: "10px",
+      fontWeight: "bold",
+      marginTop: "8px",
+      fontSize: "13px"
+}
+      const botonCerrarFicha = {
+        backgroundColor: "#e9f5f5",
+      color: "#1e5f5c",
+      border: "1px solid #cfd8e3",
+      padding: "10px 18px",
+      borderRadius: "8px",
+      cursor: "pointer",
+      fontWeight: "bold",
+      boxShadow: "0 2px 6px rgba(0,0,0,0.06)"
+}
+      const nombreFicha = {
+        display: "inline-block",
+      marginTop: "6px",
+      fontSize: "16px",
+      color: "#1e3a5f",
+      fontWeight: "bold"
+}
+      const tablaResponsive = {
+        width: "100%",
+      overflowX: "auto"
+}
+
+      const contenedorTurnos = {
+        display: "flex",
+      flexDirection: "column",
+      gap: "18px",
+      marginTop: "25px"
 } 

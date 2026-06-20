@@ -404,7 +404,7 @@ export default function App() {
                 </button>
               </div>
             )}
-          {seccionActiva === "parteDiario" && (
+          {seccionActiva === "parteDiario" && ( 
            <>
             <h2
               style={{
