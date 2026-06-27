@@ -60,7 +60,25 @@ sexo: {
       cursoNuevo: String,
       turnoNuevo: String
     }
-  ]
+  ],
+  dniFisico: {
+  type: String,
+  default: "NO"
+},
+partidaNacimiento: {
+  type: String,
+  default: "NO"
+},
+analiticoParcial: {
+  type: String,
+  default: "-----"
+},
+observacionDocumentacion: {
+  type: String,
+  default: ""
+},
+
+
 })
 
 export default mongoose.model("MatriculaAlumno", matriculaAlumnoSchema)

@@ -281,7 +281,8 @@ export default function App() {
         }}
       >
         {seccionActiva !== "inicio" &&
-          seccionActiva !== "parteDiario" && (
+          seccionActiva !== "parteDiario" &&
+          seccionActiva !== "documentacion" && (
             <>
               <h1 style={{ color: "#1e3a5f", marginBottom: "5px" }}>
                 {seccionActiva === "matricula"
@@ -341,71 +342,86 @@ export default function App() {
                 Ver parte
               </button>
             </div>
+
+            <div style={tarjetaInicio}>
+              <h3>📁 Documentación</h3>
+              <p>DNI, Partida de Nacimiento y Analítico parcial.</p>
+
+              <button
+                style={botonMenu}
+                onClick={() => setSeccionActiva("documentacion")}
+              >
+                Entrar
+              </button>
+            </div>
+
           </div>
         )}
 
 
-        {seccionActiva !== "inicio" && (
-          <>
-            {seccionActiva !== "matricula" && seccionActiva !== "parteDiario" && (
-              <>
-                <Busqueda
-                  dniBusqueda={dniBusqueda}
-                  setDniBusqueda={setDniBusqueda}
-                  apellidoBusqueda={apellidoBusqueda}
-                  setApellidoBusqueda={setApellidoBusqueda}
-                  irATabla={() => setSeccionActiva("lista")}
-                />
 
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "10px",
-                    flexWrap: "wrap",
-                    marginTop: "25px",
-                    marginBottom: "20px"
+        {seccionActiva !== "inicio" &&
+          seccionActiva !== "matricula" &&
+          seccionActiva !== "parteDiario" &&
+          seccionActiva !== "documentacion" &&
+          seccionActiva !== "formulario" && (
+            <>
+              <Busqueda
+                dniBusqueda={dniBusqueda}
+                setDniBusqueda={setDniBusqueda}
+                apellidoBusqueda={apellidoBusqueda}
+                setApellidoBusqueda={setApellidoBusqueda}
+                irATabla={() => setSeccionActiva("lista")}
+              />
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: "10px",
+                  flexWrap: "wrap",
+                  marginTop: "25px",
+                  marginBottom: "20px"
+                }}
+              >
+                <button onClick={() => setSeccionActiva("formulario")} style={botonMenu}>
+                  Nuevo Pedido de Analítico
+                </button>
+
+                <button
+                  onClick={() => {
+                    setDniBusqueda("")
+                    setApellidoBusqueda("")
+                    setEstadoFiltro("Todos")
+                    setSeccionActiva("lista")
                   }}
+                  style={botonMenu}
                 >
-                  <button onClick={() => setSeccionActiva("formulario")} style={botonMenu}>
-                    Nuevo Pedido de Analítico
-                  </button>
+                  Ver Lista Completa
+                </button>
 
-                  <button
-                    onClick={() => {
-                      setDniBusqueda("")
-                      setApellidoBusqueda("")
-                      setEstadoFiltro("Todos")
-                      setSeccionActiva("lista")
-                    }}
-                    style={botonMenu}
-                  >
-                    Ver Lista Completa
-                  </button>
+                <button onClick={generarPlanillaElevacion} style={botonMenu}>
+                  Planilla de Eleve
+                </button>
 
-                  <button onClick={generarPlanillaElevacion} style={botonMenu}>
-                    Planilla de Eleve
-                  </button>
+                <button onClick={() => setSeccionActiva("estadisticas")} style={botonMenu}>
+                  Estadísticas
+                </button>
 
-                  <button onClick={() => setSeccionActiva("estadisticas")} style={botonMenu}>
-                    Estadísticas
-                  </button>
-
-                  <button onClick={() => setSeccionActiva("inicio")} style={botonVolver}>
-                    Volver al inicio
-                  </button>
-                </div>
-              </>
-            )}
-
-            {(seccionActiva === "matricula" || seccionActiva === "parteDiario") && (
-              <div style={{ marginBottom: "20px" }}>
-                <button onClick={() => setSeccionActiva("inicio")} style={botonMenu}>
+                <button onClick={() => setSeccionActiva("inicio")} style={botonVolver}>
                   Volver al inicio
                 </button>
               </div>
-            )}
-          {seccionActiva === "parteDiario" && ( 
-           <>
+            </>
+          )}
+        {(seccionActiva === "matricula" || seccionActiva === "parteDiario") && (
+          <div style={{ marginBottom: "20px" }}>
+            <button onClick={() => setSeccionActiva("inicio")} style={botonMenu}>
+              Volver al inicio
+            </button>
+          </div>
+        )}
+        {seccionActiva === "parteDiario" && (
+          <>
             <h2
               style={{
                 textAlign: "center",
@@ -425,337 +441,336 @@ export default function App() {
             >
               Matrícula institucional actualizada automáticamente
             </p>
-            </>
-          )}  
-
-            {seccionActiva === "parteDiario" && (
-              <div id="parte-diario" style={parteDiario}>
-                <div
-                  className="no-print"
-                  style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    marginBottom: "15px"
-                  }}
-                >
-                  <button
-                    style={botonMenu}
-                    onClick={() => window.print()}
-                  >
-                    🖨️ Imprimir Parte Diario
-                  </button>
-                </div>
-
-                <h2 style={tituloParteDiario}>📋 Parte Diario Automático</h2>
-
-                <div style={grillaParteDiario}>
-                  <div>
-                    <h3 style={subtituloParte}>Turno Mañana</h3>
-
-                    <table style={tablaParte}>
-                      <thead>
-                        <tr>
-                          <th style={celdaParteTitulo}>Curso</th>
-                          <th style={celdaParteTitulo}>Mujeres</th>
-                          <th style={celdaParteTitulo}>Varones</th>
-                          <th style={celdaParteTitulo}>Total</th>
-                        </tr>
-                      </thead>
-
-                      <tbody>
-                        {cursosManana.map((curso) => {
-                          const fila = filaParteDiario(curso, "Mañana")
-
-                          return (
-                            <tr key={curso}>
-                              <td style={celdaParte}>{fila.curso}</td>
-                              <td style={celdaParte}>{fila.mujeres}</td>
-                              <td style={celdaParte}>{fila.varones}</td>
-                              <td style={celdaParteNegrita}>{fila.total}</td>
-                            </tr>
-                          )
-                        })}
-
-                        <tr style={filaTotalBasico}>
-                          <td style={celdaParteNegrita}>TOTAL CICLO BÁSICO</td>
-                          <td style={celdaParteNegrita}>
-                            {totalParteDiario(cursosManana.filter(esCicloBasico), "Mañana").mujeres}
-                          </td>
-                          <td style={celdaParteNegrita}>
-                            {totalParteDiario(cursosManana.filter(esCicloBasico), "Mañana").varones}
-                          </td>
-                          <td style={celdaParteTotal}>
-                            {totalParteDiario(cursosManana.filter(esCicloBasico), "Mañana").total}
-                          </td>
-                        </tr>
-
-                        <tr style={filaTotalSuperior}>
-                          <td style={celdaParteNegrita}>TOTAL CICLO SUPERIOR</td>
-                          <td style={celdaParteNegrita}>
-                            {totalParteDiario(cursosManana.filter(esCicloSuperior), "Mañana").mujeres}
-                          </td>
-                          <td style={celdaParteNegrita}>
-                            {totalParteDiario(cursosManana.filter(esCicloSuperior), "Mañana").varones}
-                          </td>
-                          <td style={celdaParteTotal}>
-                            {totalParteDiario(cursosManana.filter(esCicloSuperior), "Mañana").total}
-                          </td>
-                        </tr>
-
-                        <tr style={filaTotalTurno}>
-                          <td style={celdaParteTotal}>TOTAL TURNO MAÑANA</td>
-                          <td style={celdaParteTotal}>
-                            {totalParteDiario(cursosManana, "Mañana").mujeres}
-                          </td>
-                          <td style={celdaParteTotal}>
-                            {totalParteDiario(cursosManana, "Mañana").varones}
-                          </td>
-                          <td style={celdaParteTotal}>
-                            {totalParteDiario(cursosManana, "Mañana").total}
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-
-                  <div>
-                    <h3 style={subtituloParte}>Turno Tarde</h3>
-
-                    <table style={tablaParte}>
-                      <thead>
-                        <tr>
-                          <th style={celdaParteTitulo}>Curso</th>
-                          <th style={celdaParteTitulo}>Mujeres</th>
-                          <th style={celdaParteTitulo}>Varones</th>
-                          <th style={celdaParteTitulo}>Total</th>
-                        </tr>
-                      </thead>
-
-                      <tbody>
-                        {cursosTarde.map((curso) => {
-                          const fila = filaParteDiario(curso, "Tarde")
-
-                          return (
-                            <tr key={curso}>
-                              <td style={celdaParte}>{fila.curso}</td>
-                              <td style={celdaParte}>{fila.mujeres}</td>
-                              <td style={celdaParte}>{fila.varones}</td>
-                              <td style={celdaParteNegrita}>{fila.total}</td>
-                            </tr>
-                          )
-                        })}
-
-                        <tr style={filaTotalBasico}>
-                          <td style={celdaParteNegrita}>TOTAL CICLO BÁSICO</td>
-                          <td style={celdaParteNegrita}>
-                            {totalParteDiario(cursosTarde.filter(esCicloBasico), "Tarde").mujeres}
-                          </td>
-                          <td style={celdaParteNegrita}>
-                            {totalParteDiario(cursosTarde.filter(esCicloBasico), "Tarde").varones}
-                          </td>
-                          <td style={celdaParteTotal}>
-                            {totalParteDiario(cursosTarde.filter(esCicloBasico), "Tarde").total}
-                          </td>
-                        </tr>
-
-                        <tr style={filaTotalSuperior}>
-                          <td style={celdaParteNegrita}>TOTAL CICLO SUPERIOR</td>
-                          <td style={celdaParteNegrita}>
-                            {totalParteDiario(cursosTarde.filter(esCicloSuperior), "Tarde").mujeres}
-                          </td>
-                          <td style={celdaParteNegrita}>
-                            {totalParteDiario(cursosTarde.filter(esCicloSuperior), "Tarde").varones}
-                          </td>
-                          <td style={celdaParteTotal}>
-                            {totalParteDiario(cursosTarde.filter(esCicloSuperior), "Tarde").total}
-                          </td>
-                        </tr>
-
-                        <tr style={filaTotalTurno}>
-                          <td style={celdaParteTotal}>TOTAL TURNO TARDE</td>
-                          <td style={celdaParteTotal}>
-                            {totalParteDiario(cursosTarde, "Tarde").mujeres}
-                          </td>
-                          <td style={celdaParteTotal}>
-                            {totalParteDiario(cursosTarde, "Tarde").varones}
-                          </td>
-                          <td style={celdaParteTotal}>
-                            {totalParteDiario(cursosTarde, "Tarde").total}
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    marginTop: "20px",
-                    borderRadius: "10px",
-                    overflow: "hidden",
-                    display: "flex",
-                    justifyContent: "center"
-                  }}
-                >
-                  <table
-                    style={{
-                      ...tablaParte,
-                      width: "70%",
-                      minWidth: "450px"
-                    }}
-                  >
-                    <thead>
-                      <tr
-                        style={{
-                          backgroundColor: "#5f7f99",
-                          color: "white"
-                        }}
-                      >
-                        <th style={{ padding: "10px" }}></th>
-                        <th style={{ padding: "10px" }}>Turno Mañana</th>
-                        <th style={{ padding: "10px" }}>Turno Tarde</th>
-                        <th style={{ padding: "10px" }}>Total</th>
-                      </tr>
-                    </thead>
-
-                    <tbody>
-                      <tr
-                        style={{
-                          backgroundColor: "#1e3a5f",
-                          color: "white",
-                          fontWeight: "bold",
-                          fontSize: "16px"
-                        }}
-                      >
-                        <td style={{ padding: "14px", textAlign: "center" }}>
-                          TOTAL GENERAL ESCUELA
-                        </td>
-
-                        <td style={{ padding: "14px", textAlign: "center" }}>
-                          {totalParteDiario(cursosManana, "Mañana").total}
-                        </td>
-
-                        <td style={{ padding: "14px", textAlign: "center" }}>
-                          {totalParteDiario(cursosTarde, "Tarde").total}
-                        </td>
-
-                        <td style={{ padding: "14px", textAlign: "center" }}>
-                          {totalParteDiario(cursosManana, "Mañana").total +
-                            totalParteDiario(cursosTarde, "Tarde").total}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-            {seccionActiva === "formulario" && (
-              <>
-                <ImportarExcel importarEstudiantes={importarEstudiantes} />
-
-                <FormularioNuevo
-                  agregarEstudiante={agregarEstudiante}
-                  actualizarEstudianteEditado={actualizarEstudianteEditado}
-                  alumnoEditando={alumnoEditando}
-                  setAlumnoEditando={setAlumnoEditando}
-                />
-              </>
-            )}
-
-            {seccionActiva === "lista" && (
-              <TablaEstudiantes
-                dniBusqueda={dniBusqueda}
-                apellidoBusqueda={apellidoBusqueda}
-                estadoFiltro={estadoFiltro}
-                setEstadoFiltro={setEstadoFiltro}
-                estudiantes={estudiantes}
-                actualizarEstado={actualizarEstado}
-                actualizarCarpeta={actualizarCarpeta}
-                eliminarEstudiante={eliminarEstudiante}
-                editarEstudiante={editarEstudiante}
-                seleccionarAlumno={seleccionarAlumno}
-                modoImprimirLista={modoImprimirLista}
-                setModoImprimirLista={setModoImprimirLista}
-                fechaDesde={fechaDesde}
-                setFechaDesde={setFechaDesde}
-                fechaHasta={fechaHasta}
-                setFechaHasta={setFechaHasta}
-                estudiantesPorPeriodo={estudiantesPorPeriodo}
-              />
-            )}
-
-            {seccionActiva === "eleve" && (
-              <PlanillaElevacion estudiantes={estudiantes} />
-            )}
-
-            {seccionActiva === "estadisticas" && (
-              <Estadisticas estudiantes={estudiantes} />
-            )}
-
-            {seccionActiva === "matricula" && (
-              <Matricula />
-            )}
           </>
         )}
 
-      </div>
-      {
-        mostrarDespedida && (
-          <div style={fondoModal}>
-            <div style={modalDespedida}>
-
-              <h2 style={{ color: "#1e3a5f" }}>
-                👋 Hasta pronto
-              </h2>
-
-              <p>
-                Gracias por utilizar el Sistema de Gestión Institucional
-              </p>
-
-              <h3 style={{ color: "#1e3a5f" }}>
-                E.E.S. N° 140
-              </h3>
-
-              <p>
-                "Florencio Molina Campos"
-              </p>
-
-              <p
-                style={{
-                  fontStyle: "italic",
-                  marginTop: "20px",
-                  color: "#555"
-                }}
+        {seccionActiva === "parteDiario" && (
+          <div id="parte-diario" style={parteDiario}>
+            <div
+              className="no-print"
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                marginBottom: "15px"
+              }}
+            >
+              <button
+                style={botonMenu}
+                onClick={() => window.print()}
               >
-                Educar es dejar huellas en el corazón de quienes aprenden.
-              </p>
+                🖨️ Imprimir Parte Diario
+              </button>
+            </div>
 
-              <div style={{ marginTop: "25px" }}>
+            <h2 style={tituloParteDiario}>📋 Parte Diario Automático</h2>
 
-                <button
-                  style={botonVolverModal}
-                  onClick={() => setMostrarDespedida(false)}
-                >
-                  Continuar trabajando
-                </button>
+            <div style={grillaParteDiario}>
+              <div>
+                <h3 style={subtituloParte}>Turno Mañana</h3>
 
-                <button
-                  style={botonSalirModal}
-                  onClick={() => {
-                    setMostrarDespedida(false)
-                    setMostrarPortada(true)
-                  }}
-                >
-                  Salir del sistema
-                </button>
+                <table style={tablaParte}>
+                  <thead>
+                    <tr>
+                      <th style={celdaParteTitulo}>Curso</th>
+                      <th style={celdaParteTitulo}>Mujeres</th>
+                      <th style={celdaParteTitulo}>Varones</th>
+                      <th style={celdaParteTitulo}>Total</th>
+                    </tr>
+                  </thead>
 
+                  <tbody>
+                    {cursosManana.map((curso) => {
+                      const fila = filaParteDiario(curso, "Mañana")
+
+                      return (
+                        <tr key={curso}>
+                          <td style={celdaParte}>{fila.curso}</td>
+                          <td style={celdaParte}>{fila.mujeres}</td>
+                          <td style={celdaParte}>{fila.varones}</td>
+                          <td style={celdaParteNegrita}>{fila.total}</td>
+                        </tr>
+                      )
+                    })}
+
+                    <tr style={filaTotalBasico}>
+                      <td style={celdaParteNegrita}>TOTAL CICLO BÁSICO</td>
+                      <td style={celdaParteNegrita}>
+                        {totalParteDiario(cursosManana.filter(esCicloBasico), "Mañana").mujeres}
+                      </td>
+                      <td style={celdaParteNegrita}>
+                        {totalParteDiario(cursosManana.filter(esCicloBasico), "Mañana").varones}
+                      </td>
+                      <td style={celdaParteTotal}>
+                        {totalParteDiario(cursosManana.filter(esCicloBasico), "Mañana").total}
+                      </td>
+                    </tr>
+
+                    <tr style={filaTotalSuperior}>
+                      <td style={celdaParteNegrita}>TOTAL CICLO SUPERIOR</td>
+                      <td style={celdaParteNegrita}>
+                        {totalParteDiario(cursosManana.filter(esCicloSuperior), "Mañana").mujeres}
+                      </td>
+                      <td style={celdaParteNegrita}>
+                        {totalParteDiario(cursosManana.filter(esCicloSuperior), "Mañana").varones}
+                      </td>
+                      <td style={celdaParteTotal}>
+                        {totalParteDiario(cursosManana.filter(esCicloSuperior), "Mañana").total}
+                      </td>
+                    </tr>
+
+                    <tr style={filaTotalTurno}>
+                      <td style={celdaParteTotal}>TOTAL TURNO MAÑANA</td>
+                      <td style={celdaParteTotal}>
+                        {totalParteDiario(cursosManana, "Mañana").mujeres}
+                      </td>
+                      <td style={celdaParteTotal}>
+                        {totalParteDiario(cursosManana, "Mañana").varones}
+                      </td>
+                      <td style={celdaParteTotal}>
+                        {totalParteDiario(cursosManana, "Mañana").total}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
 
+              <div>
+                <h3 style={subtituloParte}>Turno Tarde</h3>
+
+                <table style={tablaParte}>
+                  <thead>
+                    <tr>
+                      <th style={celdaParteTitulo}>Curso</th>
+                      <th style={celdaParteTitulo}>Mujeres</th>
+                      <th style={celdaParteTitulo}>Varones</th>
+                      <th style={celdaParteTitulo}>Total</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {cursosTarde.map((curso) => {
+                      const fila = filaParteDiario(curso, "Tarde")
+
+                      return (
+                        <tr key={curso}>
+                          <td style={celdaParte}>{fila.curso}</td>
+                          <td style={celdaParte}>{fila.mujeres}</td>
+                          <td style={celdaParte}>{fila.varones}</td>
+                          <td style={celdaParteNegrita}>{fila.total}</td>
+                        </tr>
+                      )
+                    })}
+
+                    <tr style={filaTotalBasico}>
+                      <td style={celdaParteNegrita}>TOTAL CICLO BÁSICO</td>
+                      <td style={celdaParteNegrita}>
+                        {totalParteDiario(cursosTarde.filter(esCicloBasico), "Tarde").mujeres}
+                      </td>
+                      <td style={celdaParteNegrita}>
+                        {totalParteDiario(cursosTarde.filter(esCicloBasico), "Tarde").varones}
+                      </td>
+                      <td style={celdaParteTotal}>
+                        {totalParteDiario(cursosTarde.filter(esCicloBasico), "Tarde").total}
+                      </td>
+                    </tr>
+
+                    <tr style={filaTotalSuperior}>
+                      <td style={celdaParteNegrita}>TOTAL CICLO SUPERIOR</td>
+                      <td style={celdaParteNegrita}>
+                        {totalParteDiario(cursosTarde.filter(esCicloSuperior), "Tarde").mujeres}
+                      </td>
+                      <td style={celdaParteNegrita}>
+                        {totalParteDiario(cursosTarde.filter(esCicloSuperior), "Tarde").varones}
+                      </td>
+                      <td style={celdaParteTotal}>
+                        {totalParteDiario(cursosTarde.filter(esCicloSuperior), "Tarde").total}
+                      </td>
+                    </tr>
+
+                    <tr style={filaTotalTurno}>
+                      <td style={celdaParteTotal}>TOTAL TURNO TARDE</td>
+                      <td style={celdaParteTotal}>
+                        {totalParteDiario(cursosTarde, "Tarde").mujeres}
+                      </td>
+                      <td style={celdaParteTotal}>
+                        {totalParteDiario(cursosTarde, "Tarde").varones}
+                      </td>
+                      <td style={celdaParteTotal}>
+                        {totalParteDiario(cursosTarde, "Tarde").total}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div
+              style={{
+                marginTop: "20px",
+                borderRadius: "10px",
+                overflow: "hidden",
+                display: "flex",
+                justifyContent: "center"
+              }}
+            >
+              <table
+                style={{
+                  ...tablaParte,
+                  width: "70%",
+                  minWidth: "450px"
+                }}
+              >
+                <thead>
+                  <tr
+                    style={{
+                      backgroundColor: "#5f7f99",
+                      color: "white"
+                    }}
+                  >
+                    <th style={{ padding: "10px" }}></th>
+                    <th style={{ padding: "10px" }}>Turno Mañana</th>
+                    <th style={{ padding: "10px" }}>Turno Tarde</th>
+                    <th style={{ padding: "10px" }}>Total</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr
+                    style={{
+                      backgroundColor: "#1e3a5f",
+                      color: "white",
+                      fontWeight: "bold",
+                      fontSize: "16px"
+                    }}
+                  >
+                    <td style={{ padding: "14px", textAlign: "center" }}>
+                      TOTAL GENERAL ESCUELA
+                    </td>
+
+                    <td style={{ padding: "14px", textAlign: "center" }}>
+                      {totalParteDiario(cursosManana, "Mañana").total}
+                    </td>
+
+                    <td style={{ padding: "14px", textAlign: "center" }}>
+                      {totalParteDiario(cursosTarde, "Tarde").total}
+                    </td>
+
+                    <td style={{ padding: "14px", textAlign: "center" }}>
+                      {totalParteDiario(cursosManana, "Mañana").total +
+                        totalParteDiario(cursosTarde, "Tarde").total}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
-        )
-      }
+        )}
 
+        {seccionActiva === "documentacion" && (
+          <Matricula
+            modoDocumentacion={true}
+            volverInicio={() => setSeccionActiva("inicio")}
+          />
+        )}
+
+
+        {seccionActiva === "formulario" && (
+          <>
+            <ImportarExcel importarEstudiantes={importarEstudiantes} />
+
+            <FormularioNuevo
+              agregarEstudiante={agregarEstudiante}
+              actualizarEstudianteEditado={actualizarEstudianteEditado}
+              alumnoEditando={alumnoEditando}
+              setAlumnoEditando={setAlumnoEditando}
+            />
+          </>
+        )}
+
+        {seccionActiva === "lista" && (
+          <TablaEstudiantes
+            dniBusqueda={dniBusqueda}
+            apellidoBusqueda={apellidoBusqueda}
+            estadoFiltro={estadoFiltro}
+            setEstadoFiltro={setEstadoFiltro}
+            estudiantes={estudiantes}
+            actualizarEstado={actualizarEstado}
+            actualizarCarpeta={actualizarCarpeta}
+            eliminarEstudiante={eliminarEstudiante}
+            editarEstudiante={editarEstudiante}
+            seleccionarAlumno={seleccionarAlumno}
+            modoImprimirLista={modoImprimirLista}
+            setModoImprimirLista={setModoImprimirLista}
+            fechaDesde={fechaDesde}
+            setFechaDesde={setFechaDesde}
+            fechaHasta={fechaHasta}
+            setFechaHasta={setFechaHasta}
+            estudiantesPorPeriodo={estudiantesPorPeriodo}
+          />
+        )}
+          { seccionActiva === "eleve" && (
+          <PlanillaElevacion estudiantes={estudiantes} />
+        )}
+
+        {seccionActiva === "estadisticas" && (
+          <Estadisticas estudiantes={estudiantes} />
+        )}
+
+        {seccionActiva === "matricula" && (
+          <Matricula />
+        )}
+      </div>
+
+      {mostrarDespedida && (
+        <div style={fondoModal}>
+          <div style={modalDespedida}>
+            <h2 style={{ color: "#1e3a5f" }}>
+              👋 Hasta pronto
+            </h2>
+
+            <p>
+              Gracias por utilizar el Sistema de Gestión Institucional
+            </p>
+
+            <h3 style={{ color: "#1e3a5f" }}>
+              E.E.S. N° 140
+            </h3>
+
+            <p>
+              "Florencio Molina Campos"
+            </p>
+
+            <p
+              style={{
+                fontStyle: "italic",
+                marginTop: "20px",
+                color: "#555"
+              }}
+            >
+              Educar es dejar huellas en el corazón de quienes aprenden.
+            </p>
+
+            <div style={{ marginTop: "25px" }}>
+              <button
+                style={botonVolverModal}
+                onClick={() => setMostrarDespedida(false)}
+              >
+                Continuar trabajando
+              </button>
+
+              <button
+                style={botonSalirModal}
+                onClick={() => {
+                  setMostrarDespedida(false)
+                  setMostrarPortada(true)
+                }}
+              >
+                Salir del sistema
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
