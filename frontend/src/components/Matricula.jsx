@@ -1126,7 +1126,7 @@ export default function Matricula() {
   const aniosLegajoDisponibles = [
     ...new Set(
       alumnosMatricula
-        .map((alumno) => alumno.legajoAnio)
+        .map((alumno) => alumno.legajoAnio) 
         .filter(Boolean)
     )
   ].sort((a, b) => Number(b) - Number(a))
@@ -1312,22 +1312,39 @@ export default function Matricula() {
   }
 
   function debeTodasLasMaterias(alumno, anio) {
-    const materiasDelAnio = materiasPorAnio[anio]
+  const previasValidas = obtenerPreviasValidas(alumno)
 
-    if (!materiasDelAnio || materiasDelAnio.length === 0) {
-      return false
-    }
-
-    const previasValidas = obtenerPreviasValidas(alumno)
-
-    return materiasDelAnio.every((materia) =>
-      previasValidas.some(
-        (previa) =>
-          previa.asignatura === materia &&
-          Number(previa.anio) === Number(anio)
-      )
-    )
+  const cantidadMateriasPorAnio = {
+    1: 8,
+    2: 10,
+    3: 10,
+    4: 11,
+    5: 11
   }
+
+  const obtenerNumeroAnio = (valor) => {
+    return Number(String(valor || "").replace("°", "").trim())
+  }
+
+  const resumenPorAnio = {}
+
+  previasValidas.forEach((previa) => {
+    const anioPrevia = obtenerNumeroAnio(previa.anio)
+
+    if (!anioPrevia) return
+
+    resumenPorAnio[anioPrevia] = (resumenPorAnio[anioPrevia] || 0) + 1
+  })
+
+  return Object.keys(resumenPorAnio).some((anioPrevia) => {
+    const cantidadAdeudada = resumenPorAnio[anioPrevia]
+    const totalMaterias = cantidadMateriasPorAnio[anioPrevia]
+
+    return totalMaterias && cantidadAdeudada >= totalMaterias
+  })
+}
+
+   
 
   function calcularRelevamientoPorAnio(anio) {
     const alumnosDelAnio = alumnosMatricula.filter(
@@ -2981,7 +2998,7 @@ export default function Matricula() {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </table> 
               </div>
             </div>
           )}
