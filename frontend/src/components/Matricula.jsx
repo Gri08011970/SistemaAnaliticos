@@ -1405,7 +1405,7 @@ export default function Matricula() {
       if (nacionalidad === "Otros") resumen.otros++
     })
 
-    return resumen
+    return resumen 
   }
 
   const relevamientoInspeccion = calcularRelevamientoPorAnio(Number(anioRelevamiento))
@@ -1847,7 +1847,7 @@ export default function Matricula() {
                   setTurnoExamen("")
                 }}
               >
-                📝 Planilla de examen
+                📝 Ver Planilla Previas
               </button>
 
               <button
