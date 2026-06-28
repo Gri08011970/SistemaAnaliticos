@@ -12,14 +12,19 @@ import Matricula from "./components/Matricula"
 import PortadaInstitucional from "./components/PortadaInstitucional"
 
 export default function App() {
-  const [dniBusqueda, setDniBusqueda] = useState("")
+  const rolUsuario = localStorage.getItem("rolUsuario") || "consulta"
+  const esAdmin = rolUsuario === "admin"
+  const [logueado, setLogueado] = useState(() => {
+  return localStorage.getItem("rolUsuario") !== null
+})
+  const [dniBusqueda, setDniBusqueda] = useState("") 
   const [apellidoBusqueda, setApellidoBusqueda] = useState("")
   const [estadoFiltro, setEstadoFiltro] = useState("Todos")
-  const [estudiantes, setEstudiantes] = useState([])
+  const [estudiantes, setEstudiantes] = useState([]) 
   const [alumnoEditando, setAlumnoEditando] = useState(null)
-  const [modoImprimirLista, setModoImprimirLista] = useState(false)
+  const [modoImprimirLista, setModoImprimirLista] = useState(false) 
   const [seccionActiva, setSeccionActiva] = useState("inicio")
-  const [logueado, setLogueado] = useState(false)
+  
   const [fechaDesde, setFechaDesde] = useState("")
   const [fechaHasta, setFechaHasta] = useState("")
   const [mostrarPortada, setMostrarPortada] = useState(true)
@@ -48,7 +53,7 @@ export default function App() {
       obtenerAlumnos()
       setSeccionActiva("lista")
     } catch (error) {
-      console.log(error)
+      console.log(error) 
     }
   }
 
@@ -254,6 +259,9 @@ export default function App() {
     return curso.startsWith("4") || curso.startsWith("5") || curso.startsWith("6")
   }
 
+if (!logueado) {
+  return <Login setLogueado={setLogueado} />
+}
 
   return (
     <div
@@ -272,6 +280,7 @@ export default function App() {
       >
         🚪 Cerrar sesión
       </button>
+
       <div
         style={{
           backgroundColor: "white",
@@ -383,9 +392,14 @@ export default function App() {
                   marginBottom: "20px"
                 }}
               >
-                <button onClick={() => setSeccionActiva("formulario")} style={botonMenu}>
-                  Nuevo Pedido de Analítico
-                </button>
+                {esAdmin && (
+                  <button
+                    onClick={() => setSeccionActiva("formulario")}
+                    style={botonMenu}
+                  >
+                    Nuevo Pedido de Analítico
+                  </button>
+                )}
 
                 <button
                   onClick={() => {
@@ -474,7 +488,7 @@ export default function App() {
                       <th style={celdaParteTitulo}>Curso</th>
                       <th style={celdaParteTitulo}>Mujeres</th>
                       <th style={celdaParteTitulo}>Varones</th>
-                      <th style={celdaParteTitulo}>Total</th>
+                      <th style={celdaParteTitulo}>Total</th> 
                     </tr>
                   </thead>
 
@@ -676,7 +690,11 @@ export default function App() {
 
         {seccionActiva === "formulario" && (
           <>
-            <ImportarExcel importarEstudiantes={importarEstudiantes} />
+            {esAdmin && (
+              <ImportarExcel
+                importarEstudiantes={importarEstudiantes}
+              />
+            )}
 
             <FormularioNuevo
               agregarEstudiante={agregarEstudiante}
@@ -708,7 +726,7 @@ export default function App() {
             estudiantesPorPeriodo={estudiantesPorPeriodo}
           />
         )}
-          { seccionActiva === "eleve" && (
+        {seccionActiva === "eleve" && (
           <PlanillaElevacion estudiantes={estudiantes} />
         )}
 
@@ -761,12 +779,16 @@ export default function App() {
               <button
                 style={botonSalirModal}
                 onClick={() => {
+                  localStorage.removeItem("rolUsuario")
+                  localStorage.removeItem("usuario")
                   setMostrarDespedida(false)
+                  setLogueado(false)
                   setMostrarPortada(true)
                 }}
               >
                 Salir del sistema
               </button>
+
             </div>
           </div>
         </div>

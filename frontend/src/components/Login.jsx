@@ -8,14 +8,26 @@ export default function Login({
   const [error, setError] = useState("")
 
   function ingresar() {
-    if (usuario.trim().toLowerCase() === "gri" && contrasena.trim() === "140") {
-      setLogueado(true)
-      setError("")
-    } else {
-      setError("Usuario o contraseña incorrectos")
-    }
-  }
+  const usuarios = [
+    { usuario: "gri", password: "140", rol: "consulta" },
+    { usuario: "grichu", password: "140", rol: "admin" }
+  ]
 
+  const usuarioEncontrado = usuarios.find(
+    (u) =>
+      u.usuario === usuario.trim().toLowerCase() &&
+      u.password === contrasena.trim()
+  )
+
+  if (usuarioEncontrado) {
+    localStorage.setItem("rolUsuario", usuarioEncontrado.rol)
+    localStorage.setItem("usuario", usuarioEncontrado.usuario)
+    setLogueado(true)
+    setError("")
+  } else {
+    setError("Usuario o contraseña incorrectos")
+  }
+}
   return (
     <div style={contenedor}>
       <div style={tarjeta}>
@@ -50,7 +62,7 @@ export default function Login({
 
 const contenedor = {
   minHeight: "100vh",
-  backgroundColor: "#f4f6f8",
+  background: "linear-gradient(135deg, #e8f4f1, #f4f6f8, #dcefeb)",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -58,48 +70,53 @@ const contenedor = {
 }
 
 const tarjeta = {
-  backgroundColor: "white",
-  padding: "35px",
-  borderRadius: "18px",
-  boxShadow: "0 0 15px rgba(0,0,0,0.12)",
-  width: "360px",
+  backgroundColor: "rgba(255,255,255,0.92)",
+  padding: "38px",
+  borderRadius: "24px",
+  boxShadow: "0 12px 30px rgba(0,0,0,0.18)",
+  width: "380px",
   display: "flex",
   flexDirection: "column",
-  gap: "15px"
+  gap: "15px",
+  border: "1px solid #c7dde3"
 }
 
 const titulo = {
   color: "#1e3a5f",
   marginBottom: "0",
-   fontSize: "28px",
+  fontSize: "27px",
   lineHeight: "1.1",
   textAlign: "center"
 }
 
 const subtitulo = {
-  color: "#666",
+  color: "#0f766e",
   marginTop: "0",
-  textAlign: "center"
+  textAlign: "center",
+  fontWeight: "bold"
 }
 
 const input = {
-  padding: "12px",
-  borderRadius: "10px",
-  border: "1px solid #ccc",
-  fontSize: "16px"
+  padding: "13px",
+  borderRadius: "12px",
+  border: "1px solid #b9cbd1",
+  fontSize: "15px",
+  outlineColor: "#0f766e"
 }
 
 const boton = {
-  backgroundColor: "#1e406b",
+  backgroundColor: "#0f766e",
   color: "white",
   border: "none",
-  padding: "12px",
-  borderRadius: "10px",
+  padding: "13px",
+  borderRadius: "999px",
   cursor: "pointer",
-  fontWeight: "bold"
+  fontWeight: "bold",
+  boxShadow: "0 4px 10px rgba(0,0,0,0.15)"
 }
 
 const errorTexto = {
   color: "#c62828",
-  fontWeight: "bold"
+  fontWeight: "bold",
+  textAlign: "center"
 }

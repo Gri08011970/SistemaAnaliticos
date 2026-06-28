@@ -90,23 +90,9 @@ export default function PortadaInstitucional({ entrar }) {
         ))}
       </section>
 
-      <div style={loginCaja}>
-        <h3>Ingresar al sistema</h3>
-
-        <input
-          type="text"
-          placeholder="Usuario"
-          style={inputLogin}
-        />
-
-        <input
-          type="password"
-          placeholder="Contraseña"
-          style={inputLogin}
-        />
-
+      <div style={contenedorBotonEntrar}>
         <button style={botonEntrar} onClick={entrar}>
-          Ingresar
+          Ingresar al sistema
         </button>
       </div>
 
@@ -248,37 +234,6 @@ const botonRelato = {
   cursor: "pointer"
 }
 
-const loginCaja = {
-  margin: "18px auto 0 auto",
-  background: "white",
-  color: "#1e3a5f",
-  padding: "16px",
-  borderRadius: "16px",
-  display: "flex",
-  flexDirection: "column",
-  gap: "8px",
-  width: "280px",
-  boxShadow: "0 6px 16px rgba(0,0,0,0.14)",
-  textAlign: "center"
-}
-
-const inputLogin = {
-  padding: "8px 10px",
-  borderRadius: "9px",
-  border: "1px solid #ccc",
-  fontSize: "13px"
-}
-
-const botonEntrar = {
-  marginTop: "20px",
-  padding: "12px 28px",
-  border: "none",
-  borderRadius: "999px",
-  background: "#0f766e",
-  color: "white",
-  fontWeight: "bold",
-  cursor: "pointer"
-}
 
 const fondoModal = {
   position: "fixed",
@@ -311,4 +266,20 @@ const botonCerrar = {
   color: "white",
   fontWeight: "bold",
   cursor: "pointer"
+}
+const contenedorBotonEntrar = {
+  display: "flex",
+  justifyContent: "center",
+  marginTop: "22px"
+}
+
+const botonEntrar = {
+  padding: "12px 28px",
+  border: "none",
+  borderRadius: "999px",
+  background: "#0f766e",
+  color: "white",
+  fontWeight: "bold",
+  cursor: "pointer",
+  boxShadow: "0 4px 10px rgba(0,0,0,0.15)"
 }

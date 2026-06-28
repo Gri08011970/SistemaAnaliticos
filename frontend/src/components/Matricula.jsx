@@ -5,6 +5,8 @@ import { saveAs } from "file-saver"
 import preceptora11 from "../assets/preceptores/preceptor_1_1.jpg"
 
 export default function Matricula({ modoDocumentacion = false, volverInicio }) {
+  const rolUsuario = localStorage.getItem("rolUsuario") || "consulta"
+  const esAdmin = rolUsuario === "admin"
   const [cursoSeleccionado, setCursoSeleccionado] = useState(null)
   const [alumnosMatricula, setAlumnosMatricula] = useState([])
   const [alumnoEditando, setAlumnoEditando] = useState(null)
@@ -202,7 +204,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
       const matrizRepetida = alumnosMatricula.some((alumno) => {
         if (alumnoEditando && alumno._id === alumnoEditando._id) return false
 
-      const matrizExistente = String(
+        const matrizExistente = String(
           alumno.folioMatriz || alumno.libroMatriz || ""
         ).trim()
 
@@ -269,20 +271,20 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
     }
   }
 
-   async function actualizarDocumentacion(alumno, campo, valor) {
-       const alumnoActualizado = {
-          ...alumno,
-          [campo]: valor
-        }
+  async function actualizarDocumentacion(alumno, campo, valor) {
+    const alumnoActualizado = {
+      ...alumno,
+      [campo]: valor
+    }
 
-        try {
-          await axios.put(`/api/matricula/${alumno._id}`, alumnoActualizado)
-          obtenerMatricula()
-        } catch (error) {
-          console.log(error)
-          alert("Error al guardar documentación")
-        }
-      }
+    try {
+      await axios.put(`/api/matricula/${alumno._id}`, alumnoActualizado)
+      obtenerMatricula()
+    } catch (error) {
+      console.log(error)
+      alert("Error al guardar documentación")
+    }
+  }
 
   const cursosManana = [
     "1°1°", "1°2°",
@@ -1536,8 +1538,8 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
     (alumno) => alumno.analiticoParcial === "SI"
   ).length
 
-  
- 
+
+
   if (modoDocumentacion) {
     return (
       <div style={detalleCurso}>
@@ -1598,7 +1600,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
           <thead>
             <tr>
               <th style={celda}>Curso</th>
-              <th style={celda}>Apellido y Nombre</th> 
+              <th style={celda}>Apellido y Nombre</th>
               <th style={celda}>DNI</th>
               <th style={celda}>Legajo</th>
               <th style={celda}>DNI Físico</th>
@@ -1627,7 +1629,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
 
                 <td style={celda}>
                   <select
-                   defaultValue={alumno.dniFisico || "NO"}
+                    defaultValue={alumno.dniFisico || "NO"}
                     onChange={(e) =>
                       actualizarDocumentacion(alumno, "dniFisico", e.target.value)
                     }
@@ -1666,7 +1668,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                     style={{ ...inputAlumno, width: "160px" }}
                     placeholder="📝 Observación"
                     defaultValue={alumno.observacionDocumentacion || ""}
-                     onBlur={(e) =>
+                    onBlur={(e) =>
                       actualizarDocumentacion(
                         alumno,
                         "observacionDocumentacion",
@@ -2647,27 +2649,29 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
               Exportar Excel
             </button>
 
-            <label
-              style={{
-                ...botonImprimir,
-                padding: "6px 8px",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "4px",
-                cursor: "pointer",
-                fontSize: "12px",
-                lineHeight: "1.6"
-              }}
-            >
-              📂 Cargar Excel
+            {esAdmin && (
+              <label
+                style={{
+                  ...botonImprimir,
+                  padding: "6px 8px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  cursor: "pointer",
+                  fontSize: "12px",
+                  lineHeight: "1.6"
+                }}
+              >
+                📂 Cargar Excel
 
-              <input
-                type="file"
-                accept=".xls,.xlsx"
-                onChange={importarReporteOficial}
-                style={{ display: "none" }}
-              />
-            </label>
+                <input
+                  type="file"
+                  accept=".xls,.xlsx"
+                  onChange={importarReporteOficial}
+                  style={{ display: "none" }}
+                />
+              </label>
+            )}
           </div>
 
 
@@ -2745,7 +2749,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
           </div>
 
 
-
+        {esAdmin && (
           <div
             id="formulario-matricula"
             style={formularioAlumno}
@@ -2947,6 +2951,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
               Limpiar formulario
             </button>
           </div>
+          )}
 
           {alumnoMoviendo && (
             <div id="movimiento-matricula" style={bloqueMovimiento}>
@@ -3166,41 +3171,44 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                       }}
                       className="no-print"
                     >
-                      <button
-                        style={botonEditar}
-                        onClick={() => editarAlumno(alumno)}
-                      >
-                        ✏️
-                      </button>
+                      {esAdmin && (
+                        <>
+                          <button
+                            style={botonEditar}
+                            onClick={() => editarAlumno(alumno)}
+                          >
+                            ✏️
+                          </button>
 
+                          <button
+                            style={botonMover}
+                            onClick={() => {
+                              prepararMovimiento(alumno)
 
-                      <button
-                        style={botonMover}
-                        onClick={() => {
-                          prepararMovimiento(alumno)
+                              setTimeout(() => {
+                                document
+                                  .getElementById("movimiento-matricula")
+                                  ?.scrollIntoView({
+                                    behavior: "smooth",
+                                    block: "start"
+                                  })
+                              }, 100)
+                            }}
+                          >
+                            🔁
+                          </button>
 
-                          setTimeout(() => {
-                            document
-                              .getElementById("movimiento-matricula")
-                              ?.scrollIntoView({
-                                behavior: "smooth",
-                                block: "start"
-                              })
-                          }, 100)
-                        }}
-                      >
-                        🔁
-                      </button>
-
-                      <button
-                        style={botonEliminar}
-                        onClick={() => eliminarAlumnoMatricula(alumno._id)}
-                      >
-                        🗑️
-                      </button>
+                          <button
+                            style={botonEliminar}
+                            onClick={() => eliminarAlumnoMatricula(alumno._id)}
+                          >
+                            🗑️
+                          </button>
+                        </>
+                      )}
                     </td>
                   </tr>
-                ))}
+                ))} 
               </tbody>
             </table>
           </div>
