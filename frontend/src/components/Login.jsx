@@ -1,4 +1,5 @@
 import { useState } from "react"
+import loginFondo from "../assets/escuela140/login_fondo2.png"
 
 export default function Login({
   setLogueado
@@ -31,7 +32,7 @@ export default function Login({
   return (
     <div style={contenedor}>
       <div style={tarjeta}>
-        <h1 style={titulo}>Sistema de Gestión de pedidos de Analíticos</h1>
+        <h1 style={titulo}>Sistema de Gestión Escolar</h1>
         <p style={subtitulo}>E.E.S. N° 140</p>
 
         <input
@@ -62,18 +63,22 @@ export default function Login({
 
 const contenedor = {
   minHeight: "100vh",
-  background: "linear-gradient(135deg, #e8f4f1, #f4f6f8, #dcefeb)",
+  backgroundImage: `linear-gradient(rgba(255,255,255,0.55), rgba(255,255,255,0.55)), url(${loginFondo})`,
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+  backgroundRepeat: "no-repeat",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  fontFamily: "Arial"
+  fontFamily: "Arial",
+  padding: "20px"
 }
 
 const tarjeta = {
-  backgroundColor: "rgba(255,255,255,0.92)",
-  padding: "38px",
+  backgroundColor: "rgba(255,255,255,0.96)",
+  padding: "34px",
   borderRadius: "24px",
-  boxShadow: "0 12px 30px rgba(0,0,0,0.18)",
+  boxShadow: "0 12px 30px rgba(0,0,0,0.16)",
   width: "380px",
   display: "flex",
   flexDirection: "column",
