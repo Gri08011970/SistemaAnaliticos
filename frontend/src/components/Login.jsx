@@ -1,5 +1,5 @@
 import { useState } from "react"
-import loginFondo from "../assets/escuela140/login_fondo2.png"
+import loginFondo from "../assets/escuela140/login_fondo11.png"
 
 export default function Login({
   setLogueado
@@ -32,7 +32,7 @@ export default function Login({
   return (
     <div style={contenedor}>
       <div style={tarjeta}>
-        <h1 style={titulo}>Sistema de Gestión Escolar</h1>
+        <h1 style={titulo}>Bienvenidos</h1>
         <p style={subtitulo}>E.E.S. N° 140</p>
 
         <input
@@ -67,11 +67,15 @@ const contenedor = {
   backgroundSize: "cover",
   backgroundPosition: "center",
   backgroundRepeat: "no-repeat",
+
   display: "flex",
   alignItems: "center",
-  justifyContent: "center",
-  fontFamily: "Arial",
-  padding: "20px"
+  justifyContent: "flex-end",
+
+  paddingRight: "7%",
+  paddingLeft: "5%",
+
+  fontFamily: "Arial"
 }
 
 const tarjeta = {
