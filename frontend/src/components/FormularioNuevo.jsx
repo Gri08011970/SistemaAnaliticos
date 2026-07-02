@@ -4,7 +4,8 @@ export default function FormularioNuevo({
   agregarEstudiante,
   actualizarEstudianteEditado,
   alumnoEditando,
-  setAlumnoEditando
+  setAlumnoEditando,
+  cancelarFormulario
 }) {
   const [nombre, setNombre] = useState("")
   const [dni, setDni] = useState("")
@@ -25,6 +26,18 @@ export default function FormularioNuevo({
   }, [alumnoEditando])
 
   function manejarEnvio() {
+        if (fecha) {
+      const hoy = new Date()
+      hoy.setHours(0, 0, 0, 0)
+
+      const fechaIngresada = new Date(fecha)
+      fechaIngresada.setHours(0, 0, 0, 0)
+
+      if (fechaIngresada > hoy) {
+        alert("La fecha del pedido no puede ser posterior al día de hoy.")
+        return
+      }
+    }
     const nuevoEstudiante = {
       nombre,
       dni,
@@ -126,15 +139,35 @@ export default function FormularioNuevo({
         style={estiloInput}
       />
 
-      <button onClick={manejarEnvio} style={botonGuardar}>
-        {alumnoEditando ? "Guardar cambios" : "Guardar pedido de Analítico"}
-      </button>
+      <div
+  style={{
+    display: "flex",
+    gap: "12px",
+    marginTop: "10px"
+  }}
+>
+  <button
+    onClick={cancelarFormulario} 
+    style={botonCancelar}
+  >
+    ← Volver
+  </button>
+
+  <button
+    onClick={manejarEnvio}
+    style={botonGuardar}
+  >
+    {alumnoEditando
+      ? "Guardar cambios"
+      : "Guardar pedido"}
+  </button>
+</div>
     </div>
   )
 }
 
 const estiloInput = {
-  width: "300px",
+  width: "360px",
   padding: "12px",
   borderRadius: "10px",
   border: "1px solid #ccc",
@@ -142,11 +175,22 @@ const estiloInput = {
 }
 
 const botonGuardar = {
-  backgroundColor: "#1e3a5f",
+  backgroundColor: "#4d76ac",
   color: "white",
   border: "none",
   padding: "12px",
   borderRadius: "10px",
   cursor: "pointer",
-  width: "220px"
+  width: "250px"
+}
+const botonCancelar = {
+  backgroundColor: "#eef5f7",
+  color: "#2d5568",
+  border: "1px solid #b8d4db",
+  padding: "12px",
+  borderRadius: "10px",
+  cursor: "pointer",
+  width: "140px",
+  fontWeight: "600",
+  transition: "0.2s"
 }

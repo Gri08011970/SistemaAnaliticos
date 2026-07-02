@@ -223,6 +223,20 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
         return
       }
 
+            if (nuevoAlumno.fechaNacimiento) {
+        const hoy = new Date()
+        hoy.setHours(0, 0, 0, 0)
+
+        const fechaNacimiento = new Date(nuevoAlumno.fechaNacimiento)
+        fechaNacimiento.setHours(0, 0, 0, 0)
+
+        if (fechaNacimiento > hoy) {
+          alert("La fecha de nacimiento no puede ser posterior al día de hoy.")
+          setGuardando(false)
+          return
+        }
+      }
+
       const alumnoAGuardar = {
         ...nuevoAlumno,
         curso: cursoSeleccionado.curso,
@@ -1574,7 +1588,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
             onChange={(e) => setBusquedaDocumentacion(e.target.value)}
           />
 
-          <select
+          <select 
             style={inputAlumno}
             value={cursoDocumentacion}
             onChange={(e) => setCursoDocumentacion(e.target.value)}
@@ -1629,6 +1643,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
 
                 <td style={celda}>
                   <select
+                    disabled={!esAdmin}
                     defaultValue={alumno.dniFisico || "NO"}
                     onChange={(e) =>
                       actualizarDocumentacion(alumno, "dniFisico", e.target.value)
@@ -1641,6 +1656,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
 
                 <td style={celda}>
                   <select
+                    disabled={!esAdmin}
                     defaultValue={alumno.partidaNacimiento || "NO"}
                     onChange={(e) =>
                       actualizarDocumentacion(alumno, "partidaNacimiento", e.target.value)
@@ -1653,6 +1669,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
 
                 <td style={celda}>
                   <select
+                    disabled={!esAdmin}
                     defaultValue={alumno.analiticoParcial || "-----"}
                     onChange={(e) =>
                       actualizarDocumentacion(alumno, "analiticoParcial", e.target.value)
@@ -1664,7 +1681,8 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                   </select>
                 </td>
                 <td style={celda}>
-                  <input
+                  <input 
+                    disabled={!esAdmin}
                     style={{ ...inputAlumno, width: "160px" }}
                     placeholder="📝 Observación"
                     defaultValue={alumno.observacionDocumentacion || ""}

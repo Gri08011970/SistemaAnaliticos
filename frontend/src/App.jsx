@@ -86,6 +86,11 @@ export default function App() {
     }
   }
 
+  function cancelarFormulario() {
+  setAlumnoEditando(null)
+  setSeccionActiva("inicio")
+}
+
   async function actualizarEstudianteEditado(id, datosActualizados) {
     try {
       await axios.put(`/alumnos/${id}`, datosActualizados)
@@ -701,6 +706,7 @@ if (!logueado) {
               actualizarEstudianteEditado={actualizarEstudianteEditado}
               alumnoEditando={alumnoEditando}
               setAlumnoEditando={setAlumnoEditando}
+              cancelarFormulario={cancelarFormulario}
             />
           </>
         )}
@@ -811,7 +817,7 @@ const botonMenu = {
 }
 
 const botonVolver = {
-  backgroundColor: "#111312",
+  backgroundColor: "#9e7ac0",
   color: "white",
   border: "none",
   padding: "10px 16px",
