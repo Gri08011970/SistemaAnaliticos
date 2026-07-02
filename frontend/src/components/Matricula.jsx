@@ -1,51 +1,51 @@
-import { useEffect, useState } from "react"
-import axios from "axios"
-import * as XLSX from "xlsx"
-import { saveAs } from "file-saver"
-import preceptora11 from "../assets/preceptores/preceptor_1_1.jpg"
+import { useEffect, useState } from "react";
+import axios from "axios";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+import preceptora11 from "../assets/preceptores/preceptor_1_1.jpg";
 
 export default function Matricula({ modoDocumentacion = false, volverInicio }) {
-  const rolUsuario = localStorage.getItem("rolUsuario") || "consulta"
-  const esAdmin = rolUsuario === "admin"
-  const [cursoSeleccionado, setCursoSeleccionado] = useState(null)
-  const [alumnosMatricula, setAlumnosMatricula] = useState([])
-  const [alumnoEditando, setAlumnoEditando] = useState(null)
-  const [alumnoMoviendo, setAlumnoMoviendo] = useState(null)
-  const [nuevoCurso, setNuevoCurso] = useState("")
-  const [nuevoTurno, setNuevoTurno] = useState("")
-  const [guardando, setGuardando] = useState(false)
-  const [verEstadisticasGeneral, setVerEstadisticasGeneral] = useState(true)
-  const [verEstadisticasCurso, setVerEstadisticasCurso] = useState(false)
-  const [mostrarTurnoManana, setMostrarTurnoManana] = useState(false)
-  const [mostrarTurnoTarde, setMostrarTurnoTarde] = useState(false)
-  const [filtroPrevia, setFiltroPrevia] = useState("")
-  const [filtroAnioPrevia, setFiltroAnioPrevia] = useState("")
-  const [previaSeleccionada, setPreviaSeleccionada] = useState("")
-  const [anioPrevia, setAnioPrevia] = useState("")
-  const [verPlanillaPrevias, setVerPlanillaPrevias] = useState(false)
-  const [materiaExamen, setMateriaExamen] = useState("")
-  const [anioExamen, setAnioExamen] = useState("")
-  const [turnoExamen, setTurnoExamen] = useState("")
-  const [busquedaAlumno, setBusquedaAlumno] = useState("")
-  const [ordenCurso, setOrdenCurso] = useState("apellido")
-  const [mostrarRelevamiento, setMostrarRelevamiento] = useState(false)
+  const rolUsuario = localStorage.getItem("rolUsuario") || "consulta";
+  const esAdmin = rolUsuario === "admin";
+  const [cursoSeleccionado, setCursoSeleccionado] = useState(null);
+  const [alumnosMatricula, setAlumnosMatricula] = useState([]);
+  const [alumnoEditando, setAlumnoEditando] = useState(null);
+  const [alumnoMoviendo, setAlumnoMoviendo] = useState(null);
+  const [nuevoCurso, setNuevoCurso] = useState("");
+  const [nuevoTurno, setNuevoTurno] = useState("");
+  const [guardando, setGuardando] = useState(false);
+  const [verEstadisticasGeneral, setVerEstadisticasGeneral] = useState(true);
+  const [verEstadisticasCurso, setVerEstadisticasCurso] = useState(false);
+  const [mostrarTurnoManana, setMostrarTurnoManana] = useState(false);
+  const [mostrarTurnoTarde, setMostrarTurnoTarde] = useState(false);
+  const [filtroPrevia, setFiltroPrevia] = useState("");
+  const [filtroAnioPrevia, setFiltroAnioPrevia] = useState("");
+  const [previaSeleccionada, setPreviaSeleccionada] = useState("");
+  const [anioPrevia, setAnioPrevia] = useState("");
+  const [verPlanillaPrevias, setVerPlanillaPrevias] = useState(false);
+  const [materiaExamen, setMateriaExamen] = useState("");
+  const [anioExamen, setAnioExamen] = useState("");
+  const [turnoExamen, setTurnoExamen] = useState("");
+  const [busquedaAlumno, setBusquedaAlumno] = useState("");
+  const [ordenCurso, setOrdenCurso] = useState("apellido");
+  const [mostrarRelevamiento, setMostrarRelevamiento] = useState(false);
 
   const fotosPreceptores = {
     "6°1°-Mañana": preceptora11,
     "5°2°-Mañana": preceptora11,
     "4°3°-Tarde": preceptora11,
-    "4°4°-Tarde": preceptora11
-  }
-  const [anioLegajoFiltro, setAnioLegajoFiltro] = useState("")
-  const [verRecursantes, setVerRecursantes] = useState(false)
-  const [filtroAvanzado, setFiltroAvanzado] = useState("todos")
-  const [alertaActiva, setAlertaActiva] = useState("")
-  const [pedidosAnaliticos, setPedidosAnaliticos] = useState([])
-  const [alumnoSeleccionado, setAlumnoSeleccionado] = useState(null)
-  const [anioRelevamiento, setAnioRelevamiento] = useState("1")
-  const [mostrarLegajosArchivo, setMostrarLegajosArchivo] = useState(false)
-  const [libroMatrizFiltro, setLibroMatrizFiltro] = useState("")
-  const [mostrarMatrizArchivo, setMostrarMatrizArchivo] = useState(false)
+    "4°4°-Tarde": preceptora11,
+  };
+  const [anioLegajoFiltro, setAnioLegajoFiltro] = useState("");
+  const [verRecursantes, setVerRecursantes] = useState(false);
+  const [filtroAvanzado, setFiltroAvanzado] = useState("todos");
+  const [alertaActiva, setAlertaActiva] = useState("");
+  const [pedidosAnaliticos, setPedidosAnaliticos] = useState([]);
+  const [alumnoSeleccionado, setAlumnoSeleccionado] = useState(null);
+  const [anioRelevamiento, setAnioRelevamiento] = useState("1");
+  const [mostrarLegajosArchivo, setMostrarLegajosArchivo] = useState(false);
+  const [libroMatrizFiltro, setLibroMatrizFiltro] = useState("");
+  const [mostrarMatrizArchivo, setMostrarMatrizArchivo] = useState(false);
 
   const [nuevoAlumno, setNuevoAlumno] = useState({
     apellido: "",
@@ -59,26 +59,25 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
     materiasPendientes: [],
     condicionFinal: "",
     nacionalidad: "",
-    sexo: ""
-  })
+    sexo: "",
+  });
 
   useEffect(() => {
-    obtenerMatricula()
-    obtenerPedidosAnaliticos()
-  }, [])
+    obtenerMatricula();
+    obtenerPedidosAnaliticos();
+  }, []);
 
   async function obtenerMatricula() {
     try {
-      const respuesta = await axios.get("/api/matricula")
-      setAlumnosMatricula(Array.isArray(respuesta.data) ? respuesta.data : [])
+      const respuesta = await axios.get("/api/matricula");
+      setAlumnosMatricula(Array.isArray(respuesta.data) ? respuesta.data : []);
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
   }
 
-
   function editarAlumno(alumno) {
-    setAlumnoEditando(alumno)
+    setAlumnoEditando(alumno);
 
     setNuevoAlumno({
       apellido: alumno.apellido || "",
@@ -94,17 +93,15 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
         : [],
       condicionFinal: alumno.condicionFinal || "",
       nacionalidad: alumno.nacionalidad || "",
-      sexo: alumno.sexo || ""
-    })
+      sexo: alumno.sexo || "",
+    });
 
     setTimeout(() => {
-      document
-        .getElementById("formulario-matricula")
-        ?.scrollIntoView({
-          behavior: "smooth",
-          block: "start"
-        })
-    }, 100)
+      document.getElementById("formulario-matricula")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 100);
   }
 
   function limpiarFormulario() {
@@ -120,120 +117,112 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
       condicionFinal: "",
       materiasPendientes: [],
       nacionalidad: "",
-      sexo: ""
-    })
+      sexo: "",
+    });
 
-    setPreviaSeleccionada("")
-    setAnioPrevia("")
-    setAlumnoEditando(null)
-
+    setPreviaSeleccionada("");
+    setAnioPrevia("");
+    setAlumnoEditando(null);
   }
 
   function prepararMovimiento(alumno) {
-    setAlumnoMoviendo(alumno)
-    setNuevoCurso(alumno.curso)
-    setNuevoTurno(alumno.turno)
+    setAlumnoMoviendo(alumno);
+    setNuevoCurso(alumno.curso);
+    setNuevoTurno(alumno.turno);
   }
   async function moverAlumno() {
-    if (!alumnoMoviendo) return
+    if (!alumnoMoviendo) return;
 
     try {
-      await axios.put(
-        `/api/matricula/${alumnoMoviendo._id}`,
-        {
-          ...alumnoMoviendo,
-          curso: nuevoCurso,
-          turno: nuevoTurno
-        }
-      )
+      await axios.put(`/api/matricula/${alumnoMoviendo._id}`, {
+        ...alumnoMoviendo,
+        curso: nuevoCurso,
+        turno: nuevoTurno,
+      });
 
-      setAlumnoMoviendo(null)
-      obtenerMatricula()
+      setAlumnoMoviendo(null);
+      obtenerMatricula();
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
   }
 
   function agregarPrevia() {
-    if (!previaSeleccionada) return
+    if (!previaSeleccionada) return;
 
-    if (previaSeleccionada !== "----------" && !anioPrevia) return
+    if (previaSeleccionada !== "----------" && !anioPrevia) return;
 
     const nuevaPrevia = {
       asignatura: previaSeleccionada,
-      anio: previaSeleccionada === "----------" ? "" : anioPrevia
-    }
+      anio: previaSeleccionada === "----------" ? "" : anioPrevia,
+    };
 
     setNuevoAlumno({
       ...nuevoAlumno,
-      materiasPendientes: [
-        ...nuevoAlumno.materiasPendientes,
-        nuevaPrevia
-      ]
-    })
+      materiasPendientes: [...nuevoAlumno.materiasPendientes, nuevaPrevia],
+    });
 
-    setPreviaSeleccionada("")
-    setAnioPrevia("")
+    setPreviaSeleccionada("");
+    setAnioPrevia("");
   }
 
   async function guardarAlumnoMatricula() {
-    if (guardando) return
+    if (guardando) return;
 
-    setGuardando(true)
+    setGuardando(true);
 
     try {
-      const legajoNuevo = `${nuevoAlumno.legajoNumero || ""}/${nuevoAlumno.legajoAnio || ""}`
+      const legajoNuevo = `${nuevoAlumno.legajoNumero || ""}/${nuevoAlumno.legajoAnio || ""}`;
 
       const matrizNueva = String(
-        nuevoAlumno.folioMatriz || nuevoAlumno.libroMatriz || ""
-      ).trim()
+        nuevoAlumno.folioMatriz || nuevoAlumno.libroMatriz || "",
+      ).trim();
 
       const legajoRepetido = alumnosMatricula.some((alumno) => {
-        if (alumnoEditando && alumno._id === alumnoEditando._id) return false
+        if (alumnoEditando && alumno._id === alumnoEditando._id) return false;
 
-        const legajoExistente = `${alumno.legajoNumero || ""}/${alumno.legajoAnio || ""}`
+        const legajoExistente = `${alumno.legajoNumero || ""}/${alumno.legajoAnio || ""}`;
 
         return (
           nuevoAlumno.legajoNumero &&
           nuevoAlumno.legajoAnio &&
           legajoExistente === legajoNuevo
-        )
-      })
-
+        );
+      });
 
       const matrizRepetida = alumnosMatricula.some((alumno) => {
-        if (alumnoEditando && alumno._id === alumnoEditando._id) return false
+        if (alumnoEditando && alumno._id === alumnoEditando._id) return false;
 
         const matrizExistente = String(
-          alumno.folioMatriz || alumno.libroMatriz || ""
-        ).trim()
+          alumno.folioMatriz || alumno.libroMatriz || "",
+        ).trim();
 
-        return matrizNueva && matrizExistente === matrizNueva
-      })
+        return matrizNueva && matrizExistente === matrizNueva;
+      });
 
       if (legajoRepetido) {
-        alert("Ya existe un estudiante cargado con ese número/año de legajo.")
-        setGuardando(false)
-        return
+        alert("Ya existe un estudiante cargado con ese número/año de legajo.");
+        setGuardando(false);
+        return;
       }
 
       if (matrizRepetida) {
-        alert("Ya existe un estudiante cargado con ese libro/folio de matriz.")
-        setGuardando(false)
-        return
+        alert("Ya existe un estudiante cargado con ese libro/folio de matriz.");
+        setGuardando(false);
+        return;
       }
 
-            if (nuevoAlumno.fechaNacimiento) {
-        const hoy = new Date()
-        hoy.setHours(0, 0, 0, 0)
+      if (nuevoAlumno.fechaNacimiento) {
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
 
-        const fechaNacimiento = new Date(nuevoAlumno.fechaNacimiento)
-        fechaNacimiento.setHours(0, 0, 0, 0)
+        const fechaNacimiento = new Date(nuevoAlumno.fechaNacimiento);
+        fechaNacimiento.setHours(0, 0, 0, 0);
 
         if (fechaNacimiento > hoy) {
-          alert("La fecha de nacimiento no puede ser posterior al día de hoy.")
-          setGuardando(false)
-          return
+          alert("La fecha de nacimiento no puede ser posterior al día de hoy.");
+          setGuardando(false);
+          return;
         }
       }
 
@@ -241,15 +230,15 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
         ...nuevoAlumno,
         curso: cursoSeleccionado.curso,
         turno: cursoSeleccionado.turno,
-        estadoMatricula: "Activo"
-      }
+        estadoMatricula: "Activo",
+      };
 
       if (alumnoEditando) {
-        await axios.put(`/api/matricula/${alumnoEditando._id}`, alumnoAGuardar)
-        setAlumnoEditando(null)
+        await axios.put(`/api/matricula/${alumnoEditando._id}`, alumnoAGuardar);
+        setAlumnoEditando(null);
       } else {
-        console.log(alumnoAGuardar)
-        await axios.post("/api/matricula", alumnoAGuardar)
+        console.log(alumnoAGuardar);
+        await axios.post("/api/matricula", alumnoAGuardar);
       }
 
       setNuevoAlumno({
@@ -268,55 +257,67 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
         dniFisico: "",
         partidaNacimiento: "",
         analiticoParcial: "",
-        observacionDocumentacion: ""
-      })
+        observacionDocumentacion: "",
+      });
 
-      obtenerMatricula()
+      obtenerMatricula();
     } catch (error) {
       if (error.response?.status === 400) {
-        alert(error.response.data.mensaje)
-        return
+        alert(error.response.data.mensaje);
+        return;
       }
 
-      console.log(error)
-      alert("Error al guardar estudiante")
+      console.log(error);
+      alert("Error al guardar estudiante");
     } finally {
-      setGuardando(false)
+      setGuardando(false);
     }
   }
 
   async function actualizarDocumentacion(alumno, campo, valor) {
     const alumnoActualizado = {
       ...alumno,
-      [campo]: valor
-    }
+      [campo]: valor,
+    };
 
     try {
-      await axios.put(`/api/matricula/${alumno._id}`, alumnoActualizado)
-      obtenerMatricula()
+      await axios.put(`/api/matricula/${alumno._id}`, alumnoActualizado);
+      obtenerMatricula();
     } catch (error) {
-      console.log(error)
-      alert("Error al guardar documentación")
+      console.log(error);
+      alert("Error al guardar documentación");
     }
   }
 
   const cursosManana = [
-    "1°1°", "1°2°",
-    "2°1°", "2°2°",
-    "3°1°", "3°2°",
-    "4°1°", "4°2°",
-    "5°1°", "5°2°",
-    "6°1°", "6°2°"
-  ]
+    "1°1°",
+    "1°2°",
+    "2°1°",
+    "2°2°",
+    "3°1°",
+    "3°2°",
+    "4°1°",
+    "4°2°",
+    "5°1°",
+    "5°2°",
+    "6°1°",
+    "6°2°",
+  ];
 
   const cursosTarde = [
-    "1°3°", "1°4°",
-    "2°3°", "2°4°",
-    "3°3°", "3°4°",
-    "4°3°", "4°4°",
-    "5°3°", "5°4°",
-    "6°3°", "6°4°"
-  ]
+    "1°3°",
+    "1°4°",
+    "2°3°",
+    "2°4°",
+    "3°3°",
+    "3°4°",
+    "4°3°",
+    "4°4°",
+    "5°3°",
+    "5°4°",
+    "6°3°",
+    "6°4°",
+  ];
 
   const asignaturas = [
     "----------",
@@ -342,123 +343,113 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
     "Producción y Análisis de Imágenes",
     "Imagen y Nuevos Medios",
     "Art. Leng. Danza",
-    "Imagen y Procedimientos Constructivos"
-  ]
+    "Imagen y Procedimientos Constructivos",
+  ];
 
-  const aniosMateria = [
-    "1°",
-    "2°",
-    "3°",
-    "4°",
-    "5°",
-    "6°"
-  ]
+  const aniosMateria = ["1°", "2°", "3°", "4°", "5°", "6°"];
 
   const alumnosDelCurso = cursoSeleccionado
     ? alumnosMatricula
-      .filter(
-        (alumno) =>
-          alumno.curso === cursoSeleccionado.curso &&
-          alumno.turno === cursoSeleccionado.turno &&
-          alumno.estadoMatricula === "Activo"
-      )
-      .sort((a, b) => {
-        if (ordenCurso === "legajo") {
-          const anioA = Number(a.legajoAnio || 0)
-          const anioB = Number(b.legajoAnio || 0)
-
-          if (anioA !== anioB) return anioB - anioA
-
-          const numeroA = Number(a.legajoNumero || 0)
-          const numeroB = Number(b.legajoNumero || 0)
-
-          return numeroA - numeroB
-        }
-
-        if (ordenCurso === "matriz") {
-          const obtenerMatriz = (alumno) => {
-            const valor = String(alumno.folioMatriz || alumno.libroMatriz || "").trim()
-
-            if (!valor || valor === "-") {
-              return { libro: 999999, folio: 999999 }
-            }
-
-            const partes = valor.split("/")
-
-            return {
-              libro: Number(partes[0] || 999999),
-              folio: Number(partes[1] || 999999)
-            }
-          }
-
-          const matrizA = obtenerMatriz(a)
-          const matrizB = obtenerMatriz(b)
-
-          if (matrizA.libro !== matrizB.libro) {
-            return matrizA.libro - matrizB.libro
-          }
-
-          return matrizA.folio - matrizB.folio
-        }
-
-        return `${a.apellido} ${a.nombre}`.localeCompare(
-          `${b.apellido} ${b.nombre}`,
-          "es",
-          { sensitivity: "base" }
+        .filter(
+          (alumno) =>
+            alumno.curso === cursoSeleccionado.curso &&
+            alumno.turno === cursoSeleccionado.turno &&
+            alumno.estadoMatricula === "Activo",
         )
-      })
-    : []
+        .sort((a, b) => {
+          if (ordenCurso === "legajo") {
+            const anioA = Number(a.legajoAnio || 0);
+            const anioB = Number(b.legajoAnio || 0);
+
+            if (anioA !== anioB) return anioB - anioA;
+
+            const numeroA = Number(a.legajoNumero || 0);
+            const numeroB = Number(b.legajoNumero || 0);
+
+            return numeroA - numeroB;
+          }
+
+          if (ordenCurso === "matriz") {
+            const obtenerMatriz = (alumno) => {
+              const valor = String(
+                alumno.folioMatriz || alumno.libroMatriz || "",
+              ).trim();
+
+              if (!valor || valor === "-") {
+                return { libro: 999999, folio: 999999 };
+              }
+
+              const partes = valor.split("/");
+
+              return {
+                libro: Number(partes[0] || 999999),
+                folio: Number(partes[1] || 999999),
+              };
+            };
+
+            const matrizA = obtenerMatriz(a);
+            const matrizB = obtenerMatriz(b);
+
+            if (matrizA.libro !== matrizB.libro) {
+              return matrizA.libro - matrizB.libro;
+            }
+
+            return matrizA.folio - matrizB.folio;
+          }
+
+          return `${a.apellido} ${a.nombre}`.localeCompare(
+            `${b.apellido} ${b.nombre}`,
+            "es",
+            { sensitivity: "base" },
+          );
+        })
+    : [];
 
   const alumnosFiltrados = alumnosDelCurso.filter((alumno) => {
     const previasReales = Array.isArray(alumno.materiasPendientes)
       ? alumno.materiasPendientes.filter(
-        (previa) => previa.asignatura !== "----------"
-      )
-      : []
+          (previa) => previa.asignatura !== "----------",
+        )
+      : [];
 
     const coincidePrevia =
       !filtroPrevia && !filtroAnioPrevia
         ? true
         : previasReales.some((previa) => {
-          const coincideMateria =
-            !filtroPrevia || previa.asignatura === filtroPrevia
+            const coincideMateria =
+              !filtroPrevia || previa.asignatura === filtroPrevia;
 
-          const coincideAnio =
-            !filtroAnioPrevia || previa.anio === filtroAnioPrevia
+            const coincideAnio =
+              !filtroAnioPrevia || previa.anio === filtroAnioPrevia;
 
-          return coincideMateria && coincideAnio
-        })
+            return coincideMateria && coincideAnio;
+          });
 
     const coincideAvanzado = (() => {
-      if (filtroAvanzado === "todos") return true
+      if (filtroAvanzado === "todos") return true;
 
-      if (filtroAvanzado === "prom")
-        return alumno.condicionFinal === "Prom"
+      if (filtroAvanzado === "prom") return alumno.condicionFinal === "Prom";
 
-      if (filtroAvanzado === "rec")
-        return alumno.condicionFinal === "Rec"
+      if (filtroAvanzado === "rec") return alumno.condicionFinal === "Rec";
 
       if (filtroAvanzado === "ingresante")
-        return alumno.condicionFinal === "Ingresante"
+        return alumno.condicionFinal === "Ingresante";
 
       if (filtroAvanzado === "reinscripto")
-        return alumno.condicionFinal === "Reinscripto"
+        return alumno.condicionFinal === "Reinscripto";
 
-      if (filtroAvanzado === "previas")
-        return previasReales.length > 0
+      if (filtroAvanzado === "previas") return previasReales.length > 0;
 
-      if (filtroAvanzado === "sinLegajo")
-        return !alumno.legajoNumero
+      if (filtroAvanzado === "sinLegajo") return !alumno.legajoNumero;
 
-      if (filtroAvanzado === "sinLegajo")
-        return !alumno.legajoNumero
+      if (filtroAvanzado === "sinLegajo") return !alumno.legajoNumero;
 
       if (filtroAvanzado === "sobreedad") {
-        if (!alumno.fechaNacimiento) return false
+        if (!alumno.fechaNacimiento) return false;
 
-        const edad = calcularEdadAl30Junio(alumno.fechaNacimiento)
+        const edad = calcularEdadAl30Junio(alumno.fechaNacimiento);
 
-        const anioCurso = Number(cursoSeleccionado.curso.charAt(0))
+        const anioCurso = Number(cursoSeleccionado.curso.charAt(0));
 
         const edadesEsperadas = {
           1: 12,
@@ -466,71 +457,68 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
           3: 14,
           4: 15,
           5: 16,
-          6: 17
-        }
+          6: 17,
+        };
 
-        return edad > edadesEsperadas[anioCurso]
+        return edad > edadesEsperadas[anioCurso];
       }
 
-      return true
+      return true;
+    })();
 
-    })()
-
-    return coincidePrevia && coincideAvanzado
-  })
+    return coincidePrevia && coincideAvanzado;
+  });
   function contarAlumnos(curso, turno) {
     return alumnosMatricula.filter(
       (alumno) =>
         alumno.curso === curso &&
         alumno.turno === turno &&
-        alumno.estadoMatricula === "Activo"
-    ).length
+        alumno.estadoMatricula === "Activo",
+    ).length;
   }
 
-  const totalEstudiantes = alumnosDelCurso.length
+  const totalEstudiantes = alumnosDelCurso.length;
 
   const totalProm = alumnosDelCurso.filter(
-    alumno => alumno.condicionFinal === "Prom"
-  ).length
+    (alumno) => alumno.condicionFinal === "Prom",
+  ).length;
 
   const totalRec = alumnosDelCurso.filter(
-    alumno => alumno.condicionFinal === "Rec"
-  ).length
+    (alumno) => alumno.condicionFinal === "Rec",
+  ).length;
 
   const totalConPrevias = alumnosDelCurso.filter((alumno) => {
     const previasReales = Array.isArray(alumno.materiasPendientes)
       ? alumno.materiasPendientes.filter(
-        (previa) => previa.asignatura !== "----------"
-      )
-      : []
+          (previa) => previa.asignatura !== "----------",
+        )
+      : [];
 
-    return previasReales.length > 0
-  }).length
+    return previasReales.length > 0;
+  }).length;
 
   const porcentajeProm =
     totalEstudiantes > 0
       ? ((totalProm / totalEstudiantes) * 100).toFixed(0)
-      : 0
+      : 0;
 
   const porcentajeRec =
-    totalEstudiantes > 0
-      ? ((totalRec / totalEstudiantes) * 100).toFixed(0)
-      : 0
+    totalEstudiantes > 0 ? ((totalRec / totalEstudiantes) * 100).toFixed(0) : 0;
 
   const totalIngresantes = alumnosDelCurso.filter(
-    alumno => alumno.condicionFinal === "Ingresante"
-  ).length
+    (alumno) => alumno.condicionFinal === "Ingresante",
+  ).length;
 
   const totalReinscriptos = alumnosDelCurso.filter(
-    alumno => alumno.condicionFinal === "Reinscripto"
-  ).length
+    (alumno) => alumno.condicionFinal === "Reinscripto",
+  ).length;
 
   const totalSobreedad = alumnosDelCurso.filter((alumno) => {
-    if (!alumno.fechaNacimiento) return false
+    if (!alumno.fechaNacimiento) return false;
 
-    const edad = calcularEdadAl30Junio(alumno.fechaNacimiento)
+    const edad = calcularEdadAl30Junio(alumno.fechaNacimiento);
 
-    const anioCurso = Number(cursoSeleccionado.curso.charAt(0))
+    const anioCurso = Number(cursoSeleccionado.curso.charAt(0));
 
     const edadesEsperadas = {
       1: 12,
@@ -538,123 +526,123 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
       3: 14,
       4: 15,
       5: 16,
-      6: 17
-    }
+      6: 17,
+    };
 
-    return edad > edadesEsperadas[anioCurso]
-  }).length
+    return edad > edadesEsperadas[anioCurso];
+  }).length;
 
   function calcularEdadAl30Junio(fechaNacimiento) {
-    if (!fechaNacimiento) return "-"
+    if (!fechaNacimiento) return "-";
 
-    const nacimiento = new Date(fechaNacimiento)
-    const anioActual = new Date().getFullYear()
-    const fechaCorte = new Date(anioActual, 5, 30)
+    const nacimiento = new Date(fechaNacimiento);
+    const anioActual = new Date().getFullYear();
+    const fechaCorte = new Date(anioActual, 5, 30);
 
-    let edad = fechaCorte.getFullYear() - nacimiento.getFullYear()
+    let edad = fechaCorte.getFullYear() - nacimiento.getFullYear();
 
     const cumpleEsteAnio = new Date(
       anioActual,
       nacimiento.getMonth(),
-      nacimiento.getDate()
-    )
+      nacimiento.getDate(),
+    );
 
     if (cumpleEsteAnio > fechaCorte) {
-      edad--
+      edad--;
     }
 
-    return edad
+    return edad;
   }
 
   function formatearFecha(fecha) {
-    if (!fecha) return "-"
+    if (!fecha) return "-";
 
-    const [anio, mes, dia] = fecha.split("-")
+    const [anio, mes, dia] = fecha.split("-");
 
-    return `${dia}-${mes}-${anio}`
+    return `${dia}-${mes}-${anio}`;
   }
 
   async function eliminarAlumnoMatricula(id) {
-    const confirmar = confirm("¿Eliminar este estudiante de la matrícula?")
+    const confirmar = confirm("¿Eliminar este estudiante de la matrícula?");
 
-    if (!confirmar) return
+    if (!confirmar) return;
 
     try {
-      await axios.delete(`/api/matricula/${id}`)
-      obtenerMatricula()
+      await axios.delete(`/api/matricula/${id}`);
+      obtenerMatricula();
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
   }
 
   const alumnosEncontrados = alumnosMatricula.filter((alumno) => {
-    const texto = busquedaAlumno.toLowerCase()
+    const texto = busquedaAlumno.toLowerCase();
 
     return (
       alumno.apellido?.toLowerCase().includes(texto) ||
       alumno.nombre?.toLowerCase().includes(texto) ||
       alumno.dni?.includes(texto)
-    )
-  })
+    );
+  });
 
   function imprimirCurso() {
-    if (!cursoSeleccionado) return
+    if (!cursoSeleccionado) return;
 
     const mostrarLegajo = alumnosFiltrados.some(
-      (alumno) => alumno.legajoNumero || alumno.legajoAnio
-    )
+      (alumno) => alumno.legajoNumero || alumno.legajoAnio,
+    );
 
     const mostrarMatriz = alumnosFiltrados.some(
-      (alumno) => alumno.folioMatriz || alumno.libroMatriz
-    )
+      (alumno) => alumno.folioMatriz || alumno.libroMatriz,
+    );
 
     const mostrarFechaNacimiento = alumnosFiltrados.some(
-      (alumno) => alumno.fechaNacimiento
-    )
+      (alumno) => alumno.fechaNacimiento,
+    );
 
-    const mostrarEdad = mostrarFechaNacimiento
+    const mostrarEdad = mostrarFechaNacimiento;
 
     const mostrarCondicion = alumnosFiltrados.some(
-      (alumno) => alumno.condicionFinal
-    )
+      (alumno) => alumno.condicionFinal,
+    );
 
     const mostrarPendientes = alumnosFiltrados.some(
       (alumno) =>
         Array.isArray(alumno.materiasPendientes) &&
-        alumno.materiasPendientes.length > 0
-    )
+        alumno.materiasPendientes.length > 0,
+    );
 
     const alumnosParaImprimir = [...alumnosFiltrados].sort((a, b) => {
       if (ordenCurso === "legajo") {
-        const anioA = Number(a.legajoAnio || 0)
-        const anioB = Number(b.legajoAnio || 0)
+        const anioA = Number(a.legajoAnio || 0);
+        const anioB = Number(b.legajoAnio || 0);
 
-        if (anioA !== anioB) return anioB - anioA
+        if (anioA !== anioB) return anioB - anioA;
 
-        const numeroA = Number(a.legajoNumero || 999999)
-        const numeroB = Number(b.legajoNumero || 999999)
+        const numeroA = Number(a.legajoNumero || 999999);
+        const numeroB = Number(b.legajoNumero || 999999);
 
-        return numeroA - numeroB
+        return numeroA - numeroB;
       }
 
       if (ordenCurso === "matriz") {
         const matrizA = Number(
-          String(a.folioMatriz || a.libroMatriz || "999999").split("/")[0]
-        )
+          String(a.folioMatriz || a.libroMatriz || "999999").split("/")[0],
+        );
 
         const matrizB = Number(
-          String(b.folioMatriz || b.libroMatriz || "999999").split("/")[0]
-        )
+          String(b.folioMatriz || b.libroMatriz || "999999").split("/")[0],
+        );
 
-        return matrizA - matrizB
+        return matrizA - matrizB;
       }
 
       return `${a.apellido} ${a.nombre}`.localeCompare(
         `${b.apellido} ${b.nombre}`,
         "es",
-        { sensitivity: "base" }
-      )
-    })
+        { sensitivity: "base" },
+      );
+    });
 
     const filas = alumnosParaImprimir
       .map(
@@ -664,53 +652,64 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
           <td class="nombre">${alumno.apellido || ""}, ${alumno.nombre || ""}</td>
           <td>${formatearDNI(alumno.dni)}</td>
 
-          ${mostrarLegajo
-            ? `<td>${alumno.legajoNumero && alumno.legajoAnio
-              ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
+          ${
+            mostrarLegajo
+              ? `<td>${
+                  alumno.legajoNumero && alumno.legajoAnio
+                    ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
+                    : ""
+                }</td>`
               : ""
-            }</td>`
-            : ""
           }
 
-         ${mostrarMatriz
-            ? `<td>${alumno.folioMatriz || alumno.libroMatriz || ""}</td>`
-            : ""
-          }
+         ${
+           mostrarMatriz
+             ? `<td>${alumno.folioMatriz || alumno.libroMatriz || ""}</td>`
+             : ""
+         }
   
 
-          ${mostrarFechaNacimiento
-            ? `<td>${alumno.fechaNacimiento
-              ? formatearFecha(alumno.fechaNacimiento)
+          ${
+            mostrarFechaNacimiento
+              ? `<td>${
+                  alumno.fechaNacimiento
+                    ? formatearFecha(alumno.fechaNacimiento)
+                    : ""
+                }</td>`
               : ""
-            }</td>`
-            : ""
           }
 
-          ${mostrarEdad
-            ? `<td>${alumno.fechaNacimiento
-              ? calcularEdadAl30Junio(alumno.fechaNacimiento)
+          ${
+            mostrarEdad
+              ? `<td>${
+                  alumno.fechaNacimiento
+                    ? calcularEdadAl30Junio(alumno.fechaNacimiento)
+                    : ""
+                }</td>`
               : ""
-            }</td>`
-            : ""
           }
 
           ${mostrarCondicion ? `<td>${alumno.condicionFinal || ""}</td>` : ""}
 
-          ${mostrarPendientes
-            ? `<td>${Array.isArray(alumno.materiasPendientes)
-              ? alumno.materiasPendientes
-                .map((previa) => `${previa.asignatura} (${previa.anio})`)
-                .join(", ")
+          ${
+            mostrarPendientes
+              ? `<td>${
+                  Array.isArray(alumno.materiasPendientes)
+                    ? alumno.materiasPendientes
+                        .map(
+                          (previa) => `${previa.asignatura} (${previa.anio})`,
+                        )
+                        .join(", ")
+                    : ""
+                }</td>`
               : ""
-            }</td>`
-            : ""
           }
         </tr>
-      `
+      `,
       )
-      .join("")
+      .join("");
 
-    const ventana = window.open("", "_blank")
+    const ventana = window.open("", "_blank");
 
     ventana.document.write(`
     <html>
@@ -814,61 +813,61 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
         </table>
       </body>
     </html>
-  `)
+  `);
 
-    ventana.document.close()
-    ventana.print()
+    ventana.document.close();
+    ventana.print();
   }
 
   function formatearDNI(dni) {
-    if (!dni) return ""
+    if (!dni) return "";
 
     return dni
       .toString()
       .replace(/\D/g, "")
-      .replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+      .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   }
 
   function limpiarDNI(dni) {
-    if (!dni) return ""
+    if (!dni) return "";
 
-    return dni.toString().replace(/\D/g, "")
+    return dni.toString().replace(/\D/g, "");
   }
 
   function exportarExcel() {
     const datos = alumnosDelCurso.map((alumno) => ({
       "Apellido y Nombre": `${alumno.apellido || ""}, ${alumno.nombre || ""}`,
-      "DNI": alumno.dni || "",
+      DNI: alumno.dni || "",
       "Fecha nacimiento": formatearFecha(alumno.fechaNacimiento),
       "Edad al 30/06": calcularEdadAl30Junio(alumno.fechaNacimiento),
       "Materias pendientes": Array.isArray(alumno.materiasPendientes)
         ? alumno.materiasPendientes
-          .map((previa) => `${previa.asignatura} (${previa.anio})`)
-          .join(", ")
+            .map((previa) => `${previa.asignatura} (${previa.anio})`)
+            .join(", ")
         : "",
-      "Condición": alumno.condicionFinal || "",
-      "Curso": cursoSeleccionado?.curso || "",
-      "Turno": cursoSeleccionado?.turno || ""
-    }))
+      Condición: alumno.condicionFinal || "",
+      Curso: cursoSeleccionado?.curso || "",
+      Turno: cursoSeleccionado?.turno || "",
+    }));
 
-    const hoja = XLSX.utils.json_to_sheet(datos)
-    const libro = XLSX.utils.book_new()
+    const hoja = XLSX.utils.json_to_sheet(datos);
+    const libro = XLSX.utils.book_new();
 
-    XLSX.utils.book_append_sheet(libro, hoja, "Matrícula")
+    XLSX.utils.book_append_sheet(libro, hoja, "Matrícula");
 
     const excelBuffer = XLSX.write(libro, {
       bookType: "xlsx",
-      type: "array"
-    })
+      type: "array",
+    });
 
     const archivo = new Blob([excelBuffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    })
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
 
     saveAs(
       archivo,
-      `Matricula_${cursoSeleccionado?.curso || "curso"}_${cursoSeleccionado?.turno || "turno"}.xlsx`
-    )
+      `Matricula_${cursoSeleccionado?.curso || "curso"}_${cursoSeleccionado?.turno || "turno"}.xlsx`,
+    );
   }
 
   function normalizarTexto(texto) {
@@ -877,75 +876,77 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
       .toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
-      .trim()
+      .trim();
   }
 
   function calcularCondicionDesdeEstado(estado) {
-    const estadoNormalizado = normalizarTexto(estado)
+    const estadoNormalizado = normalizarTexto(estado);
 
     if (estadoNormalizado.includes("baja")) {
-      return "BAJA"
+      return "BAJA";
     }
 
     if (estadoNormalizado.includes("continua mismo ano de estudio")) {
-      return "Rec"
+      return "Rec";
     }
 
     if (estadoNormalizado.includes("ingresante al nivel")) {
-      return ""
+      return "";
     }
 
-    return "Prom"
+    return "Prom";
   }
 
   async function importarReporteOficial(evento) {
-    const archivo = evento.target.files[0]
-    if (!archivo || !cursoSeleccionado) return
+    const archivo = evento.target.files[0];
+    if (!archivo || !cursoSeleccionado) return;
 
-    const datos = await archivo.arrayBuffer()
-    const libro = XLSX.read(datos)
-    const hoja = libro.Sheets[libro.SheetNames[0]]
-    const filas = XLSX.utils.sheet_to_json(hoja, { header: 1, defval: "" })
+    const datos = await archivo.arrayBuffer();
+    const libro = XLSX.read(datos);
+    const hoja = libro.Sheets[libro.SheetNames[0]];
+    const filas = XLSX.utils.sheet_to_json(hoja, { header: 1, defval: "" });
 
     const filaEncabezadosIndex = filas.findIndex((fila) =>
-      fila.some((celda) => normalizarTexto(celda).includes("nombre estudiante"))
-    )
+      fila.some((celda) =>
+        normalizarTexto(celda).includes("nombre estudiante"),
+      ),
+    );
 
     if (filaEncabezadosIndex === -1) {
-      alert("No encontré las columnas del reporte oficial.")
-      return
+      alert("No encontré las columnas del reporte oficial.");
+      return;
     }
 
-    const encabezados = filas[filaEncabezadosIndex].map(normalizarTexto)
+    const encabezados = filas[filaEncabezadosIndex].map(normalizarTexto);
 
     const indiceEstado = encabezados.findIndex((h) =>
-      h.includes("estado inscripcion")
-    )
+      h.includes("estado inscripcion"),
+    );
 
     const indiceNombre = encabezados.findIndex((h) =>
-      h.includes("nombre estudiante")
-    )
+      h.includes("nombre estudiante"),
+    );
 
     const indiceDni = encabezados.findIndex((h) =>
-      h.includes("documento estudiante")
-    )
+      h.includes("documento estudiante"),
+    );
 
-    let ultimoEstado = ""
+    let ultimoEstado = "";
 
     const alumnosParaImportar = filas
       .slice(filaEncabezadosIndex + 1)
       .map((fila) => {
-        const estadoFila = fila[indiceEstado] || ultimoEstado
-        if (fila[indiceEstado]) ultimoEstado = fila[indiceEstado]
+        const estadoFila = fila[indiceEstado] || ultimoEstado;
+        if (fila[indiceEstado]) ultimoEstado = fila[indiceEstado];
 
-        const condicion = calcularCondicionDesdeEstado(estadoFila)
+        const condicion = calcularCondicionDesdeEstado(estadoFila);
 
-        if (condicion === "BAJA") return null
+        if (condicion === "BAJA") return null;
 
-        const nombreCompleto = fila[indiceNombre]?.toString().trim()
-        const dni = fila[indiceDni]?.toString().replace(/\D/g, "")
+        const nombreCompleto = fila[indiceNombre]?.toString().trim();
+        const dni = fila[indiceDni]?.toString().replace(/\D/g, "");
 
-        if (!nombreCompleto || !dni) return null
+        if (!nombreCompleto || !dni) return null;
 
         return {
           apellido: nombreCompleto,
@@ -956,92 +957,90 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
           fechaNacimiento: "",
           materiasPendientes: [],
           condicionFinal: condicion,
-          estadoMatricula: "Activo"
-        }
+          estadoMatricula: "Activo",
+        };
       })
-      .filter(Boolean)
+      .filter(Boolean);
 
     try {
       for (const alumno of alumnosParaImportar) {
-        await axios.post("/api/matricula", alumno)
+        await axios.post("/api/matricula", alumno);
       }
 
-      obtenerMatricula()
-      alert(`Se importaron ${alumnosParaImportar.length} estudiantes.`)
+      obtenerMatricula();
+      alert(`Se importaron ${alumnosParaImportar.length} estudiantes.`);
     } catch (error) {
-      console.log(error)
-      alert("Hubo un error al importar el reporte.")
+      console.log(error);
+      alert("Hubo un error al importar el reporte.");
     }
 
-    evento.target.value = ""
+    evento.target.value = "";
   }
 
   async function obtenerPedidosAnaliticos() {
     try {
-      const respuesta = await axios.get("/alumnos")
-      console.log("PEDIDOS ANALITICOS")
-      console.log(respuesta.data)
+      const respuesta = await axios.get("/alumnos");
+      console.log("PEDIDOS ANALITICOS");
+      console.log(respuesta.data);
 
-      setPedidosAnaliticos(
-        Array.isArray(respuesta.data) ? respuesta.data : []
-      )
+      setPedidosAnaliticos(Array.isArray(respuesta.data) ? respuesta.data : []);
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
   }
-  const totalGeneral = alumnosMatricula.length
+  const totalGeneral = alumnosMatricula.length;
 
   const totalManana = alumnosMatricula.filter(
-    alumno => alumno.turno === "Mañana"
-  ).length
+    (alumno) => alumno.turno === "Mañana",
+  ).length;
 
   const totalTarde = alumnosMatricula.filter(
-    alumno => alumno.turno === "Tarde"
-  ).length
+    (alumno) => alumno.turno === "Tarde",
+  ).length;
 
   const cicloBasico = alumnosMatricula.filter(
-    alumno =>
+    (alumno) =>
       alumno.curso?.startsWith("1°") ||
       alumno.curso?.startsWith("2°") ||
-      alumno.curso?.startsWith("3°")
-  ).length
+      alumno.curso?.startsWith("3°"),
+  ).length;
 
   const cicloSuperior = alumnosMatricula.filter(
-    alumno =>
+    (alumno) =>
       alumno.curso?.startsWith("4°") ||
       alumno.curso?.startsWith("5°") ||
-      alumno.curso?.startsWith("6°")
-  ).length
+      alumno.curso?.startsWith("6°"),
+  ).length;
 
   function eliminarPrevia(index) {
     setNuevoAlumno({
       ...nuevoAlumno,
       materiasPendientes: nuevoAlumno.materiasPendientes.filter(
-        (_, i) => i !== index
-      )
-    })
+        (_, i) => i !== index,
+      ),
+    });
   }
 
   function obtenerAnioDelCurso(curso) {
-    return curso?.charAt(0)
+    return curso?.charAt(0);
   }
 
   const edadesDelCurso = alumnosDelCurso.reduce((contador, alumno) => {
-    const edad = calcularEdadAl30Junio(alumno.fechaNacimiento)
+    const edad = calcularEdadAl30Junio(alumno.fechaNacimiento);
 
-    if (edad === "-") return contador
+    if (edad === "-") return contador;
 
-    contador[edad] = (contador[edad] || 0) + 1
+    contador[edad] = (contador[edad] || 0) + 1;
 
-    return contador
-  }, {})
+    return contador;
+  }, {});
 
   function imprimirPlanillaPrevias() {
-    const contenido = document.getElementById("planilla-previas-imprimir")
+    const contenido = document.getElementById("planilla-previas-imprimir");
 
-    if (!contenido) return
+    if (!contenido) return;
 
-    const ventana = window.open("", "_blank")
+    const ventana = window.open("", "_blank");
 
     ventana.document.write(`
     <html>
@@ -1106,18 +1105,17 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
         </div>
       </body>
     </html>
-  `)
+  `);
 
-    ventana.document.close()
-    ventana.print()
+    ventana.document.close();
+    ventana.print();
   }
 
-
   function tieneSobreedad(alumno) {
-    if (!alumno.fechaNacimiento || !alumno.curso) return false
+    if (!alumno.fechaNacimiento || !alumno.curso) return false;
 
-    const edad = calcularEdadAl30Junio(alumno.fechaNacimiento)
-    const anioCurso = Number(alumno.curso.charAt(0))
+    const edad = calcularEdadAl30Junio(alumno.fechaNacimiento);
+    const anioCurso = Number(alumno.curso.charAt(0));
 
     const edadesEsperadas = {
       1: 12,
@@ -1125,126 +1123,124 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
       3: 14,
       4: 15,
       5: 16,
-      6: 17
-    }
+      6: 17,
+    };
 
-    return edad > edadesEsperadas[anioCurso]
+    return edad > edadesEsperadas[anioCurso];
   }
 
   function cerrarPlanillaPrevias() {
-    setVerPlanillaPrevias(false)
-    setMateriaExamen("")
-    setAnioExamen("")
-    setTurnoExamen("")
+    setVerPlanillaPrevias(false);
+    setMateriaExamen("");
+    setAnioExamen("");
+    setTurnoExamen("");
   }
 
   const alumnosParaExamen = alumnosMatricula.filter((alumno) => {
-    const coincideTurno =
-      !turnoExamen ||
-      alumno.turno === turnoExamen
+    const coincideTurno = !turnoExamen || alumno.turno === turnoExamen;
 
     return (
       coincideTurno &&
       alumno.materiasPendientes?.some((previa) => {
-        if (previa.asignatura === "----------") return false
+        if (previa.asignatura === "----------") return false;
         const coincideMateria =
-          !materiaExamen ||
-          previa.asignatura === materiaExamen
+          !materiaExamen || previa.asignatura === materiaExamen;
 
-        const coincideAnio =
-          !anioExamen ||
-          previa.anio === anioExamen
+        const coincideAnio = !anioExamen || previa.anio === anioExamen;
 
-        return coincideMateria && coincideAnio
+        return coincideMateria && coincideAnio;
       })
-    )
-  })
+    );
+  });
 
   const aniosLegajoDisponibles = [
     ...new Set(
-      alumnosMatricula
-        .map((alumno) => alumno.legajoAnio)
-        .filter(Boolean)
-    )
-  ].sort((a, b) => Number(b) - Number(a))
+      alumnosMatricula.map((alumno) => alumno.legajoAnio).filter(Boolean),
+    ),
+  ].sort((a, b) => Number(b) - Number(a));
 
   const librosMatrizDisponibles = [
     ...new Set(
       alumnosMatricula
         .map((alumno) => {
-          const matriz = String(alumno.folioMatriz || alumno.libroMatriz || "").trim()
-          return matriz.includes("/") ? matriz.split("/")[0] : alumno.libroMatriz
+          const matriz = String(
+            alumno.folioMatriz || alumno.libroMatriz || "",
+          ).trim();
+          return matriz.includes("/")
+            ? matriz.split("/")[0]
+            : alumno.libroMatriz;
         })
-        .filter(Boolean)
-    )
-  ].sort((a, b) => Number(a) - Number(b))
+        .filter(Boolean),
+    ),
+  ].sort((a, b) => Number(a) - Number(b));
 
   const alumnosPorLegajo = alumnosMatricula
     .filter((alumno) =>
-      anioLegajoFiltro
-        ? alumno.legajoAnio === anioLegajoFiltro
-        : false
+      anioLegajoFiltro ? alumno.legajoAnio === anioLegajoFiltro : false,
     )
-    .sort((a, b) =>
-      Number(a.legajoNumero || 0) -
-      Number(b.legajoNumero || 0)
-    )
+    .sort((a, b) => Number(a.legajoNumero || 0) - Number(b.legajoNumero || 0));
 
   const alumnosPorMatriz = alumnosMatricula
     .filter((alumno) => {
-      const valor = String(alumno.folioMatriz || alumno.libroMatriz || "").trim()
-      const libro = valor.includes("/") ? valor.split("/")[0] : alumno.libroMatriz
+      const valor = String(
+        alumno.folioMatriz || alumno.libroMatriz || "",
+      ).trim();
+      const libro = valor.includes("/")
+        ? valor.split("/")[0]
+        : alumno.libroMatriz;
 
       return libroMatrizFiltro
         ? String(libro) === String(libroMatrizFiltro)
-        : false
+        : false;
     })
     .sort((a, b) => {
       const obtenerFolio = (alumno) => {
-        const valor = String(alumno.folioMatriz || alumno.libroMatriz || "").trim()
-        const partes = valor.split("/")
-        return Number(partes[1] || 999999)
-      }
+        const valor = String(
+          alumno.folioMatriz || alumno.libroMatriz || "",
+        ).trim();
+        const partes = valor.split("/");
+        return Number(partes[1] || 999999);
+      };
 
-      return obtenerFolio(a) - obtenerFolio(b)
-    })
+      return obtenerFolio(a) - obtenerFolio(b);
+    });
   const alumnosRecursantes = alumnosMatricula
     .filter((alumno) => alumno.condicionFinal === "Rec")
     .sort((a, b) => {
-      const cursoA = a.curso || ""
-      const cursoB = b.curso || ""
+      const cursoA = a.curso || "";
+      const cursoB = b.curso || "";
 
       if (cursoA !== cursoB) {
-        return cursoA.localeCompare(cursoB, "es")
+        return cursoA.localeCompare(cursoB, "es");
       }
 
       return `${a.apellido} ${a.nombre}`.localeCompare(
         `${b.apellido} ${b.nombre}`,
         "es",
-        { sensitivity: "base" }
-      )
-    })
+        { sensitivity: "base" },
+      );
+    });
 
   const alumnosSinLegajo = alumnosMatricula.filter(
-    (alumno) => !alumno.legajoNumero || !alumno.legajoAnio
-  )
+    (alumno) => !alumno.legajoNumero || !alumno.legajoAnio,
+  );
 
   const alumnosSinFechaNacimiento = alumnosMatricula.filter(
-    (alumno) => !alumno.fechaNacimiento
-  )
+    (alumno) => !alumno.fechaNacimiento,
+  );
 
   const alumnosConPrevias = alumnosMatricula.filter((alumno) => {
     const previasReales =
       alumno.materiasPendientes?.filter(
-        (previa) => previa.asignatura !== "----------"
-      ) || []
+        (previa) => previa.asignatura !== "----------",
+      ) || [];
 
-    return previasReales.length > 0
-  })
+    return previasReales.length > 0;
+  });
 
-  const alumnosConSobreedad = alumnosMatricula.filter(
-    (alumno) => tieneSobreedad(alumno)
-  )
+  const alumnosConSobreedad = alumnosMatricula.filter((alumno) =>
+    tieneSobreedad(alumno),
+  );
 
   const alumnosAlertaActiva =
     alertaActiva === "sinLegajo"
@@ -1255,23 +1251,21 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
           ? alumnosConPrevias
           : alertaActiva === "sobreedad"
             ? alumnosConSobreedad
-            : []
+            : [];
 
   const pedidosAnaliticosEncontrados = pedidosAnaliticos.filter((pedido) => {
-    const texto = normalizarTexto(busquedaAlumno) || ""
-    const dniBuscado = limpiarDNI(busquedaAlumno)
+    const texto = normalizarTexto(busquedaAlumno) || "";
+    const dniBuscado = limpiarDNI(busquedaAlumno);
 
-    const nombrePedido = normalizarTexto(pedido.nombre) || ""
-    const dniPedido = limpiarDNI(pedido.dni)
+    const nombrePedido = normalizarTexto(pedido.nombre) || "";
+    const dniPedido = limpiarDNI(pedido.dni);
 
-    const coincideNombre =
-      texto.length > 2 && nombrePedido.includes(texto)
+    const coincideNombre = texto.length > 2 && nombrePedido.includes(texto);
 
-    const coincideDni =
-      dniBuscado.length > 2 && dniPedido.includes(dniBuscado)
+    const coincideDni = dniBuscado.length > 2 && dniPedido.includes(dniBuscado);
 
-    return coincideNombre || coincideDni
-  })
+    return coincideNombre || coincideDni;
+  });
 
   const materiasPorAnio = {
     1: [
@@ -1282,7 +1276,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
       "Educación Física",
       "Construcción de la Ciudadanía",
       "Ciencias Naturales",
-      "Ciencias Sociales"
+      "Ciencias Sociales",
     ],
     2: [
       "Biología",
@@ -1294,7 +1288,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
       "Historia",
       "Inglés",
       "Matemática",
-      "Prácticas del Lenguaje"
+      "Prácticas del Lenguaje",
     ],
     3: [
       "Biología",
@@ -1306,7 +1300,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
       "Historia",
       "Inglés",
       "Matemática",
-      "Prácticas del Lenguaje"
+      "Prácticas del Lenguaje",
     ],
     4: [
       "Literatura",
@@ -1319,7 +1313,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
       "Biología",
       "Historia",
       "Geografía",
-      "Producción y Análisis de Imágenes"
+      "Producción y Análisis de Imágenes",
     ],
     5: [
       "Literatura",
@@ -1332,61 +1326,61 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
       "Geografía",
       "Art. Leng. Danza",
       "Imágenes y Nuevos Medios",
-      "Imágenes y Procedimientos"
-    ]
-  }
+      "Imágenes y Procedimientos",
+    ],
+  };
 
   function obtenerPreviasValidas(alumno) {
     return (alumno.materiasPendientes || []).filter(
-      (previa) =>
-        previa.asignatura &&
-        previa.asignatura !== "----------"
-    )
+      (previa) => previa.asignatura && previa.asignatura !== "----------",
+    );
   }
 
   function contarPrevias(alumno) {
-    return obtenerPreviasValidas(alumno).length
+    return obtenerPreviasValidas(alumno).length;
   }
 
   function debeTodasLasMaterias(alumno, anio) {
-    const previasValidas = obtenerPreviasValidas(alumno)
+    const previasValidas = obtenerPreviasValidas(alumno);
 
     const cantidadMateriasPorAnio = {
       1: 8,
       2: 10,
       3: 10,
       4: 11,
-      5: 11
-    }
+      5: 11,
+    };
 
     const obtenerNumeroAnio = (valor) => {
-      return Number(String(valor || "").replace("°", "").trim())
-    }
+      return Number(
+        String(valor || "")
+          .replace("°", "")
+          .trim(),
+      );
+    };
 
-    const resumenPorAnio = {}
+    const resumenPorAnio = {};
 
     previasValidas.forEach((previa) => {
-      const anioPrevia = obtenerNumeroAnio(previa.anio)
+      const anioPrevia = obtenerNumeroAnio(previa.anio);
 
-      if (!anioPrevia) return
+      if (!anioPrevia) return;
 
-      resumenPorAnio[anioPrevia] = (resumenPorAnio[anioPrevia] || 0) + 1
-    })
+      resumenPorAnio[anioPrevia] = (resumenPorAnio[anioPrevia] || 0) + 1;
+    });
 
     return Object.keys(resumenPorAnio).some((anioPrevia) => {
-      const cantidadAdeudada = resumenPorAnio[anioPrevia]
-      const totalMaterias = cantidadMateriasPorAnio[anioPrevia]
+      const cantidadAdeudada = resumenPorAnio[anioPrevia];
+      const totalMaterias = cantidadMateriasPorAnio[anioPrevia];
 
-      return totalMaterias && cantidadAdeudada >= totalMaterias
-    })
+      return totalMaterias && cantidadAdeudada >= totalMaterias;
+    });
   }
 
-
-
   function calcularRelevamientoPorAnio(anio) {
-    const alumnosDelAnio = alumnosMatricula.filter(
-      (alumno) => alumno.curso?.startsWith(String(anio))
-    )
+    const alumnosDelAnio = alumnosMatricula.filter((alumno) =>
+      alumno.curso?.startsWith(String(anio)),
+    );
 
     const resumen = {
       promocionaron: 0,
@@ -1403,56 +1397,58 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
       otros: 0,
 
       recursantes: 0,
-      recursantesVarones: 0
-    }
+      recursantesVarones: 0,
+    };
 
     alumnosDelAnio.forEach((alumno) => {
-      const cantidad = contarPrevias(alumno)
+      const cantidad = contarPrevias(alumno);
 
       if (debeTodasLasMaterias(alumno, anio)) {
-        resumen.todas++
+        resumen.todas++;
       } else if (cantidad === 0) {
-        resumen.promocionaron++
+        resumen.promocionaron++;
       } else if (cantidad <= 2) {
-        resumen.unaODos++
+        resumen.unaODos++;
       } else if (cantidad <= 4) {
-        resumen.tresOCuatro++
+        resumen.tresOCuatro++;
       } else {
-        resumen.cincoOMas++
+        resumen.cincoOMas++;
       }
 
       if (alumno.condicionFinal === "Rec") {
-        resumen.recursantes++
+        resumen.recursantes++;
 
         if (alumno.sexo === "Varón") {
-          resumen.recursantesVarones++
+          resumen.recursantesVarones++;
         }
       }
 
-      const nacionalidad = alumno.nacionalidad || ""
+      const nacionalidad = alumno.nacionalidad || "";
 
       if (nacionalidad && nacionalidad !== "Argentina") {
-        resumen.extranjeros++
+        resumen.extranjeros++;
       }
 
-      if (nacionalidad === "Boliviana") resumen.boliviana++
-      if (nacionalidad === "Paraguaya") resumen.paraguaya++
-      if (nacionalidad === "Peruana") resumen.peruana++
-      if (nacionalidad === "Chilena") resumen.chilena++
-      if (nacionalidad === "Otros") resumen.otros++
-    })
+      if (nacionalidad === "Boliviana") resumen.boliviana++;
+      if (nacionalidad === "Paraguaya") resumen.paraguaya++;
+      if (nacionalidad === "Peruana") resumen.peruana++;
+      if (nacionalidad === "Chilena") resumen.chilena++;
+      if (nacionalidad === "Otros") resumen.otros++;
+    });
 
-    return resumen
+    return resumen;
   }
 
-  const relevamientoInspeccion = calcularRelevamientoPorAnio(Number(anioRelevamiento))
+  const relevamientoInspeccion = calcularRelevamientoPorAnio(
+    Number(anioRelevamiento),
+  );
 
   function obtenerNumerosLegajoPorAnio(anio) {
     return alumnosMatricula
       .filter((alumno) => String(alumno.legajoAnio) === String(anio))
       .map((alumno) => Number(alumno.legajoNumero))
       .filter((numero) => !isNaN(numero))
-      .sort((a, b) => a - b)
+      .sort((a, b) => a - b);
   }
 
   function obtenerNumerosLegajoPorAnio(anio) {
@@ -1460,107 +1456,105 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
       .filter((alumno) => String(alumno.legajoAnio) === String(anio))
       .map((alumno) => Number(alumno.legajoNumero))
       .filter((numero) => !isNaN(numero))
-      .sort((a, b) => a - b)
+      .sort((a, b) => a - b);
   }
 
   function obtenerLegajosFaltantes(anio) {
-    const numeros = obtenerNumerosLegajoPorAnio(anio)
+    const numeros = obtenerNumerosLegajoPorAnio(anio);
 
-    if (numeros.length === 0) return []
+    if (numeros.length === 0) return [];
 
-    const menor = Math.min(...numeros)
-    const mayor = Math.max(...numeros)
+    const menor = Math.min(...numeros);
+    const mayor = Math.max(...numeros);
 
-    const faltantes = []
+    const faltantes = [];
 
     for (let numero = menor; numero <= mayor; numero++) {
       if (!numeros.includes(numero)) {
-        faltantes.push(numero)
+        faltantes.push(numero);
       }
     }
 
-    return faltantes
+    return faltantes;
   }
 
   function obtenerFoliosPorLibro(libro) {
     return alumnosMatricula
-      .map((alumno) => String(alumno.folioMatriz || alumno.libroMatriz || "").trim())
+      .map((alumno) =>
+        String(alumno.folioMatriz || alumno.libroMatriz || "").trim(),
+      )
       .filter((matriz) => matriz.includes("/"))
       .map((matriz) => {
-        const [libroNum, folioNum] = matriz.split("/")
+        const [libroNum, folioNum] = matriz.split("/");
         return {
           libro: libroNum,
-          folio: Number(folioNum)
-        }
+          folio: Number(folioNum),
+        };
       })
       .filter((item) => String(item.libro) === String(libro) && item.folio)
       .map((item) => item.folio)
-      .sort((a, b) => a - b)
+      .sort((a, b) => a - b);
   }
 
   function obtenerFoliosFaltantes(libro) {
-    const folios = obtenerFoliosPorLibro(libro)
+    const folios = obtenerFoliosPorLibro(libro);
 
-    if (folios.length === 0) return []
+    if (folios.length === 0) return [];
 
-    const menor = Math.min(...folios)
-    const mayor = Math.max(...folios)
-    const faltantes = []
+    const menor = Math.min(...folios);
+    const mayor = Math.max(...folios);
+    const faltantes = [];
 
     for (let folio = menor; folio <= mayor; folio++) {
       if (!folios.includes(folio)) {
-        faltantes.push(folio)
+        faltantes.push(folio);
       }
     }
 
-    return faltantes
+    return faltantes;
   }
 
-  const [busquedaDocumentacion, setBusquedaDocumentacion] = useState("")
-  const [cursoDocumentacion, setCursoDocumentacion] = useState("")
-  const [turnoDocumentacion, setTurnoDocumentacion] = useState("")
+  const [busquedaDocumentacion, setBusquedaDocumentacion] = useState("");
+  const [cursoDocumentacion, setCursoDocumentacion] = useState("");
+  const [turnoDocumentacion, setTurnoDocumentacion] = useState("");
 
   const alumnosDocumentacion = alumnosMatricula
     .filter((alumno) => alumno.estadoMatricula === "Activo")
     .filter((alumno) =>
-      cursoDocumentacion ? alumno.curso === cursoDocumentacion : true
+      cursoDocumentacion ? alumno.curso === cursoDocumentacion : true,
     )
     .filter((alumno) =>
-      turnoDocumentacion ? alumno.turno === turnoDocumentacion : true
+      turnoDocumentacion ? alumno.turno === turnoDocumentacion : true,
     )
     .filter((alumno) => {
-      const texto = `${alumno.apellido} ${alumno.nombre} ${alumno.dni}`.toLowerCase()
-      return texto.includes(busquedaDocumentacion.toLowerCase())
+      const texto =
+        `${alumno.apellido} ${alumno.nombre} ${alumno.dni}`.toLowerCase();
+      return texto.includes(busquedaDocumentacion.toLowerCase());
     })
     .sort((a, b) =>
       `${a.curso} ${a.turno} ${a.apellido}`.localeCompare(
         `${b.curso} ${b.turno} ${b.apellido}`,
-        "es"
-      )
-    )
-  const totalDocumentacion = alumnosDocumentacion.length
+        "es",
+      ),
+    );
+  const totalDocumentacion = alumnosDocumentacion.length;
 
   const dniFisicoCompletos = alumnosDocumentacion.filter(
-    (alumno) => alumno.dniFisico === "SI"
-  ).length
+    (alumno) => alumno.dniFisico === "SI",
+  ).length;
 
   const partidasCompletas = alumnosDocumentacion.filter(
-    (alumno) => alumno.partidaNacimiento === "SI"
-  ).length
+    (alumno) => alumno.partidaNacimiento === "SI",
+  ).length;
 
   const analiticosCompletos = alumnosDocumentacion.filter(
-    (alumno) => alumno.analiticoParcial === "SI"
-  ).length
-
-
+    (alumno) => alumno.analiticoParcial === "SI",
+  ).length;
 
   if (modoDocumentacion) {
     return (
       <div style={detalleCurso}>
-        <button
-          style={botonVolver}
-          onClick={volverInicio}
-        >
+        <button style={botonVolver} onClick={volverInicio}>
           Volver al inicio
         </button>
 
@@ -1568,19 +1562,44 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
           📁 Documentación
         </h2>
 
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: "10px",
-          marginBottom: "15px"
-        }}>
-          <div style={tarjetaResumen}>Total alumnos<br /><strong>{totalDocumentacion}</strong></div>
-          <div style={tarjetaResumen}>DNI físico<br /><strong>{dniFisicoCompletos}</strong></div>
-          <div style={tarjetaResumen}>Partidas<br /><strong>{partidasCompletas}</strong></div>
-          <div style={tarjetaResumen}>Analíticos<br /><strong>{analiticosCompletos}</strong></div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: "10px",
+            marginBottom: "15px",
+          }}
+        >
+          <div style={tarjetaResumen}>
+            Total alumnos
+            <br />
+            <strong>{totalDocumentacion}</strong>
+          </div>
+          <div style={tarjetaResumen}>
+            DNI físico
+            <br />
+            <strong>{dniFisicoCompletos}</strong>
+          </div>
+          <div style={tarjetaResumen}>
+            Partidas
+            <br />
+            <strong>{partidasCompletas}</strong>
+          </div>
+          <div style={tarjetaResumen}>
+            Analíticos
+            <br />
+            <strong>{analiticosCompletos}</strong>
+          </div>
         </div>
 
-        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "15px" }}>
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+            flexWrap: "wrap",
+            marginBottom: "15px",
+          }}
+        >
           <input
             style={inputAlumno}
             placeholder="Buscar por apellido, nombre o DNI"
@@ -1588,14 +1607,16 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
             onChange={(e) => setBusquedaDocumentacion(e.target.value)}
           />
 
-          <select 
+          <select
             style={inputAlumno}
             value={cursoDocumentacion}
             onChange={(e) => setCursoDocumentacion(e.target.value)}
           >
             <option value="">Todos los cursos</option>
             {[...cursosManana, ...cursosTarde].map((curso) => (
-              <option key={curso} value={curso}>{curso}</option>
+              <option key={curso} value={curso}>
+                {curso}
+              </option>
             ))}
           </select>
 
@@ -1646,7 +1667,11 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                     disabled={!esAdmin}
                     defaultValue={alumno.dniFisico || "NO"}
                     onChange={(e) =>
-                      actualizarDocumentacion(alumno, "dniFisico", e.target.value)
+                      actualizarDocumentacion(
+                        alumno,
+                        "dniFisico",
+                        e.target.value,
+                      )
                     }
                   >
                     <option value="NO">🟥 NO</option>
@@ -1659,7 +1684,11 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                     disabled={!esAdmin}
                     defaultValue={alumno.partidaNacimiento || "NO"}
                     onChange={(e) =>
-                      actualizarDocumentacion(alumno, "partidaNacimiento", e.target.value)
+                      actualizarDocumentacion(
+                        alumno,
+                        "partidaNacimiento",
+                        e.target.value,
+                      )
                     }
                   >
                     <option value="NO">🟥 NO</option>
@@ -1672,7 +1701,11 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                     disabled={!esAdmin}
                     defaultValue={alumno.analiticoParcial || "-----"}
                     onChange={(e) =>
-                      actualizarDocumentacion(alumno, "analiticoParcial", e.target.value)
+                      actualizarDocumentacion(
+                        alumno,
+                        "analiticoParcial",
+                        e.target.value,
+                      )
                     }
                   >
                     <option value="-----">⚪ -----</option>
@@ -1681,7 +1714,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                   </select>
                 </td>
                 <td style={celda}>
-                  <input 
+                  <input
                     disabled={!esAdmin}
                     style={{ ...inputAlumno, width: "160px" }}
                     placeholder="📝 Observación"
@@ -1690,7 +1723,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                       actualizarDocumentacion(
                         alumno,
                         "observacionDocumentacion",
-                        e.target.value
+                        e.target.value,
                       )
                     }
                   />
@@ -1700,18 +1733,14 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
           </tbody>
         </table>
       </div>
-    )
+    );
   }
 
   return (
     <div style={{ marginTop: "40px" }}>
-      <h2 style={{ color: "#1e3a5f" }}>
-        Gestión de Matrícula
-      </h2>
+      <h2 style={{ color: "#1e3a5f" }}>Gestión de Matrícula</h2>
 
-      <p style={{ color: "#666" }}>
-        Organización por turno, año y sección.
-      </p>
+      <p style={{ color: "#666" }}>Organización por turno, año y sección.</p>
 
       {!cursoSeleccionado && (
         <>
@@ -1750,22 +1779,34 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
             </h3>
 
             <div style={grillaAlertas}>
-              <div style={tarjetaAlerta} onClick={() => setAlertaActiva("sinLegajo")}>
+              <div
+                style={tarjetaAlerta}
+                onClick={() => setAlertaActiva("sinLegajo")}
+              >
                 <strong>Sin legajo</strong>
                 <p>{alumnosSinLegajo.length}</p>
               </div>
 
-              <div style={tarjetaAlerta} onClick={() => setAlertaActiva("sinFecha")}>
+              <div
+                style={tarjetaAlerta}
+                onClick={() => setAlertaActiva("sinFecha")}
+              >
                 <strong>Sin fecha nacimiento</strong>
                 <p>{alumnosSinFechaNacimiento.length}</p>
               </div>
 
-              <div style={tarjetaAlerta} onClick={() => setAlertaActiva("previas")}>
+              <div
+                style={tarjetaAlerta}
+                onClick={() => setAlertaActiva("previas")}
+              >
                 <strong>Con previas</strong>
                 <p>{alumnosConPrevias.length}</p>
               </div>
 
-              <div style={tarjetaAlerta} onClick={() => setAlertaActiva("sobreedad")}>
+              <div
+                style={tarjetaAlerta}
+                onClick={() => setAlertaActiva("sobreedad")}
+              >
                 <strong>Sobreedad</strong>
                 <p>{alumnosConSobreedad.length}</p>
               </div>
@@ -1774,9 +1815,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
 
           {alertaActiva && (
             <div style={detalleCurso}>
-              <h3 style={{ color: "#1e3a5f" }}>
-                🚨 Listado de alerta
-              </h3>
+              <h3 style={{ color: "#1e3a5f" }}>🚨 Listado de alerta</h3>
 
               <button style={botonVolver} onClick={() => setAlertaActiva("")}>
                 Cerrar alerta
@@ -1811,13 +1850,18 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                           : "-"}
                       </td>
                       <td style={celda}>
-                        {alertaActiva === "sinLegajo" && "Falta número o año de legajo"}
+                        {alertaActiva === "sinLegajo" &&
+                          "Falta número o año de legajo"}
 
-                        {alertaActiva === "sinFecha" && "Falta fecha de nacimiento"}
+                        {alertaActiva === "sinFecha" &&
+                          "Falta fecha de nacimiento"}
 
                         {alertaActiva === "previas" &&
                           alumno.materiasPendientes
-                            ?.map((previa) => `${previa.asignatura} (${previa.anio})`)
+                            ?.map(
+                              (previa) =>
+                                `${previa.asignatura} (${previa.anio})`,
+                            )
                             .join(", ")}
 
                         {alertaActiva === "sobreedad" &&
@@ -1834,7 +1878,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
               style={{
                 color: "#1e3a5f",
                 marginBottom: "10px",
-                marginTop: "0px"
+                marginTop: "0px",
               }}
             >
               🔎 Buscar estudiante
@@ -1850,11 +1894,11 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
 
             {busquedaAlumno && (
               <div style={listaResultadosBusqueda}>
-
                 {alumnosEncontrados.map((alumno) => {
-                  const pedidoAnalitico = pedidosAnaliticos.find((pedido) =>
-                    limpiarDNI(pedido.dni) === limpiarDNI(alumno.dni)
-                  )
+                  const pedidoAnalitico = pedidosAnaliticos.find(
+                    (pedido) =>
+                      limpiarDNI(pedido.dni) === limpiarDNI(alumno.dni),
+                  );
 
                   return (
                     <div key={alumno._id} style={itemResultadoBusqueda}>
@@ -1869,11 +1913,13 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
 
                         {pedidoAnalitico && (
                           <div style={alertaAnalitico}>
-                            📄 Pedido de analítico encontrado
+                            📄 Pedido de analítico encontrado 
                             <br />
                             Estado: {pedidoAnalitico.estado || "-"}
                             <br />
-                            Libro: {pedidoAnalitico.libro || "-"} | Folio: {pedidoAnalitico.folio || "-"} | Carpeta: {pedidoAnalitico.carpeta || "-"}
+                            Libro: {pedidoAnalitico.libro || "-"} | Folio:{" "}
+                            {pedidoAnalitico.folio || "-"} | Carpeta:{" "}
+                            {pedidoAnalitico.carpeta || "-"}
                           </div>
                         )}
                       </div>
@@ -1883,9 +1929,9 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                         onClick={() => {
                           setCursoSeleccionado({
                             curso: alumno.curso,
-                            turno: alumno.turno
-                          })
-                          editarAlumno(alumno)
+                            turno: alumno.turno,
+                          });
+                          editarAlumno(alumno);
                         }}
                       >
                         ✏️
@@ -1894,22 +1940,22 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                       <button
                         style={botonMover}
                         onClick={() => {
-                          setAlumnoSeleccionado(alumno)
+                          setAlumnoSeleccionado(alumno);
 
                           setTimeout(() => {
                             document
                               .getElementById("ficha-estudiante")
                               ?.scrollIntoView({
                                 behavior: "smooth",
-                                block: "start"
-                              })
-                          }, 100)
+                                block: "start",
+                              });
+                          }, 100);
                         }}
                       >
                         📖
                       </button>
                     </div>
-                  )
+                  );
                 })}
 
                 {pedidosAnaliticosEncontrados.map((pedido) => (
@@ -1922,7 +1968,8 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                     <br />
                     Estado: {pedido.estado || "-"}
                     <br />
-                    Libro: {pedido.libro || "-"} | Folio: {pedido.folio || "-"} | Carpeta: {pedido.carpeta || "-"}
+                    Libro: {pedido.libro || "-"} | Folio: {pedido.folio || "-"}{" "}
+                    | Carpeta: {pedido.carpeta || "-"}
                   </div>
                 ))}
 
@@ -1930,29 +1977,23 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                   pedidosAnaliticosEncontrados.length === 0 && (
                     <p>No se encontraron estudiantes.</p>
                   )}
-
               </div>
             )}
           </div>
 
           {alumnoSeleccionado && (
             <div id="ficha-estudiante" style={detalleCurso}>
-
               <div style={tituloFicha}>
-                <h2 style={{ margin: 0 }}>
-                  📖 Ficha del estudiante
-                </h2>
+                <h2 style={{ margin: 0 }}>📖 Ficha del estudiante</h2>
               </div>
 
-
-
               <div style={grillaFicha}>
-
                 <div style={campoFicha}>
                   <strong>Apellido y nombre</strong>
                   <br />
                   <span style={nombreFicha}>
-                    {alumnoSeleccionado.apellido || ""} {alumnoSeleccionado.nombre || ""}
+                    {alumnoSeleccionado.apellido || ""}{" "}
+                    {alumnoSeleccionado.nombre || ""}
                   </span>
                 </div>
 
@@ -1975,7 +2016,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                   <strong>Legajo</strong>
                   <p>
                     {alumnoSeleccionado.legajoNumero &&
-                      alumnoSeleccionado.legajoAnio
+                    alumnoSeleccionado.legajoAnio
                       ? `${alumnoSeleccionado.legajoNumero}/${alumnoSeleccionado.legajoAnio}`
                       : "Sin cargar"}
                   </p>
@@ -1984,7 +2025,8 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                 <div style={campoFicha}>
                   <strong>Libro/Folio</strong>
                   <p>
-                    {alumnoSeleccionado.libroMatriz && alumnoSeleccionado.folioMatriz
+                    {alumnoSeleccionado.libroMatriz &&
+                    alumnoSeleccionado.folioMatriz
                       ? `${alumnoSeleccionado.libroMatriz}/${alumnoSeleccionado.folioMatriz}`
                       : alumnoSeleccionado.folioMatriz
                         ? alumnoSeleccionado.folioMatriz
@@ -1992,7 +2034,6 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                           ? alumnoSeleccionado.libroMatriz
                           : "Sin cargar"}
                   </p>
-
                 </div>
 
                 <div style={campoFicha}>
@@ -2000,8 +2041,8 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                   <p>
                     {alumnoSeleccionado.fechaNacimiento
                       ? calcularEdadAl30Junio(
-                        alumnoSeleccionado.fechaNacimiento
-                      ) + " años"
+                          alumnoSeleccionado.fechaNacimiento,
+                        ) + " años"
                       : "Sin cargar"}
                   </p>
                 </div>
@@ -2017,21 +2058,20 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                     {(() => {
                       const previasReales =
                         alumnoSeleccionado.materiasPendientes?.filter(
-                          (previa) => previa.asignatura !== "----------"
-                        ) || []
+                          (previa) => previa.asignatura !== "----------",
+                        ) || [];
 
                       return previasReales.length > 0
                         ? previasReales
-                          .map(
-                            (previa) =>
-                              `${previa.asignatura} (${previa.anio})`
-                          )
-                          .join(", ")
-                        : "Ninguna"
+                            .map(
+                              (previa) =>
+                                `${previa.asignatura} (${previa.anio})`,
+                            )
+                            .join(", ")
+                        : "Ninguna";
                     })()}
                   </p>
                 </div>
-
               </div>
 
               <div style={{ textAlign: "center", marginTop: "20px" }}>
@@ -2041,17 +2081,11 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                 >
                   Cerrar ficha
                 </button>
-
-
-
               </div>
-
             </div>
           )}
 
-          <h3 style={tituloFicha}>
-            🛠 Herramientas de gestión
-          </h3>
+          <h3 style={tituloFicha}>🛠 Herramientas de gestión</h3>
 
           <div style={panelHerramientas}>
             <div
@@ -2059,16 +2093,16 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                 display: "flex",
                 justifyContent: "center",
                 gap: "10px",
-                flexWrap: "wrap"
+                flexWrap: "wrap",
               }}
             >
               <button
                 style={botonImprimir}
                 onClick={() => {
-                  setVerPlanillaPrevias(!verPlanillaPrevias)
-                  setMateriaExamen("")
-                  setAnioExamen("")
-                  setTurnoExamen("")
+                  setVerPlanillaPrevias(!verPlanillaPrevias);
+                  setMateriaExamen("");
+                  setAnioExamen("");
+                  setTurnoExamen("");
                 }}
               >
                 📝 Ver Planilla Previas
@@ -2098,12 +2132,10 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    marginBottom: "10px"
+                    marginBottom: "10px",
                   }}
                 >
-                  <h3 style={{ margin: 0 }}>
-                    📊 Relevamiento para Inspección
-                  </h3>
+                  <h3 style={{ margin: 0 }}>📊 Relevamiento para Inspección</h3>
 
                   <button
                     style={botonImprimir}
@@ -2126,26 +2158,73 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                   <option value="6">6° año</option>
                 </select>
 
-                <div style={{ marginTop: "12px", textAlign: "left", lineHeight: "1.8" }}>
-                  <p>✅ Promocionaron sin deber materias: <strong>{relevamientoInspeccion.promocionaron}</strong></p>
-                  <p>📘 Adeudan 1 o 2 materias: <strong>{relevamientoInspeccion.unaODos}</strong></p>
-                  <p>📙 Adeudan 3 o 4 materias: <strong>{relevamientoInspeccion.tresOCuatro}</strong></p>
-                  <p>📕 Adeudan 5 o más materias: <strong>{relevamientoInspeccion.cincoOMas}</strong></p>
-                  <p>⚠️ Adeudan todas las materias: <strong>{relevamientoInspeccion.todas}</strong></p>
+                <div
+                  style={{
+                    marginTop: "12px",
+                    textAlign: "left",
+                    lineHeight: "1.8",
+                  }}
+                >
+                  <p>
+                    ✅ Promocionaron sin deber materias:{" "}
+                    <strong>{relevamientoInspeccion.promocionaron}</strong>
+                  </p>
+                  <p>
+                    📘 Adeudan 1 o 2 materias:{" "}
+                    <strong>{relevamientoInspeccion.unaODos}</strong>
+                  </p>
+                  <p>
+                    📙 Adeudan 3 o 4 materias:{" "}
+                    <strong>{relevamientoInspeccion.tresOCuatro}</strong>
+                  </p>
+                  <p>
+                    📕 Adeudan 5 o más materias:{" "}
+                    <strong>{relevamientoInspeccion.cincoOMas}</strong>
+                  </p>
+                  <p>
+                    ⚠️ Adeudan todas las materias:{" "}
+                    <strong>{relevamientoInspeccion.todas}</strong>
+                  </p>
 
                   <hr style={{ margin: "12px 0" }} />
 
-                  <p>🌎 Extranjeros: <strong>{relevamientoInspeccion.extranjeros}</strong></p>
-                  <p> Boliviana: <strong>{relevamientoInspeccion.boliviana}</strong></p>
-                  <p> Paraguaya: <strong>{relevamientoInspeccion.paraguaya}</strong></p>
-                  <p> Peruana: <strong>{relevamientoInspeccion.peruana}</strong></p>
-                  <p> Chilena: <strong>{relevamientoInspeccion.chilena}</strong></p>
-                  <p> Otros: <strong>{relevamientoInspeccion.otros}</strong></p>
+                  <p>
+                    🌎 Extranjeros:{" "}
+                    <strong>{relevamientoInspeccion.extranjeros}</strong>
+                  </p>
+                  <p>
+                    {" "}
+                    Boliviana:{" "}
+                    <strong>{relevamientoInspeccion.boliviana}</strong>
+                  </p>
+                  <p>
+                    {" "}
+                    Paraguaya:{" "}
+                    <strong>{relevamientoInspeccion.paraguaya}</strong>
+                  </p>
+                  <p>
+                    {" "}
+                    Peruana: <strong>{relevamientoInspeccion.peruana}</strong>
+                  </p>
+                  <p>
+                    {" "}
+                    Chilena: <strong>{relevamientoInspeccion.chilena}</strong>
+                  </p>
+                  <p>
+                    {" "}
+                    Otros: <strong>{relevamientoInspeccion.otros}</strong>
+                  </p>
 
                   <hr style={{ margin: "12px 0" }} />
 
-                  <p>🔁 Recursantes: <strong>{relevamientoInspeccion.recursantes}</strong></p>
-                  <p>👦 Recursantes varones: <strong>{relevamientoInspeccion.recursantesVarones}</strong></p>
+                  <p>
+                    🔁 Recursantes:{" "}
+                    <strong>{relevamientoInspeccion.recursantes}</strong>
+                  </p>
+                  <p>
+                    👦 Recursantes varones:{" "}
+                    <strong>{relevamientoInspeccion.recursantesVarones}</strong>
+                  </p>
                 </div>
               </div>
             )}
@@ -2204,30 +2283,41 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
 
                       <p>
                         Legajos faltantes:{" "}
-                        <strong>{obtenerLegajosFaltantes(anioLegajoFiltro).length}</strong>
+                        <strong>
+                          {obtenerLegajosFaltantes(anioLegajoFiltro).length}
+                        </strong>
                       </p>
 
                       <button
                         style={botonImprimir}
-                        onClick={() => setMostrarLegajosArchivo(!mostrarLegajosArchivo)}
+                        onClick={() =>
+                          setMostrarLegajosArchivo(!mostrarLegajosArchivo)
+                        }
                       >
-                        {mostrarLegajosArchivo ? "Ocultar legajos" : "Ver legajos"}
+                        {mostrarLegajosArchivo
+                          ? "Ocultar legajos"
+                          : "Ver legajos"}
                       </button>
 
                       {mostrarLegajosArchivo && (
-                        <div style={{
-                          marginTop: "12px",
-                          padding: "12px",
-                          border: "1px solid #c7dde3",
-                          borderRadius: "10px",
-                          backgroundColor: "#f7fafb"
-                        }}>
-                          {obtenerLegajosFaltantes(anioLegajoFiltro).length === 0 ? (
+                        <div
+                          style={{
+                            marginTop: "12px",
+                            padding: "12px",
+                            border: "1px solid #c7dde3",
+                            borderRadius: "10px",
+                            backgroundColor: "#f7fafb",
+                          }}
+                        >
+                          {obtenerLegajosFaltantes(anioLegajoFiltro).length ===
+                          0 ? (
                             <p>No hay legajos faltantes.</p>
                           ) : (
                             <p>
                               {obtenerLegajosFaltantes(anioLegajoFiltro)
-                                .map((numero) => `${numero}/${anioLegajoFiltro}`)
+                                .map(
+                                  (numero) => `${numero}/${anioLegajoFiltro}`,
+                                )
                                 .join(" - ")}
                             </p>
                           )}
@@ -2243,7 +2333,8 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                       </h3>
 
                       <p>
-                        Cantidad de registros del libro {libroMatrizFiltro}: {alumnosPorMatriz.length}
+                        Cantidad de registros del libro {libroMatrizFiltro}:{" "}
+                        {alumnosPorMatriz.length}
                       </p>
 
                       <table style={tabla}>
@@ -2262,7 +2353,9 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                           {alumnosPorMatriz.map((alumno) => (
                             <tr key={alumno._id}>
                               <td style={celda}>
-                                {alumno.folioMatriz || alumno.libroMatriz || "-"}
+                                {alumno.folioMatriz ||
+                                  alumno.libroMatriz ||
+                                  "-"}
                               </td>
 
                               <td style={celda}>
@@ -2295,29 +2388,38 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
 
                       <p>
                         Folios faltantes:{" "}
-                        <strong>{obtenerFoliosFaltantes(libroMatrizFiltro).length}</strong>
+                        <strong>
+                          {obtenerFoliosFaltantes(libroMatrizFiltro).length}
+                        </strong>
                       </p>
 
                       <button
                         style={botonImprimir}
-                        onClick={() => setMostrarMatrizArchivo(!mostrarMatrizArchivo)}
+                        onClick={() =>
+                          setMostrarMatrizArchivo(!mostrarMatrizArchivo)
+                        }
                       >
                         {mostrarMatrizArchivo ? "Ocultar folios" : "Ver folios"}
                       </button>
 
                       {mostrarMatrizArchivo && (
-                        <div style={{
-                          marginTop: "12px",
-                          padding: "12px",
-                          border: "1px solid #c7dde3",
-                          borderRadius: "10px",
-                          backgroundColor: "#f7fafb"
-                        }}>
-                          {obtenerFoliosFaltantes(libroMatrizFiltro).length === 0 ? (
+                        <div
+                          style={{
+                            marginTop: "12px",
+                            padding: "12px",
+                            border: "1px solid #c7dde3",
+                            borderRadius: "10px",
+                            backgroundColor: "#f7fafb",
+                          }}
+                        >
+                          {obtenerFoliosFaltantes(libroMatrizFiltro).length ===
+                          0 ? (
                             <p>No hay folios faltantes.</p>
                           ) : (
                             <p>
-                              {obtenerFoliosFaltantes(libroMatrizFiltro).join(" - ")}
+                              {obtenerFoliosFaltantes(libroMatrizFiltro).join(
+                                " - ",
+                              )}
                             </p>
                           )}
                         </div>
@@ -2333,7 +2435,9 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                   📋 Planilla de examen: PREVIAS
                 </h3>
 
-                <div style={{ display: "flex", gap: "10px", marginBottom: "15px" }}>
+                <div
+                  style={{ display: "flex", gap: "10px", marginBottom: "15px" }}
+                >
                   <select
                     style={inputAlumno}
                     value={materiaExamen}
@@ -2400,14 +2504,16 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                       {alumnosParaExamen.map((alumno) =>
                         alumno.materiasPendientes
                           .filter((previa) => {
-                            if (previa.asignatura === "----------") return false
+                            if (previa.asignatura === "----------")
+                              return false;
                             const coincideMateria =
-                              !materiaExamen || previa.asignatura === materiaExamen
+                              !materiaExamen ||
+                              previa.asignatura === materiaExamen;
 
                             const coincideAnio =
-                              !anioExamen || previa.anio === anioExamen
+                              !anioExamen || previa.anio === anioExamen;
 
-                            return coincideMateria && coincideAnio
+                            return coincideMateria && coincideAnio;
                           })
                           .map((previa, index) => (
                             <tr key={`${alumno._id}-${index}`}>
@@ -2420,7 +2526,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                               <td style={celda}>{previa.asignatura}</td>
                               <td style={celda}>{previa.anio}</td>
                             </tr>
-                          ))
+                          )),
                       )}
                     </tbody>
                   </table>
@@ -2431,10 +2537,13 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                     display: "flex",
                     gap: "12px",
                     justifyContent: "center",
-                    marginTop: "10px"
+                    marginTop: "10px",
                   }}
                 >
-                  <button style={botonImprimir} onClick={imprimirPlanillaPrevias}>
+                  <button
+                    style={botonImprimir}
+                    onClick={imprimirPlanillaPrevias}
+                  >
                     🖨️ Imprimir planilla
                   </button>
 
@@ -2452,7 +2561,8 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                 </h3>
 
                 <p>
-                  Cantidad de legajos {anioLegajoFiltro}: {alumnosPorLegajo.length}
+                  Cantidad de legajos {anioLegajoFiltro}:{" "}
+                  {alumnosPorLegajo.length}
                 </p>
 
                 <table style={tabla}>
@@ -2490,9 +2600,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
 
             {verRecursantes && (
               <div style={detalleCurso}>
-                <h3 style={{ color: "#1e3a5f" }}>
-                  🔁 Estudiantes recursantes
-                </h3>
+                <h3 style={{ color: "#1e3a5f" }}>🔁 Estudiantes recursantes</h3>
 
                 <p>Total de recursantes: {alumnosRecursantes.length}</p>
 
@@ -2537,7 +2645,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                     cursor: "pointer",
                     display: "flex",
                     justifyContent: "space-between",
-                    alignItems: "center"
+                    alignItems: "center",
                   }}
                 >
                   <span>📚 Turno Mañana</span>
@@ -2558,7 +2666,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                             ? `linear-gradient(rgba(255,255,255,0.50), rgba(255,255,255,0.50)), url(${fotosPreceptores[`${curso}-Mañana`]})`
                             : "none",
                           backgroundSize: "cover",
-                          backgroundPosition: "center"
+                          backgroundPosition: "center",
                         }}
                       >
                         <h4>{curso}</h4>
@@ -2572,7 +2680,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                           onClick={() =>
                             setCursoSeleccionado({
                               curso,
-                              turno: "Mañana"
+                              turno: "Mañana",
                             })
                           }
                         >
@@ -2592,7 +2700,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                     cursor: "pointer",
                     display: "flex",
                     justifyContent: "space-between",
-                    alignItems: "center"
+                    alignItems: "center",
                   }}
                 >
                   <span>📚 Turno Tarde</span>
@@ -2613,7 +2721,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                             ? `linear-gradient(rgba(255,255,255,0.50), rgba(255,255,255,0.50)), url(${fotosPreceptores[`${curso}-Tarde`]})`
                             : "none",
                           backgroundSize: "cover",
-                          backgroundPosition: "center"
+                          backgroundPosition: "center",
                         }}
                       >
                         <h4>{curso}</h4>
@@ -2627,7 +2735,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                           onClick={() =>
                             setCursoSeleccionado({
                               curso,
-                              turno: "Tarde"
+                              turno: "Tarde",
                             })
                           }
                         >
@@ -2636,7 +2744,6 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                       </div>
                     ))}
                   </div>
-
                 )}
               </div>
             </div>
@@ -2644,11 +2751,13 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
         </>
       )}
 
-
       {cursoSeleccionado && (
         <div style={detalleCurso} className="area-impresion">
           <div className="no-print">
-            <button style={botonVolver} onClick={() => setCursoSeleccionado(null)}>
+            <button
+              style={botonVolver}
+              onClick={() => setCursoSeleccionado(null)}
+            >
               Volver a todos los cursos
             </button>
 
@@ -2677,11 +2786,10 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                   gap: "4px",
                   cursor: "pointer",
                   fontSize: "12px",
-                  lineHeight: "1.6"
+                  lineHeight: "1.6",
                 }}
               >
                 📂 Cargar Excel
-
                 <input
                   type="file"
                   accept=".xls,.xlsx"
@@ -2691,8 +2799,6 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
               </label>
             )}
           </div>
-
-
 
           <div id="curso-imprimir">
             <h3 style={{ color: "#1e3a5f" }}>
@@ -2711,12 +2817,16 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
 
                   <div style={tarjetaEstadistica}>
                     <h3>Prom</h3>
-                    <p>{totalProm} ({porcentajeProm}%)</p>
+                    <p>
+                      {totalProm} ({porcentajeProm}%)
+                    </p>
                   </div>
 
                   <div style={tarjetaEstadistica}>
                     <h3>Rec</h3>
-                    <p>{totalRec} ({porcentajeRec}%)</p>
+                    <p>
+                      {totalRec} ({porcentajeRec}%)
+                    </p>
                   </div>
 
                   <div style={tarjetaEstadistica}>
@@ -2739,7 +2849,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                   style={{
                     ...tarjetaEstadistica,
                     maxWidth: "180px",
-                    margin: "20px auto 10px auto"
+                    margin: "20px auto 10px auto",
                   }}
                 >
                   <h3>Sobreedad</h3>
@@ -2749,9 +2859,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
             )}
 
             <div style={bloqueEdades}>
-              <h3 style={{ color: "#1e3a5f" }}>
-                Edades del curso
-              </h3>
+              <h3 style={{ color: "#1e3a5f" }}>Edades del curso</h3>
 
               <div style={grillaEdades}>
                 {Object.entries(edadesDelCurso)
@@ -2766,209 +2874,204 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
             </div>
           </div>
 
-
-        {esAdmin && (
-          <div
-            id="formulario-matricula"
-            style={formularioAlumno}
-            className="no-print"
-          >
-            <input
-              placeholder="Apellido"
-              style={inputAlumno}
-              value={nuevoAlumno.apellido}
-              onChange={(e) =>
-                setNuevoAlumno({ ...nuevoAlumno, apellido: e.target.value })
-              }
-            />
-
-            <input
-              placeholder="Nombre"
-              style={inputAlumno}
-              value={nuevoAlumno.nombre}
-              onChange={(e) =>
-                setNuevoAlumno({ ...nuevoAlumno, nombre: e.target.value })
-              }
-            />
-
-            <input
-              placeholder="DNI"
-              style={inputAlumno}
-              value={nuevoAlumno.dni}
-              onChange={(e) =>
-                setNuevoAlumno({ ...nuevoAlumno, dni: e.target.value })
-              }
-            />
-
-            <input
-              placeholder="N° legajo"
-              style={inputAlumno}
-              value={nuevoAlumno.legajoNumero}
-              onChange={(e) =>
-                setNuevoAlumno({ ...nuevoAlumno, legajoNumero: e.target.value })
-              }
-            />
-
-            <input
-              placeholder="Año legajo"
-              style={inputAlumno}
-              value={nuevoAlumno.legajoAnio}
-              onChange={(e) =>
-                setNuevoAlumno({ ...nuevoAlumno, legajoAnio: e.target.value })
-              }
-            />
-
-            <select
-              style={inputAlumno}
-              value={nuevoAlumno.nacionalidad}
-              onChange={(e) =>
-                setNuevoAlumno({
-                  ...nuevoAlumno,
-                  nacionalidad: e.target.value
-                })
-              }
+          {esAdmin && (
+            <div
+              id="formulario-matricula"
+              style={formularioAlumno}
+              className="no-print"
             >
-              <option value="">Nacionalidad</option>
-              <option value="Argentina">Argentina</option>
-              <option value="Boliviana">Boliviana</option>
-              <option value="Paraguaya">Paraguaya</option>
-              <option value="Peruana">Peruana</option>
-              <option value="Chilena">Chilena</option>
-              <option value="Otros">Otros</option>
-            </select>
+              <input
+                placeholder="Apellido"
+                style={inputAlumno}
+                value={nuevoAlumno.apellido}
+                onChange={(e) =>
+                  setNuevoAlumno({ ...nuevoAlumno, apellido: e.target.value })
+                }
+              />
 
-            <select
-              style={inputAlumno}
-              value={nuevoAlumno.sexo}
-              onChange={(e) =>
-                setNuevoAlumno({
-                  ...nuevoAlumno,
-                  sexo: e.target.value
-                })
-              }
-            >
-              <option value="">Sexo</option>
-              <option value="Mujer">Mujer</option>
-              <option value="Varón">Varón</option>
-            </select>
+              <input
+                placeholder="Nombre"
+                style={inputAlumno}
+                value={nuevoAlumno.nombre}
+                onChange={(e) =>
+                  setNuevoAlumno({ ...nuevoAlumno, nombre: e.target.value })
+                }
+              />
 
+              <input
+                placeholder="DNI"
+                style={inputAlumno}
+                value={nuevoAlumno.dni}
+                onChange={(e) =>
+                  setNuevoAlumno({ ...nuevoAlumno, dni: e.target.value })
+                }
+              />
 
-            <input
-              placeholder="Folio matriz"
-              style={inputAlumno}
-              value={nuevoAlumno.folioMatriz}
-              onChange={(e) =>
-                setNuevoAlumno({
-                  ...nuevoAlumno,
-                  folioMatriz: e.target.value
-                })
-              }
-            />
+              <input
+                placeholder="N° legajo"
+                style={inputAlumno}
+                value={nuevoAlumno.legajoNumero}
+                onChange={(e) =>
+                  setNuevoAlumno({
+                    ...nuevoAlumno,
+                    legajoNumero: e.target.value,
+                  })
+                }
+              />
 
-            <input
-              type="date"
-              style={inputAlumno}
-              value={nuevoAlumno.fechaNacimiento}
-              onChange={(e) =>
-                setNuevoAlumno({ ...nuevoAlumno, fechaNacimiento: e.target.value })
-              }
-            />
+              <input
+                placeholder="Año legajo"
+                style={inputAlumno}
+                value={nuevoAlumno.legajoAnio}
+                onChange={(e) =>
+                  setNuevoAlumno({ ...nuevoAlumno, legajoAnio: e.target.value })
+                }
+              />
 
-            <div style={bloquePrevias}>
               <select
                 style={inputAlumno}
-                value={previaSeleccionada}
-                onChange={(e) => setPreviaSeleccionada(e.target.value)}
+                value={nuevoAlumno.nacionalidad}
+                onChange={(e) =>
+                  setNuevoAlumno({
+                    ...nuevoAlumno,
+                    nacionalidad: e.target.value,
+                  })
+                }
               >
-                <option value="">Asignatura</option>
-                {asignaturas.map((asignatura) => (
-                  <option key={asignatura} value={asignatura}>
-                    {asignatura}
-                  </option>
-                ))}
+                <option value="">Nacionalidad</option>
+                <option value="Argentina">Argentina</option>
+                <option value="Boliviana">Boliviana</option>
+                <option value="Paraguaya">Paraguaya</option>
+                <option value="Peruana">Peruana</option>
+                <option value="Chilena">Chilena</option>
+                <option value="Otros">Otros</option>
               </select>
 
               <select
                 style={inputAlumno}
-                value={anioPrevia}
-                onChange={(e) => setAnioPrevia(e.target.value)}
+                value={nuevoAlumno.sexo}
+                onChange={(e) =>
+                  setNuevoAlumno({
+                    ...nuevoAlumno,
+                    sexo: e.target.value,
+                  })
+                }
               >
-                <option value="">Año</option>
-                {aniosMateria.map((anio) => (
-                  <option key={anio} value={anio}>
-                    {anio}
-                  </option>
-                ))}
+                <option value="">Sexo</option>
+                <option value="Mujer">Mujer</option>
+                <option value="Varón">Varón</option>
+              </select>
+
+              <input
+                placeholder="Folio matriz"
+                style={inputAlumno}
+                value={nuevoAlumno.folioMatriz}
+                onChange={(e) =>
+                  setNuevoAlumno({
+                    ...nuevoAlumno,
+                    folioMatriz: e.target.value,
+                  })
+                }
+              />
+
+              <input
+                type="date"
+                style={inputAlumno}
+                value={nuevoAlumno.fechaNacimiento}
+                onChange={(e) =>
+                  setNuevoAlumno({
+                    ...nuevoAlumno,
+                    fechaNacimiento: e.target.value,
+                  })
+                }
+              />
+
+              <div style={bloquePrevias}>
+                <select
+                  style={inputAlumno}
+                  value={previaSeleccionada}
+                  onChange={(e) => setPreviaSeleccionada(e.target.value)}
+                >
+                  <option value="">Asignatura</option>
+                  {asignaturas.map((asignatura) => (
+                    <option key={asignatura} value={asignatura}>
+                      {asignatura}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  style={inputAlumno}
+                  value={anioPrevia}
+                  onChange={(e) => setAnioPrevia(e.target.value)}
+                >
+                  <option value="">Año</option>
+                  {aniosMateria.map((anio) => (
+                    <option key={anio} value={anio}>
+                      {anio}
+                    </option>
+                  ))}
+                </select>
+
+                <button
+                  type="button"
+                  style={botonAgregarPrevia}
+                  onClick={agregarPrevia}
+                >
+                  Agregar previa
+                </button>
+
+                <div style={listaPreviasInline}>
+                  {nuevoAlumno.materiasPendientes.map((previa, index) => (
+                    <div key={index} style={chipPrevia}>
+                      {previa.asignatura} ({previa.anio})
+                      <button
+                        type="button"
+                        style={botonEliminar}
+                        onClick={() => eliminarPrevia(index)}
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <select
+                value={nuevoAlumno.condicionFinal}
+                onChange={(e) =>
+                  setNuevoAlumno({
+                    ...nuevoAlumno,
+                    condicionFinal: e.target.value,
+                  })
+                }
+              >
+                <option value="">Seleccionar condición</option>
+
+                <option value="Ingresante">Ingresante al nivel</option>
+
+                <option value="Reinscripto">Reinscripto</option>
+
+                <option value="Prom">Prom</option>
+
+                <option value="Rec">Rec</option>
               </select>
 
               <button
-                type="button"
-                style={botonAgregarPrevia}
-                onClick={agregarPrevia}
+                style={botonAgregar}
+                onClick={guardarAlumnoMatricula}
+                disabled={guardando}
               >
-                Agregar previa
+                {guardando
+                  ? "Guardando..."
+                  : alumnoEditando
+                    ? "Guardar cambios"
+                    : "Agregar estudiante"}
               </button>
 
-              <div style={listaPreviasInline}>
-                {nuevoAlumno.materiasPendientes.map((previa, index) => (
-                  <div key={index} style={chipPrevia}>
-                    {previa.asignatura} ({previa.anio})
-
-                    <button
-                      type="button"
-                      style={botonEliminar}
-                      onClick={() => eliminarPrevia(index)}
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                ))}
-              </div>
+              <button style={botonVolver} onClick={limpiarFormulario}>
+                Limpiar formulario
+              </button>
             </div>
-            <select
-              value={nuevoAlumno.condicionFinal}
-              onChange={(e) =>
-                setNuevoAlumno({
-                  ...nuevoAlumno,
-                  condicionFinal: e.target.value
-                })
-              }
-            >
-              <option value="">Seleccionar condición</option>
-
-              <option value="Ingresante">
-                Ingresante al nivel
-              </option>
-
-              <option value="Reinscripto">
-                Reinscripto
-              </option>
-
-              <option value="Prom">
-                Prom
-              </option>
-
-              <option value="Rec">
-                Rec
-              </option>
-            </select>
-
-            <button
-              style={botonAgregar}
-              onClick={guardarAlumnoMatricula}
-              disabled={guardando}
-            >
-              {guardando
-                ? "Guardando..."
-                : alumnoEditando
-                  ? "Guardar cambios"
-                  : "Agregar estudiante"}
-            </button>
-
-            <button style={botonVolver} onClick={limpiarFormulario}>
-              Limpiar formulario
-            </button>
-          </div>
           )}
 
           {alumnoMoviendo && (
@@ -3017,14 +3120,14 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
             style={{
               display: "flex",
               gap: "10px",
-              marginBottom: "15px"
+              marginBottom: "15px",
             }}
           >
             <button
               style={botonVolver}
               onClick={() => {
-                setFiltroPrevia("")
-                setFiltroAnioPrevia("")
+                setFiltroPrevia("");
+                setFiltroAnioPrevia("");
               }}
             >
               Limpiar filtros
@@ -3047,7 +3150,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
               marginBottom: "5px",
               fontWeight: "bold",
               color: "#1e3a5f",
-              textAlign: "center"
+              textAlign: "center",
             }}
           >
             Filtro avanzado
@@ -3065,7 +3168,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
               width: "220px",
               display: "block",
               marginLeft: "auto",
-              marginRight: "auto"
+              marginRight: "auto",
             }}
           >
             <option value="todos">Todos</option>
@@ -3074,13 +3177,9 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
             <option value="previas">Con previas</option>
             <option value="sinLegajo">Sin legajo</option>
             <option value="sobreedad">Sobreedad</option>
-            <option value="ingresante">
-              Ingresantes
-            </option>
+            <option value="ingresante">Ingresantes</option>
 
-            <option value="reinscripto">
-              Reinscriptos
-            </option>
+            <option value="reinscripto">Reinscriptos</option>
           </select>
 
           <div style={tablaResponsive}>
@@ -3096,13 +3195,9 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                   <th style={celda}>Nacionalidad</th>
                   <th style={celda}>Sexo</th>
                   <th style={celda}>Libro/Folio</th>
-                  <th style={{ ...celda, width: "95px" }}>
-                    Fecha nacimiento
-                  </th>
+                  <th style={{ ...celda, width: "95px" }}>Fecha nacimiento</th>
                   <th style={{ ...celda, width: "55px" }}>Edad</th>
-                  <th style={{ ...celda, width: "240px" }}>
-                    Pendientes
-                  </th>
+                  <th style={{ ...celda, width: "240px" }}>Pendientes</th>
                   <th style={{ ...celda, width: "65px" }}>Cond.</th>
                   <th style={{ ...celda, width: "140px" }}>Acciones</th>
                 </tr>
@@ -3122,7 +3217,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                     key={alumno._id}
                     style={{
                       backgroundColor:
-                        alumno.sexo === "Varón" ? "#eeeeee" : "white"
+                        alumno.sexo === "Varón" ? "#eeeeee" : "white",
                     }}
                   >
                     <td style={celda}>
@@ -3137,14 +3232,9 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                         : "-"}
                     </td>
 
-                    <td style={celda}>
-                      {String(alumno.nacionalidad || "-")}
-                    </td>
+                    <td style={celda}>{String(alumno.nacionalidad || "-")}</td>
 
-                    <td style={celda}>
-                      {String(alumno.sexo || "-")}
-                    </td>
-
+                    <td style={celda}>{String(alumno.sexo || "-")}</td>
 
                     <td style={celda}>
                       {alumno.libroMatriz && alumno.folioMatriz
@@ -3170,13 +3260,12 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                     <td style={celda}>
                       {Array.isArray(alumno.materiasPendientes)
                         ? alumno.materiasPendientes
-                          .map(
-                            (previa) =>
+                            .map((previa) =>
                               previa.asignatura === "----------"
                                 ? "----------"
-                                : `${previa.asignatura} (${previa.anio})`
-                          )
-                          .join(", ")
+                                : `${previa.asignatura} (${previa.anio})`,
+                            )
+                            .join(", ")
                         : ""}
                     </td>
 
@@ -3185,57 +3274,86 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                     <td
                       style={{
                         ...celda,
-                        whiteSpace: "nowrap"
+                        whiteSpace: "nowrap",
                       }}
-                      className="no-print"
+                     
                     >
-                      {esAdmin && (
-                        <>
-                          <button
-                            style={botonEditar}
-                            onClick={() => editarAlumno(alumno)}
-                          >
-                            ✏️
-                          </button>
+                      <button
+                        style={{
+                          ...botonEditar,
+                          opacity: esAdmin ? 1 : 0.45,
+                          cursor: esAdmin ? "pointer" : "not-allowed",
+                        }}
+                        
+                        onClick={() => esAdmin && editarAlumno(alumno)}
+                        title={
+                          esAdmin
+                            ? "Editar estudiante"
+                            : "Solo el administrador puede editar"
+                        }
+                      >
+                        ✏️
+                      </button>
 
-                          <button
-                            style={botonMover}
-                            onClick={() => {
-                              prepararMovimiento(alumno)
+                      <button
+                        style={{
+                          ...botonMover,
+                          opacity: esAdmin ? 1 : 0.45,
+                          cursor: esAdmin ? "pointer" : "not-allowed",
+                        }}
+                        
+                        onClick={() => {
+                          if (!esAdmin) return;
 
-                              setTimeout(() => {
-                                document
-                                  .getElementById("movimiento-matricula")
-                                  ?.scrollIntoView({
-                                    behavior: "smooth",
-                                    block: "start"
-                                  })
-                              }, 100)
-                            }}
-                          >
-                            🔁
-                          </button>
+                          prepararMovimiento(alumno);
 
-                          <button
-                            style={botonEliminar}
-                            onClick={() => eliminarAlumnoMatricula(alumno._id)}
-                          >
-                            🗑️
-                          </button>
-                        </>
-                      )}
+                          setTimeout(() => {
+                            document
+                              .getElementById("movimiento-matricula")
+                              ?.scrollIntoView({
+                                behavior: "smooth",
+                                block: "start",
+                              });
+                          }, 100);
+                        }}
+                        title={
+                          esAdmin
+                            ? "Mover estudiante"
+                            : "Solo el administrador puede mover estudiantes"
+                        }
+                      >
+                        🔁
+                      </button>
+
+                      <button
+                        style={{
+                          ...botonEliminar,
+                          opacity: esAdmin ? 1 : 0.45,
+                          cursor: esAdmin ? "pointer" : "not-allowed",
+                        }}
+                        
+                        onClick={() =>
+                          esAdmin && eliminarAlumnoMatricula(alumno._id)
+                        }
+                        title={
+                          esAdmin
+                            ? "Eliminar estudiante"
+                            : "Solo el administrador puede eliminar"
+                        }
+                      >
+                        🗑️
+                      </button>
                     </td>
                   </tr>
-                ))} 
+                ))}
               </tbody>
             </table>
           </div>
         </div>
       )}
     </div>
-  )
+  );
 }
-
 
 const bloqueTurno = {
   backgroundColor: "#eef7f6",
@@ -3243,35 +3361,35 @@ const bloqueTurno = {
   padding: "18px 24px",
   borderRadius: "26px",
   boxShadow: "0 8px 22px rgba(0,0,0,0.08)",
-  marginBottom: "22px"
-}
+  marginBottom: "22px",
+};
 
 const tituloTurno = {
   color: "#0f766e",
   marginBottom: "10px",
   fontSize: "21px",
   textAlign: "center",
-  fontWeight: "bold"
-}
+  fontWeight: "bold",
+};
 
 const grillaCursos = {
   display: "grid",
   gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-  gap: "10px"
-}
+  gap: "10px",
+};
 
 const tarjetaCurso = {
   backgroundColor: "white",
   padding: "18px",
   borderRadius: "14px",
   boxShadow: "0 3px 8px rgba(0,0,0,0.08)",
-  textAlign: "center"
-}
+  textAlign: "center",
+};
 
 const textoCantidad = {
   color: "#666",
-  fontSize: "14px"
-}
+  fontSize: "14px",
+};
 
 const botonCurso = {
   backgroundColor: "#0f766e",
@@ -3280,16 +3398,16 @@ const botonCurso = {
   padding: "8px 12px",
   borderRadius: "8px",
   cursor: "pointer",
-  transition: "0.2s"
-}
+  transition: "0.2s",
+};
 
 const detalleCurso = {
   marginTop: "35px",
   backgroundColor: "white",
   padding: "25px",
   borderRadius: "15px",
-  boxShadow: "0 3px 8px rgba(0,0,0,0.08)"
-}
+  boxShadow: "0 3px 8px rgba(0,0,0,0.08)",
+};
 
 const botonVolver = {
   backgroundColor: "#e9f5f5",
@@ -3299,8 +3417,8 @@ const botonVolver = {
   borderRadius: "8px",
   cursor: "pointer",
   marginBottom: "15px",
-  fontWeight: "bold"
-}
+  fontWeight: "bold",
+};
 
 const formularioAlumno = {
   display: "grid",
@@ -3308,15 +3426,15 @@ const formularioAlumno = {
   gap: "14px",
   marginBottom: "22px",
   marginTop: "22px",
-  alignItems: "center"
-}
+  alignItems: "center",
+};
 const inputAlumno = {
   padding: "12px",
   borderRadius: "8px",
   border: "1px solid #ccc",
   minWidth: "0",
-  width: "92%"
-}
+  width: "92%",
+};
 
 const botonAgregar = {
   backgroundColor: "#4cb3aa",
@@ -3326,30 +3444,29 @@ const botonAgregar = {
   cursor: "pointer",
   fontWeight: "bold",
   gridColumn: "auto",
-  padding: "8px 20px"
-
-}
+  padding: "8px 20px",
+};
 
 const tabla = {
   width: "100%",
   minWidth: "850px",
   borderCollapse: "collapse",
-  marginTop: "15px"
-}
+  marginTop: "15px",
+};
 
 const celda = {
   border: "1px solid #ddd",
   padding: "8px",
   textAlign: "center",
-  fontSize: "13px"
-}
+  fontSize: "13px",
+};
 const bloquePrevias = {
   display: "grid",
   gridTemplateColumns: "2fr 90px 130px 1fr",
   gap: "8px",
   alignItems: "center",
-  gridColumn: "1 / 5"
-}
+  gridColumn: "1 / 5",
+};
 
 const listaPreviasInline = {
   display: "flex",
@@ -3357,9 +3474,8 @@ const listaPreviasInline = {
   gap: "6px",
   alignItems: "center",
   gridColumn: "1 / -1",
-  marginTop: "4px"
-}
-
+  marginTop: "4px",
+};
 
 const chipPrevia = {
   backgroundColor: "#eef7f6",
@@ -3369,8 +3485,8 @@ const chipPrevia = {
   fontSize: "12px",
   display: "flex",
   alignItems: "center",
-  gap: "6px"
-}
+  gap: "6px",
+};
 
 const botonEditar = {
   backgroundColor: "#dbe7f5",
@@ -3380,8 +3496,8 @@ const botonEditar = {
   borderRadius: "10px",
   cursor: "pointer",
   fontWeight: "bold",
-  marginRight: "4px"
-}
+  marginRight: "4px",
+};
 
 const botonEliminar = {
   backgroundColor: "#f7dede",
@@ -3391,8 +3507,8 @@ const botonEliminar = {
   borderRadius: "10px",
   cursor: "pointer",
   fontWeight: "bold",
-  marginRight: "4px"
-}
+  marginRight: "4px",
+};
 const botonAgregarPrevia = {
   backgroundColor: "#e9eef5",
   color: "#1e3a5f",
@@ -3400,8 +3516,8 @@ const botonAgregarPrevia = {
   borderRadius: "8px",
   cursor: "pointer",
   fontWeight: "bold",
-  padding: "10px"
-}
+  padding: "10px",
+};
 const botonImprimir = {
   backgroundColor: "#e9eef5",
   color: "#1e3a5f",
@@ -3411,8 +3527,8 @@ const botonImprimir = {
   cursor: "pointer",
   fontWeight: "bold",
   marginLeft: "8px",
-  marginBottom: "15px"
-}
+  marginBottom: "15px",
+};
 
 const botonMover = {
   backgroundColor: "#eef5ee",
@@ -3422,23 +3538,23 @@ const botonMover = {
   borderRadius: "10px",
   cursor: "pointer",
   fontWeight: "bold",
-  marginRight: "4px"
-}
+  marginRight: "4px",
+};
 
 const bloqueMovimiento = {
   backgroundColor: "#f8fafc",
   border: "1px solid #dbe4ee",
   borderRadius: "12px",
   padding: "15px",
-  marginBottom: "20px"
-}
+  marginBottom: "20px",
+};
 const bloqueEstadisticas = {
   display: "grid",
   gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
   gap: "15px",
   marginTop: "20px",
-  marginBottom: "20px"
-}
+  marginBottom: "20px",
+};
 
 const tarjetaEstadistica = {
   backgroundColor: "#f8fafc",
@@ -3446,24 +3562,24 @@ const tarjetaEstadistica = {
   borderRadius: "16px",
   padding: "18px",
   textAlign: "center",
-  boxShadow: "0 3px 8px rgba(0,0,0,0.05)"
-}
+  boxShadow: "0 3px 8px rgba(0,0,0,0.05)",
+};
 const alertaSobreedad = {
   marginLeft: "6px",
-  fontSize: "13px"
-}
+  fontSize: "13px",
+};
 const bloqueEdades = {
   marginTop: "20px",
   marginBottom: "15px",
-  textAlign: "center"
-}
+  textAlign: "center",
+};
 
 const grillaEdades = {
   display: "grid",
   gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))",
   gap: "10px",
-  marginTop: "10px"
-}
+  marginTop: "10px",
+};
 
 const tarjetaEdad = {
   backgroundColor: "#f8fafc",
@@ -3471,24 +3587,24 @@ const tarjetaEdad = {
   borderRadius: "14px",
   padding: "12px",
   textAlign: "center",
-  boxShadow: "0 2px 6px rgba(0,0,0,0.05)"
-}
+  boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+};
 const mensajeNoEncontrado = {
   backgroundColor: "#fff3cd",
   padding: "12px",
   borderRadius: "10px",
   color: "#856404",
   marginBottom: "15px",
-  textAlign: "center"
-}
+  textAlign: "center",
+};
 const bloqueBusquedaGeneral = {
   backgroundColor: "#c2edf3",
   border: "2px solid #cfe3e8",
   borderRadius: "14px",
   padding: "4px",
   marginBottom: "20px",
-  boxShadow: "0 3px 8px rgba(0,0,0,0.05)"
-}
+  boxShadow: "0 3px 8px rgba(0,0,0,0.05)",
+};
 
 const inputBusquedaPrincipal = {
   width: "90%",
@@ -3496,14 +3612,14 @@ const inputBusquedaPrincipal = {
   padding: "10px",
   border: "2px solid #bfd4dc",
   borderRadius: "10px",
-  fontSize: "15px"
-}
+  fontSize: "15px",
+};
 
 const listaResultadosBusqueda = {
   display: "flex",
   flexDirection: "column",
-  gap: "10px"
-}
+  gap: "10px",
+};
 
 const itemResultadoBusqueda = {
   backgroundColor: "white",
@@ -3512,17 +3628,16 @@ const itemResultadoBusqueda = {
   padding: "12px",
   display: "flex",
   justifyContent: "space-between",
-  alignItems: "center"
-}
+  alignItems: "center",
+};
 const bloqueLegajos = {
   backgroundColor: "#f8fafc",
   border: "1px solid #dbe4ee",
   borderRadius: "18px",
   padding: "20px",
   marginBottom: "25px",
-  boxShadow: "0 3px 8px rgba(0,0,0,0.05)"
-}
-
+  boxShadow: "0 3px 8px rgba(0,0,0,0.05)",
+};
 
 const panelHerramientas = {
   backgroundColor: "#ffffff",
@@ -3531,8 +3646,8 @@ const panelHerramientas = {
   padding: "14px",
   marginTop: "20px",
   marginBottom: "20px",
-  boxShadow: "0 8px 18px rgba(0,0,0,0.08)"
-}
+  boxShadow: "0 8px 18px rgba(0,0,0,0.08)",
+};
 
 const bloqueHerramienta = {
   backgroundColor: "#f8fbff",
@@ -3540,8 +3655,8 @@ const bloqueHerramienta = {
   borderRadius: "14px",
   padding: "12px",
   boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
-  textAlign: "center"
-}
+  textAlign: "center",
+};
 
 const panelAlertas = {
   backgroundColor: "#fff7ed",
@@ -3549,14 +3664,14 @@ const panelAlertas = {
   borderRadius: "18px",
   padding: "18px",
   marginBottom: "20px",
-  boxShadow: "0 3px 8px rgba(0,0,0,0.05)"
-}
+  boxShadow: "0 3px 8px rgba(0,0,0,0.05)",
+};
 
 const grillaAlertas = {
   display: "grid",
   gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-  gap: "12px"
-}
+  gap: "12px",
+};
 
 const tarjetaAlerta = {
   backgroundColor: "white",
@@ -3567,8 +3682,8 @@ const tarjetaAlerta = {
   boxShadow: "0 2px 6px rgba(0,0,0,0.04)",
   cursor: "pointer",
   transition: "0.2s",
-  transform: "scale(1)"
-}
+  transform: "scale(1)",
+};
 const grillaFicha = {
   display: "grid",
   gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
@@ -3578,16 +3693,16 @@ const grillaFicha = {
   border: "2px solid #c7dde3",
   borderRadius: "18px",
   padding: "25px",
-  boxShadow: "0 8px 18px rgba(0,0,0,0.08)"
-}
+  boxShadow: "0 8px 18px rgba(0,0,0,0.08)",
+};
 
 const campoFicha = {
   backgroundColor: "#f8fbff",
   border: "1px solid #dbeafe",
   borderRadius: "14px",
   padding: "16px",
-  boxShadow: "0 2px 6px rgba(0,0,0,0.05)"
-}
+  boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+};
 const tituloFicha = {
   backgroundColor: "#eaf6f8",
   borderLeft: "5px solid #167a7f",
@@ -3595,8 +3710,8 @@ const tituloFicha = {
   padding: "12px",
   marginBottom: "20px",
   textAlign: "center",
-  color: "#1e3a5f"
-}
+  color: "#1e3a5f",
+};
 const alertaAnalitico = {
   backgroundColor: "#fff7ed",
   border: "1px solid #fdba74",
@@ -3605,8 +3720,8 @@ const alertaAnalitico = {
   borderRadius: "10px",
   fontWeight: "bold",
   marginTop: "8px",
-  fontSize: "13px"
-}
+  fontSize: "13px",
+};
 const botonCerrarFicha = {
   backgroundColor: "#e9f5f5",
   color: "#1e5f5c",
@@ -3615,26 +3730,26 @@ const botonCerrarFicha = {
   borderRadius: "8px",
   cursor: "pointer",
   fontWeight: "bold",
-  boxShadow: "0 2px 6px rgba(0,0,0,0.06)"
-}
+  boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
+};
 const nombreFicha = {
   display: "inline-block",
   marginTop: "6px",
   fontSize: "16px",
   color: "#1e3a5f",
-  fontWeight: "bold"
-}
+  fontWeight: "bold",
+};
 const tablaResponsive = {
   width: "100%",
-  overflowX: "auto"
-}
+  overflowX: "auto",
+};
 
 const contenedorTurnos = {
   display: "flex",
   flexDirection: "column",
   gap: "18px",
-  marginTop: "25px"
-}
+  marginTop: "25px",
+};
 const tarjetaResumen = {
   backgroundColor: "#f7fafb",
   border: "1px solid #c7dde3",
@@ -3642,5 +3757,5 @@ const tarjetaResumen = {
   padding: "12px",
   textAlign: "center",
   color: "#1e3a5f",
-  fontWeight: "bold"
-}
+  fontWeight: "bold",
+};
