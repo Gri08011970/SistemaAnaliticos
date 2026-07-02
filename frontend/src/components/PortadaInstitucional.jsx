@@ -277,7 +277,7 @@ const botonEntrar = {
   padding: "12px 28px",
   border: "none",
   borderRadius: "999px",
-  background: "#0f766e",
+  background: "#8c52a7",
   color: "white",
   fontWeight: "bold",
   cursor: "pointer",
