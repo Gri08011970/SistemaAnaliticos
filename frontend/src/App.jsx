@@ -366,6 +366,7 @@ export default function App() {
               <p> carga, seguimiento, estados y planilla de eleve.</p>
 
               <button
+                className="boton-sistema boton-principal"
                 style={botonMenu}
                 onClick={() => setSeccionActiva("nuevo")}
               >
@@ -389,6 +390,7 @@ export default function App() {
             <div style={tarjetaInicio} className="tarjeta-inicio">
               <h3>📋 Parte Diario Automático</h3>
               <p>Matrícula por turno, curso, sexo y totales institucionales.</p>
+              
 
               <button
                 className="boton-sistema boton-principal"
@@ -404,6 +406,7 @@ export default function App() {
               <p>DNI, Partida de Nacimiento y Analítico parcial.</p>
 
               <button
+                className="boton-sistema boton-principal"
                 style={botonMenu}
                 onClick={() => setSeccionActiva("documentacion")}
               >
@@ -437,6 +440,7 @@ export default function App() {
                 }}
               >
                 <button
+                  className="boton-sistema boton-principal"
                   onClick={() => esAdmin && setSeccionActiva("formulario")}
                   disabled={!esAdmin}
                   title={
@@ -454,6 +458,7 @@ export default function App() {
                 </button>
 
                 <button
+                  className="boton-sistema boton-principal"
                   onClick={() => {
                     setDniBusqueda("");
                     setApellidoBusqueda("");
@@ -465,11 +470,16 @@ export default function App() {
                   Ver Lista Completa
                 </button>
 
-                <button onClick={generarPlanillaElevacion} style={botonMenu}>
+                <button
+                  className="boton-sistema boton-principal"
+                  onClick={generarPlanillaElevacion}
+                  style={botonMenu}
+                >
                   Planilla de Eleve
                 </button>
 
                 <button
+                  className="boton-sistema boton-principal"
                   onClick={() => setSeccionActiva("estadisticas")}
                   style={botonMenu}
                 >
@@ -477,6 +487,7 @@ export default function App() {
                 </button>
 
                 <button
+                  className="boton-sistema boton-volver"
                   onClick={() => setSeccionActiva("inicio")}
                   style={botonVolver}
                 >
@@ -488,8 +499,9 @@ export default function App() {
         {(seccionActiva === "matricula" || seccionActiva === "parteDiario") && (
           <div style={{ marginBottom: "20px" }}>
             <button
+              className="boton-sistema boton-volver"
               onClick={() => setSeccionActiva("inicio")}
-              style={botonMenu}
+              style={botonVolver}
             >
               Volver al inicio
             </button>
@@ -529,13 +541,20 @@ export default function App() {
                 marginBottom: "15px",
               }}
             >
-              <button style={botonMenu} onClick={() => window.print()}>
+              <button
+                className="boton-sistema boton-imprimir"
+                style={botonMenu}
+                onClick={() => window.print()}
+              >
                 🖨️ Imprimir Parte Diario
               </button>
             </div>
 
             <h2 style={tituloParteDiario}>📋 Parte Diario Automático</h2>
-
+              <p>
+               Fecha de impresión:
+               {new Date().toLocaleString("es-AR")}
+              </p>
             <div style={grillaParteDiario}>
               <div>
                 <h3 style={subtituloParte}>Turno Mañana</h3>
@@ -840,6 +859,7 @@ export default function App() {
             fechaHasta={fechaHasta}
             setFechaHasta={setFechaHasta}
             estudiantesPorPeriodo={estudiantesPorPeriodo}
+            esAdmin={esAdmin} 
           />
         )}
         {seccionActiva === "eleve" && (
@@ -906,25 +926,28 @@ const botonMenu = {
   backgroundColor: "#19766f",
   color: "white",
   border: "none",
+  minHeight: "38px",
   padding: "10px 16px",
   borderRadius: "10px",
   cursor: "pointer",
   fontWeight: "bold",
   fontSize: "13px",
-  transition: "0.2s",
-  boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+  transition: "all 0.25s ease",
+  boxShadow: "0 3px 8px rgba(0,0,0,0.12)",
 };
 
 const botonVolver = {
   backgroundColor: "#9e7ac0",
   color: "white",
   border: "none",
+  minHeight: "38px",
   padding: "10px 16px",
   borderRadius: "10px",
   cursor: "pointer",
   fontWeight: "bold",
   fontSize: "13px",
-  boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+  transition: "all 0.25s ease",
+  boxShadow: "0 3px 8px rgba(0,0,0,0.12)",
 };
 
 const contenedorInicio = {

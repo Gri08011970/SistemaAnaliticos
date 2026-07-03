@@ -791,7 +791,10 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
         </h3>
 
         <p>Cantidad de estudiantes: ${alumnosParaImprimir.length}</p>
-
+         <p style="margin-bottom:20px;font-size:14px;">
+         Fecha de impresión:
+         ${new Date().toLocaleString("es-AR")}
+        </p>
         <table>
           <thead>
             <tr>
@@ -1050,7 +1053,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
     <html>
       <head>
         <title>Planilla de examen por previas</title>
-
+        
         <style>
           body {
             font-family: Arial, sans-serif;
@@ -1101,6 +1104,16 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
       </head>
 
       <body>
+      <p style="
+      text-align:right;
+      font-size:13px;
+      margin-bottom:20px;
+      color:#555;
+  ">
+    Fecha de impresión:
+    ${new Date().toLocaleString("es-AR")}
+  </p>
+
         ${contenido.innerHTML}
 
         <div class="firmas">
@@ -1114,6 +1127,253 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
     ventana.document.close();
     ventana.print();
   }
+
+  function imprimirRecursantes() {
+
+  const ventana = window.open("", "_blank");
+
+  ventana.document.write(`
+  <html>
+  <head>
+
+  <title>Recursantes</title>
+
+  <style>
+
+  body{
+      font-family:Arial,sans-serif;
+      padding:30px;
+  }
+
+  h2{
+      text-align:center;
+      color:#1e3a5f;
+  }
+
+  table{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:20px;
+  }
+
+  th,td{
+      border:1px solid #444;
+      padding:8px;
+      text-align:center;
+  }
+
+  th{
+      background:#1e3a5f;
+      color:white;
+  }
+
+  </style>
+
+  </head>
+
+  <body>
+
+  <h2>Listado de estudiantes recursantes</h2>
+
+  <p style="text-align:right">
+  Fecha de impresión:
+  ${new Date().toLocaleString("es-AR")}
+  </p>
+
+  <table>
+
+  <thead>
+
+  <tr>
+
+  <th>Apellido y Nombre</th>
+  <th>DNI</th>
+  <th>Curso</th>
+  <th>Turno</th>
+
+  </tr>
+
+  </thead>
+
+  <tbody>
+
+  ${alumnosRecursantes
+    .map(
+      (a)=>`
+
+      <tr>
+
+      <td>${a.apellido}, ${a.nombre}</td>
+
+      <td>${formatearDNI(a.dni)}</td>
+
+      <td>${a.curso}</td>
+
+      <td>${a.turno}</td>
+
+      </tr>
+
+      `
+    )
+    .join("")}
+
+  </tbody>
+
+  </table>
+
+  </body>
+
+  </html>
+  `);
+
+  ventana.document.close();
+  ventana.print();
+
+}
+
+function imprimirDocumentacion(){
+
+const ventana=window.open("","_blank");
+
+ventana.document.write(`
+
+<html>
+
+<head>
+
+<title>Documentación</title>
+
+<style>
+
+body{
+
+font-family:Arial,sans-serif;
+
+padding:30px;
+
+}
+
+table{
+
+width:100%;
+
+border-collapse:collapse;
+
+margin-top:20px;
+
+font-size:12px;
+
+}
+
+th,td{
+
+border:1px solid #444;
+
+padding:6px;
+
+text-align:center;
+
+}
+
+th{
+
+background:#1e3a5f;
+
+color:white;
+
+}
+
+h2{
+
+text-align:center;
+
+color:#1e3a5f;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>Control de documentación</h2>
+
+<p style="text-align:right">
+
+Fecha de impresión:
+
+${new Date().toLocaleString("es-AR")}
+
+</p>
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Curso</th>
+
+<th>Apellido y Nombre</th>
+
+<th>DNI</th>
+
+<th>Legajo</th>
+
+<th>DNI físico</th>
+
+<th>Partida</th>
+
+<th>Analítico</th>
+
+<th>Observaciones</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+${alumnosDocumentacion.map(a=>`
+
+<tr>
+
+<td>${a.curso}</td>
+
+<td>${a.apellido}, ${a.nombre}</td>
+
+<td>${formatearDNI(a.dni)}</td>
+
+<td>${a.legajoNumero || ""}/${a.legajoAnio || ""}</td>
+
+<td>${a.dniFisico || ""}</td>
+
+<td>${a.partidaNacimiento || ""}</td>
+
+<td>${a.analiticoParcial || ""}</td>
+
+<td>${a.observacionDocumentacion || ""}</td>
+
+</tr>
+
+`).join("")}
+
+</tbody>
+
+</table>
+
+</body>
+
+</html>
+
+`);
+
+ventana.document.close();
+
+ventana.print();
+
+}
 
   function tieneSobreedad(alumno) {
     if (!alumno.fechaNacimiento || !alumno.curso) return false;
@@ -1626,6 +1886,16 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
             <option value="Tarde">Turno Tarde</option>
           </select>
         </div>
+         <div
+        style={{
+          textAlign: "center",
+          marginBottom: "20px",
+        }}
+      >
+        <button style={botonImprimir} onClick={imprimirDocumentacion}>
+          🖨️ Imprimir documentación
+        </button>
+      </div>
 
         <table style={tabla}>
           <thead>
@@ -2119,6 +2389,12 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
               >
                 🔁 {verRecursantes ? "Ocultar recursantes" : "Ver recursantes"}
               </button>
+
+              {verRecursantes && (
+                <button style={botonImprimir} onClick={imprimirRecursantes}>
+                  🖨️ Imprimir recursantes
+                </button>
+              )}
             </div>
 
             {mostrarRelevamiento && (
@@ -3551,12 +3827,11 @@ const tarjetaEstadistica = {
   borderRadius: "16px",
   padding: "18px",
   textAlign: "center",
-  boxShadow:"0 10px 24px rgba(22,58,95,0.18)",
+  boxShadow: "0 10px 24px rgba(22,58,95,0.18)",
 };
 const alertaSobreedad = {
   marginLeft: "6px",
   fontSize: "13px",
-  
 };
 const bloqueEdades = {
   marginTop: "20px",

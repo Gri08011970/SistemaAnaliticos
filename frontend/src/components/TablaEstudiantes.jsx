@@ -18,6 +18,7 @@ export default function TablaEstudiantes({
   fechaHasta,
   setFechaHasta,
   estudiantesPorPeriodo,
+  esAdmin,
 }) {
   const [mostrarPeriodo, setMostrarPeriodo] = useState(false);
 
@@ -120,6 +121,10 @@ export default function TablaEstudiantes({
       <body>
         <h2>Lista de analíticos</h2>
         <p>Filtro aplicado: ${estadoFiltro}</p>
+        <p style="margin-bottom:20px;font-size:14px;">
+        Fecha de impresión:
+        ${new Date().toLocaleString("es-AR")}
+        </p>
 
         <table>
           <thead>
@@ -216,9 +221,9 @@ export default function TablaEstudiantes({
                 Hasta
                 <input
                   type="date"
-                  value={fechaDesde}
+                  value={fechaHasta}
                   max={new Date().toISOString().split("T")[0]}
-                  onChange={(e) => setFechaDesde(e.target.value)}
+                  onChange={(e) => setFechaHasta(e.target.value)}
                   style={inputPeriodo}
                 />
               </label>
@@ -353,19 +358,37 @@ export default function TablaEstudiantes({
                 {!modoImprimirLista && (
                   <td style={{ ...estiloCelda, whiteSpace: "nowrap" }}>
                     <button
-                      onClick={() => editarEstudiante(alumno)}
-                      style={botonEditar}
+                      onClick={() => esAdmin && editarEstudiante(alumno)}
+                      disabled={!esAdmin}
+                      style={{
+                        ...botonEditar,
+                        opacity: esAdmin ? 1 : 0.45,
+                        cursor: esAdmin ? "pointer" : "not-allowed",
+                      }}
                       className="boton-accion"
-                      title="Editar pedido"
+                      title={
+                        esAdmin
+                          ? "Editar pedido"
+                          : "Solo el administrador puede editar"
+                      }
                     >
                       ✏️
                     </button>
 
                     <button
-                      onClick={() => eliminarEstudiante(alumno._id)}
-                      style={botonEliminar}
+                      onClick={() => esAdmin && eliminarEstudiante(alumno._id)}
+                      disabled={!esAdmin}
+                      style={{
+                        ...botonEliminar,
+                        opacity: esAdmin ? 1 : 0.45,
+                        cursor: esAdmin ? "pointer" : "not-allowed",
+                      }}
                       className="boton-accion"
-                      title="Eliminar pedido"
+                      title={
+                        esAdmin
+                          ? "Eliminar pedido"
+                          : "Solo el administrador puede eliminar"
+                      }
                     >
                       🗑️
                     </button>
