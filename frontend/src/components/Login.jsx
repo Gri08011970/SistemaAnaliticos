@@ -89,12 +89,13 @@ const tarjeta = {
   backgroundColor: "rgba(255,255,255,0.96)",
   padding: "34px",
   borderRadius: "24px",
-  boxShadow: "0 12px 30px rgba(0,0,0,0.16)",
+  boxShadow: "0 20px 60px rgba(30,58,95,.18)",
   width: "380px",
   display: "flex",
   flexDirection: "column",
   gap: "15px",
-  border: "1px solid #c7dde3"
+  border: "2px solid #c7dde3",
+  backdropFilter: "blur(4px)" 
 }
 
 const titulo = {

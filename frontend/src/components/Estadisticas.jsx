@@ -1,100 +1,72 @@
 import { useState } from "react"
 
-export default function Estadisticas({
-  estudiantes = []
-}) {
+export default function Estadisticas({ estudiantes = [] }) {
   const [mostrar, setMostrar] = useState(true)
+  const lista = Array.isArray(estudiantes) ? estudiantes : []
 
-  const listaEstudiantes = Array.isArray(estudiantes)
-    ? estudiantes
-    : []
-
-  const pendientes = listaEstudiantes.filter(
-    (alumno) => alumno.estado === "Pendiente"
-  ).length
-
-  const jefatura = listaEstudiantes.filter(
-    (alumno) => alumno.estado === "En Jefatura"
-  ).length
-
-  const paraEntregar = listaEstudiantes.filter(
-    (alumno) => alumno.estado === "Para entregar"
-  ).length
-
-  const entregados = listaEstudiantes.filter(
-    (alumno) => alumno.estado === "Entregado"
-  ).length
-
-  const total = listaEstudiantes.length
+  const datos = [
+    { titulo: "Total", numero: lista.length, icono: "📄" },
+    { titulo: "Pendientes", numero: lista.filter(a => a.estado === "Pendiente").length, icono: "⏳" },
+    { titulo: "En Jefatura", numero: lista.filter(a => a.estado === "En Jefatura").length, icono: "🏢" },
+    { titulo: "Para entregar", numero: lista.filter(a => a.estado === "Para entregar").length, icono: "📬" },
+    { titulo: "Entregados", numero: lista.filter(a => a.estado === "Entregado").length, icono: "✅" }
+  ]
 
   return (
-    <div style={{ marginTop: "25px" }}>
-      <button
-        onClick={() => setMostrar(!mostrar)}
-        style={boton}
-      >
+    <div style={contenedor}>
+      <button onClick={() => setMostrar(!mostrar)} className="boton-sistema boton-secundario">
         {mostrar ? "Ocultar estadísticas" : "Ver estadísticas"}
       </button>
 
       {mostrar && (
-        <div
-          style={{
-            display: "flex",
-            gap: "20px",
-            marginTop: "20px",
-            flexWrap: "wrap"
-          }}
-        >
-          <div style={tarjeta}>
-            <h3>Total</h3>
-            <p style={numero}>{total}</p>
-          </div>
-
-          <div style={tarjeta}>
-            <h3>Pendientes</h3>
-            <p style={numero}>{pendientes}</p>
-          </div>
-
-          <div style={tarjeta}>
-            <h3>En Jefatura</h3>
-            <p style={numero}>{jefatura}</p>
-          </div>
-
-          <div style={tarjeta}>
-            <h3>Para entregar</h3>
-            <p style={numero}>{paraEntregar}</p>
-          </div>
-
-          <div style={tarjeta}>
-            <h3>Entregados</h3>
-            <p style={numero}>{entregados}</p>
-          </div>
+        <div style={grilla}>
+          {datos.map((item) => (
+            <div key={item.titulo} style={tarjeta} className="tarjeta-inicio">
+              <div style={icono}>{item.icono}</div>
+              <h3 style={titulo}>{item.titulo}</h3>
+              <p style={numero}>{item.numero}</p>
+            </div>
+          ))}
         </div>
       )}
     </div>
   )
 }
 
-const boton = {
-  backgroundColor: "#e9eef5",
-  color: "#1e3a5f",
-  border: "1px solid #cfd8e3",
-  padding: "10px 16px",
-  borderRadius: "10px",
-  cursor: "pointer",
-  fontWeight: "bold"
+const contenedor = {
+  marginTop: "25px",
+  textAlign: "center"
+}
+
+const grilla = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+  gap: "20px",
+  marginTop: "22px"
 }
 
 const tarjeta = {
-  backgroundColor: "white",
-  borderRadius: "15px",
-  padding: "20px",
-  minWidth: "200px",
-  boxShadow: "0 4px 10px rgba(0,0,0,0.1)"
+  backgroundColor: "#f8fbfc",
+  border: "2px solid #b9d6df",
+  borderRadius: "18px",
+  padding: "12px 12px",
+  boxShadow: "0 10px 24px rgba(22,58,95,0.14)",
+  textAlign: "center"
+}
+
+const icono = {
+  fontSize: "24px",
+  marginBottom: "8px"
+}
+
+const titulo = {
+  color: "#5f5a73",
+  margin: "0 0 10px 0"
 }
 
 const numero = {
-  fontSize: "35px",
+  fontSize: "28px",
   fontWeight: "bold",
-  color: "#1e3a5f"
+  color: "#1e3a5f",
+  margin: 0
 }

@@ -3588,8 +3588,8 @@ const mensajeNoEncontrado = {
   textAlign: "center",
 };
 const bloqueBusquedaGeneral = {
-  backgroundColor: "#c8e2e6",
-  border: "2px solid #cfe3e8",
+  backgroundColor: "#e9f4f7",
+  border: "4px solid #cfe3e8",
   borderRadius: "14px",
   padding: "4px",
   marginBottom: "20px",
@@ -3600,7 +3600,7 @@ const inputBusquedaPrincipal = {
   width: "90%",
   maxWidth: "500px",
   padding: "10px",
-  border: "2px solid #bfd4dc",
+  border: "3px solid #bfd4dc",
   borderRadius: "10px",
   fontSize: "15px",
 };
@@ -3631,30 +3631,30 @@ const bloqueLegajos = {
 
 const panelHerramientas = {
   backgroundColor: "#ffffff",
-  border: "2px solid #c7dde3",
+  border: "3px solid #c7dde3",
   borderRadius: "18px",
   padding: "14px",
   marginTop: "20px",
   marginBottom: "20px",
-  boxShadow: "0 8px 18px rgba(0,0,0,0.08)",
+  boxShadow: "0 10px 24px rgba(22,58,95,0.18)",
 };
 
 const bloqueHerramienta = {
   backgroundColor: "#f8fbff",
-  border: "1px solid #dbeafe",
+  border: "2px solid #dbeafe",
   borderRadius: "14px",
   padding: "12px",
-  boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+  boxShadow: "0 10px 24px rgba(22,58,95,0.18)",
   textAlign: "center",
 };
 
 const panelAlertas = {
   backgroundColor: "#fff7ed",
-  border: "1px solid #fed7aa",
+  border: "2px solid #fed7aa",
   borderRadius: "18px",
   padding: "18px",
   marginBottom: "20px",
-  boxShadow: "0 3px 8px rgba(0,0,0,0.05)",
+  boxShadow: "0 10px 24px rgba(22,58,95,0.18)",
 };
 
 const grillaAlertas = {
@@ -3665,11 +3665,11 @@ const grillaAlertas = {
 
 const tarjetaAlerta = {
   backgroundColor: "white",
-  border: "1px solid #fed7aa",
+  border: "2px solid #fed7aa",
   borderRadius: "14px",
   padding: "12px",
   textAlign: "center",
-  boxShadow: "0 2px 6px rgba(0,0,0,0.04)",
+  boxShadow: "0 10px 24px rgba(22,58,95,0.18)",
   cursor: "pointer",
   transition: "0.2s",
   transform: "scale(1)",
@@ -3683,7 +3683,7 @@ const grillaFicha = {
   border: "2px solid #c7dde3",
   borderRadius: "18px",
   padding: "25px",
-  boxShadow: "0 8px 18px rgba(0,0,0,0.08)",
+  boxShadow: "0 10px 24px rgba(22,58,95,0.18)",
 };
 
 const campoFicha = {
@@ -3691,7 +3691,7 @@ const campoFicha = {
   border: "1px solid #dbeafe",
   borderRadius: "14px",
   padding: "16px",
-  boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+  boxShadow: "0 10px 24px rgba(22,58,95,0.18)",
 };
 const tituloFicha = {
   backgroundColor: "#eaf6f8",

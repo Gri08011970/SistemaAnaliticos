@@ -488,11 +488,12 @@ const contenedorBotonEntrar = {
 
 const botonEntrar = {
   padding: "12px 28px",
-  border: "none",
+  border: "2px solid #c7dde3",
   borderRadius: "999px",
-  background: "#8c52a7",
+  background: "linear-gradient(90deg,#7c4fb3,#9565cb)",
   color: "white",
   fontWeight: "bold",
   cursor: "pointer",
-  boxShadow: "0 4px 10px rgba(0,0,0,0.15)"
+  transform: "translateY(-3px)",
+  boxShadow:"0 14px 30px rgba(124,79,179,.35)",
 }

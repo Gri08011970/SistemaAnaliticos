@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-
+import "./App.css";
 import Busqueda from "./components/Busqueda";
 import TablaEstudiantes from "./components/TablaEstudiantes";
 import Estadisticas from "./components/Estadisticas";
@@ -90,7 +90,7 @@ export default function App() {
 
   function cancelarFormulario() {
     setAlumnoEditando(null);
-    setSeccionActiva("inicio");
+    setSeccionActiva("nuevo");
   }
 
   async function actualizarEstudianteEditado(id, datosActualizados) {
@@ -304,8 +304,6 @@ export default function App() {
       }}
     >
       <div style={tarjetaUsuario}>
-        
-
         <div style={datosUsuario}>
           <strong>{nombreUsuario}</strong>
 
@@ -333,6 +331,8 @@ export default function App() {
         style={{
           backgroundColor: "white",
           padding: "30px",
+          paddingTop: seccionActiva === "formulario" ? "95px" : "30px",
+
           borderRadius: "15px",
           boxShadow: "0 0 10px rgba(0,0,0,0.1)",
         }}
@@ -361,7 +361,7 @@ export default function App() {
 
         {seccionActiva === "inicio" && (
           <div style={contenedorInicio}>
-            <div style={tarjetaInicio}>
+            <div style={tarjetaInicio} className="tarjeta-inicio">
               <h3>Gestión de pedidos de analíticos </h3>
               <p> carga, seguimiento, estados y planilla de eleve.</p>
 
@@ -373,11 +373,12 @@ export default function App() {
               </button>
             </div>
 
-            <div style={tarjetaInicio}>
+            <div style={tarjetaInicio} className="tarjeta-inicio">
               <h3>Gestión de Matrícula</h3>
               <p>Cursos, turnos, estudiantes, previas y movimientos.</p>
 
               <button
+                className="boton-sistema boton-principal"
                 style={botonMenu}
                 onClick={() => setSeccionActiva("matricula")}
               >
@@ -385,11 +386,12 @@ export default function App() {
               </button>
             </div>
 
-            <div style={tarjetaInicio}>
+            <div style={tarjetaInicio} className="tarjeta-inicio">
               <h3>📋 Parte Diario Automático</h3>
               <p>Matrícula por turno, curso, sexo y totales institucionales.</p>
 
               <button
+                className="boton-sistema boton-principal"
                 style={botonMenu}
                 onClick={() => setSeccionActiva("parteDiario")}
               >
@@ -397,7 +399,7 @@ export default function App() {
               </button>
             </div>
 
-            <div style={tarjetaInicio}>
+            <div style={tarjetaInicio} className="tarjeta-inicio">
               <h3>📁 Documentación</h3>
               <p>DNI, Partida de Nacimiento y Analítico parcial.</p>
 
@@ -901,7 +903,7 @@ export default function App() {
 }
 
 const botonMenu = {
-  backgroundColor: "#1c6c6e",
+  backgroundColor: "#19766f",
   color: "white",
   border: "none",
   padding: "10px 16px",
@@ -934,7 +936,7 @@ const contenedorInicio = {
 
 const tarjetaInicio = {
   backgroundColor: "#f6fbfc",
-  border:  "2px solid #b9d6df",
+  border: "2px solid #b9d6df",
   borderRadius: "18px",
   padding: "28px",
   boxShadow: "0 10px 24px rgba(22,58,95,0.18)",
@@ -978,6 +980,7 @@ const modalDespedida = {
   width: "500px",
   textAlign: "center",
   boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
+  border: "2px solid #777171",
 };
 const botonVolverModal = {
   backgroundColor: "#dfeceb",
@@ -1097,7 +1100,7 @@ const tarjetaUsuario = {
   color: "#1e3a5f",
   zIndex: 10,
   minWidth: "250px",
-}
+};
 
 const datosUsuario = {
   display: "flex",
@@ -1139,6 +1142,4 @@ const botonSalirTarjeta = {
   cursor: "pointer",
   fontWeight: "bold",
   fontSize: "12px",
-  Hover:  "#445a6e",
-  
 };

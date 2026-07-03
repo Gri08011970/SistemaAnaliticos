@@ -5,14 +5,14 @@ export default function FormularioNuevo({
   actualizarEstudianteEditado,
   alumnoEditando,
   setAlumnoEditando,
-  cancelarFormulario
+  cancelarFormulario,
 }) {
   const [nombre, setNombre] = useState("")
   const [dni, setDni] = useState("")
   const [libro, setLibro] = useState("")
   const [folio, setFolio] = useState("")
   const [fecha, setFecha] = useState("")
-  const [ultimoAnio, setUltimoAnio] = useState("") 
+  const [ultimoAnio, setUltimoAnio] = useState("")
 
   useEffect(() => {
     if (alumnoEditando) {
@@ -26,7 +26,7 @@ export default function FormularioNuevo({
   }, [alumnoEditando])
 
   function manejarEnvio() {
-        if (fecha) {
+    if (fecha) {
       const hoy = new Date()
       hoy.setHours(0, 0, 0, 0)
 
@@ -38,6 +38,7 @@ export default function FormularioNuevo({
         return
       }
     }
+
     const nuevoEstudiante = {
       nombre,
       dni,
@@ -50,10 +51,7 @@ export default function FormularioNuevo({
       estado: alumnoEditando?.estado || "Pendiente",
       carpeta: alumnoEditando?.carpeta || "---",
       seleccionado: alumnoEditando?.seleccionado || false,
-
-      fechaCarga:
-        alumnoEditando?.fechaCarga ||
-        new Date().toISOString()
+      fechaCarga: alumnoEditando?.fechaCarga || new Date().toISOString(),
     }
 
     if (alumnoEditando) {
@@ -72,117 +70,94 @@ export default function FormularioNuevo({
   }
 
   return (
-    <div
-      style={{
-        marginTop: "40px",
-        display: "flex",
-        flexDirection: "column",
-        gap: "15px"
-      }}
-    >
-      <h2 style={{ color: "#1e3a5f" }}>
-        {alumnoEditando
-          ? "Editar analítico"
-          : "Cargar nuevo pedido de analítico"}
+    <div className="tarjeta-inicio" style={contenedorFormulario}>
+      <h2 style={tituloFormulario}>
+        {alumnoEditando ? "Editar analítico" : "📄 Nuevo pedido de analítico"}
       </h2>
 
-      <input
-        type="text"
-        placeholder="Apellido y Nombre"
-        value={nombre}
-        onChange={(evento) => setNombre(evento.target.value)}
-        style={estiloInput}
-      />
+      <div style={grillaFormulario}>
+        <input type="text" placeholder="Apellido y Nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} style={estiloInput} />
+        <input type="text" placeholder="DNI" value={dni} onChange={(e) => setDni(e.target.value)} style={estiloInput} />
+        <input type="text" placeholder="Libro" value={libro} onChange={(e) => setLibro(e.target.value)} style={estiloInput} />
+        <input type="text" placeholder="Folio" value={folio} onChange={(e) => setFolio(e.target.value)} style={estiloInput} />
 
-      <input
-        type="text"
-        placeholder="DNI"
-        value={dni}
-        onChange={(evento) => setDni(evento.target.value)}
-        style={estiloInput}
-      />
+        <select value={ultimoAnio} onChange={(e) => setUltimoAnio(e.target.value)} style={estiloInput}>
+          <option value="">Último año cursado</option>
+          <option value="1°">1°</option>
+          <option value="2°">2°</option>
+          <option value="3°">3°</option>
+          <option value="4°">4°</option>
+          <option value="5°">5°</option>
+          <option value="6°">6°</option>
+        </select>
 
-      <input
-        type="text"
-        placeholder="Libro"
-        value={libro}
-        onChange={(evento) => setLibro(evento.target.value)}
-        style={estiloInput}
-      />
+        <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} style={estiloInput} />
+      </div>
 
-      <input
-        type="text"
-        placeholder="Folio"
-        value={folio}
-        onChange={(evento) => setFolio(evento.target.value)}
-        style={estiloInput}
-      />
+      <div style={contenedorBotones}>
+        <button onClick={cancelarFormulario} style={botonCancelar}>
+          ← Volver a Analíticos
+        </button>
 
-      <select
-        value={ultimoAnio}
-        onChange={(evento) => setUltimoAnio(evento.target.value)}
-        style={estiloInput}
-      >
-        <option value="">Último año cursado</option>
-        <option value="1°">1°</option>
-        <option value="2°">2°</option>
-        <option value="3°">3°</option>
-        <option value="4°">4°</option>
-        <option value="5°">5°</option>
-        <option value="6°">6°</option>
-      </select>
-
-      <input
-        type="date"
-        value={fecha}
-        onChange={(evento) => setFecha(evento.target.value)}
-        style={estiloInput}
-      />
-
-      <div
-  style={{
-    display: "flex",
-    gap: "12px",
-    marginTop: "10px"
-  }}
->
-  <button
-    onClick={cancelarFormulario} 
-    style={botonCancelar}
-  >
-    ← Volver
-  </button>
-
-  <button
-    onClick={manejarEnvio}
-    style={botonGuardar}
-  >
-    {alumnoEditando
-      ? "Guardar cambios"
-      : "Guardar pedido"}
-  </button>
-</div>
+        <button onClick={manejarEnvio} style={botonGuardar}>
+          {alumnoEditando ? "Guardar cambios" : "Guardar pedido"}
+        </button>
+      </div>
     </div>
   )
 }
 
+const contenedorFormulario = {
+  marginTop: "35px",
+  background: "#f8fbfc",
+  border: "2px solid #b9d6df",
+  borderRadius: "18px",
+  padding: "30px",
+  boxShadow: "0 10px 24px rgba(22,58,95,.15)",
+}
+
+const tituloFormulario = {
+  color: "#1e3a5f",
+  textAlign: "center",
+  marginTop: 0,
+  marginBottom: "22px",
+}
+
+const grillaFormulario = {
+  display: "grid",
+  gridTemplateColumns: "repeat(2, minmax(260px, 360px))",
+  gap: "16px",
+  justifyContent: "center",
+}
+
 const estiloInput = {
-  width: "360px",
+  width: "100%",
   padding: "12px",
   borderRadius: "10px",
-  border: "1px solid #ccc",
-  fontSize: "16px"
+  border: "1px solid #b9cbd1",
+  fontSize: "16px",
+  boxSizing: "border-box",
+}
+
+const contenedorBotones = {
+  display: "flex",
+  gap: "12px",
+  marginTop: "22px",
+  justifyContent: "center",
+  flexWrap: "wrap",
 }
 
 const botonGuardar = {
-  backgroundColor: "#4d76ac",
+  backgroundColor: "#19766f",
   color: "white",
   border: "none",
   padding: "12px",
   borderRadius: "10px",
   cursor: "pointer",
-  width: "250px"
+  width: "250px",
+  fontWeight: "bold",
 }
+
 const botonCancelar = {
   backgroundColor: "#eef5f7",
   color: "#2d5568",
@@ -192,5 +167,4 @@ const botonCancelar = {
   cursor: "pointer",
   width: "140px",
   fontWeight: "600",
-  transition: "0.2s"
 }
