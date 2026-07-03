@@ -1,34 +1,44 @@
 import { useState } from "react"
 import loginFondo from "../assets/escuela140/login_fondo11.png"
 
-export default function Login({
-  setLogueado
-}) {
+export default function Login({ setLogueado }) {
   const [usuario, setUsuario] = useState("")
   const [contrasena, setContrasena] = useState("")
   const [error, setError] = useState("")
 
-  function ingresar() {
-  const usuarios = [
-    { usuario: "gri", password: "140", rol: "consulta" },
-    { usuario: "grichu", password: "140", rol: "admin" }
-  ]
+  async function ingresar() {
+    try {
+      const respuesta = await fetch("/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          usuario,
+          password: contrasena
+        })
+      })
 
-  const usuarioEncontrado = usuarios.find(
-    (u) =>
-      u.usuario === usuario.trim().toLowerCase() &&
-      u.password === contrasena.trim()
-  )
+      const datos = await respuesta.json()
 
-  if (usuarioEncontrado) {
-    localStorage.setItem("rolUsuario", usuarioEncontrado.rol)
-    localStorage.setItem("usuario", usuarioEncontrado.usuario)
-    setLogueado(true)
-    setError("")
-  } else {
-    setError("Usuario o contraseña incorrectos")
+      if (!respuesta.ok) {
+        setError(datos.mensaje || "Usuario o contraseña incorrectos")
+        return
+      }
+
+      localStorage.setItem("rolUsuario", datos.rol)
+      localStorage.setItem("usuario", datos.usuario)
+      localStorage.setItem("nombreUsuario", datos.nombre)
+      localStorage.setItem("ultimoAcceso", datos.ultimoAcceso)
+
+      setLogueado(true)
+      setError("")
+    } catch (error) {
+      console.log(error)
+      setError("Error al conectar con el servidor")
+    }
   }
-}
+
   return (
     <div style={contenedor}>
       <div style={tarjeta}>
@@ -67,14 +77,11 @@ const contenedor = {
   backgroundSize: "cover",
   backgroundPosition: "center",
   backgroundRepeat: "no-repeat",
-
   display: "flex",
   alignItems: "center",
   justifyContent: "flex-end",
-
   paddingRight: "7%",
   paddingLeft: "5%",
-
   fontFamily: "Arial"
 }
 

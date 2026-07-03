@@ -898,6 +898,10 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
   }
 
   async function importarReporteOficial(evento) {
+    if (!esAdmin) {
+      alert("Solo el administrador puede importar estudiantes.");
+      return;
+    }
     const archivo = evento.target.files[0];
     if (!archivo || !cursoSeleccionado) return;
 
@@ -1451,14 +1455,6 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
       .sort((a, b) => a - b);
   }
 
-  function obtenerNumerosLegajoPorAnio(anio) {
-    return alumnosMatricula
-      .filter((alumno) => String(alumno.legajoAnio) === String(anio))
-      .map((alumno) => Number(alumno.legajoNumero))
-      .filter((numero) => !isNaN(numero))
-      .sort((a, b) => a - b);
-  }
-
   function obtenerLegajosFaltantes(anio) {
     const numeros = obtenerNumerosLegajoPorAnio(anio);
 
@@ -1913,7 +1909,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
 
                         {pedidoAnalitico && (
                           <div style={alertaAnalitico}>
-                            📄 Pedido de analítico encontrado 
+                            📄 Pedido de analítico encontrado
                             <br />
                             Estado: {pedidoAnalitico.estado || "-"}
                             <br />
@@ -2780,19 +2776,16 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
               <label
                 style={{
                   ...botonImprimir,
-                  padding: "6px 8px",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "4px",
+                  display: "inline-block",
                   cursor: "pointer",
-                  fontSize: "12px",
-                  lineHeight: "1.6",
+                  fontSize: "12,5px",
+                  padding: "3px 10px",
                 }}
               >
-                📂 Cargar Excel
+                📁 Cargar Excel
                 <input
                   type="file"
-                  accept=".xls,.xlsx"
+                  accept=".xlsx,.xls"
                   onChange={importarReporteOficial}
                   style={{ display: "none" }}
                 />
@@ -3276,7 +3269,6 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                         ...celda,
                         whiteSpace: "nowrap",
                       }}
-                     
                     >
                       <button
                         style={{
@@ -3284,7 +3276,6 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                           opacity: esAdmin ? 1 : 0.45,
                           cursor: esAdmin ? "pointer" : "not-allowed",
                         }}
-                        
                         onClick={() => esAdmin && editarAlumno(alumno)}
                         title={
                           esAdmin
@@ -3301,7 +3292,6 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                           opacity: esAdmin ? 1 : 0.45,
                           cursor: esAdmin ? "pointer" : "not-allowed",
                         }}
-                        
                         onClick={() => {
                           if (!esAdmin) return;
 
@@ -3331,7 +3321,6 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
                           opacity: esAdmin ? 1 : 0.45,
                           cursor: esAdmin ? "pointer" : "not-allowed",
                         }}
-                        
                         onClick={() =>
                           esAdmin && eliminarAlumnoMatricula(alumno._id)
                         }
@@ -3558,15 +3547,16 @@ const bloqueEstadisticas = {
 
 const tarjetaEstadistica = {
   backgroundColor: "#f8fafc",
-  border: "1px solid #dbe4ee",
+  border: "2px solid #dbe4ee",
   borderRadius: "16px",
   padding: "18px",
   textAlign: "center",
-  boxShadow: "0 3px 8px rgba(0,0,0,0.05)",
+  boxShadow:"0 10px 24px rgba(22,58,95,0.18)",
 };
 const alertaSobreedad = {
   marginLeft: "6px",
   fontSize: "13px",
+  
 };
 const bloqueEdades = {
   marginTop: "20px",
@@ -3598,12 +3588,12 @@ const mensajeNoEncontrado = {
   textAlign: "center",
 };
 const bloqueBusquedaGeneral = {
-  backgroundColor: "#c2edf3",
+  backgroundColor: "#c8e2e6",
   border: "2px solid #cfe3e8",
   borderRadius: "14px",
   padding: "4px",
   marginBottom: "20px",
-  boxShadow: "0 3px 8px rgba(0,0,0,0.05)",
+  boxShadow: "0 10px 24px rgba(22,58,95,0.18)",
 };
 
 const inputBusquedaPrincipal = {

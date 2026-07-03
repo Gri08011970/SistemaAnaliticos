@@ -6,6 +6,7 @@ import Alumno from "./models/Alumno.js"
 import path from "path"
 import { fileURLToPath } from "url"
 import MatriculaAlumno from "./models/MatriculaAlumno.js"
+import Usuario from "./models/Usuario.js"
 
 dotenv.config()
 
@@ -18,8 +19,9 @@ app.use(cors())
 app.use(express.json())
 
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => {
+  .then(async () => {
     console.log("Mongo conectado 🚀")
+    await crearUsuariosIniciales()
   })
   .catch((error) => {
     console.log("Error al conectar Mongo:", error)
@@ -28,6 +30,64 @@ mongoose.connect(process.env.MONGO_URI)
   function limpiarDni(dni) {
   return dni?.toString().replace(/\D/g, "")
 } 
+
+async function crearUsuariosIniciales() {
+  const usuariosIniciales = [
+    {
+      usuario: "gri",
+      password: "140",
+      nombre: "Usuario de consulta",
+      rol: "consulta"
+    },
+    {
+      usuario: "grichu",
+      password: "140",
+      nombre: "Griselda Molina",
+      rol: "admin"
+    }
+  ]
+
+  for (const usuario of usuariosIniciales) {
+    const existe = await Usuario.findOne({ usuario: usuario.usuario })
+
+    if (!existe) {
+      await Usuario.create(usuario)
+      console.log(`Usuario creado: ${usuario.usuario}`)
+    }
+  }
+}
+
+app.post("/login", async (req, res) => {
+  try {
+    const { usuario, password } = req.body
+
+    const usuarioEncontrado = await Usuario.findOne({
+      usuario: usuario.trim().toLowerCase(),
+      activo: true
+    })
+
+    if (!usuarioEncontrado || usuarioEncontrado.password !== password.trim()) {
+      return res.status(401).json({
+        mensaje: "Usuario o contraseña incorrectos"
+      })
+    }
+
+    usuarioEncontrado.ultimoAcceso = new Date()
+    await usuarioEncontrado.save()
+
+    res.json({
+      usuario: usuarioEncontrado.usuario,
+      nombre: usuarioEncontrado.nombre,
+      rol: usuarioEncontrado.rol,
+      ultimoAcceso: usuarioEncontrado.ultimoAcceso
+    })
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({
+      mensaje: "Error al iniciar sesión"
+    })
+  }
+})
 // ======================
 // RUTAS API
 // ======================
@@ -224,7 +284,7 @@ app.use((req, res) => {
   res.sendFile(
     path.join(
       __dirname,
-      "../frontend/dist/index.html"
+      "../frontend/dist/index.html" 
     )
   )
 })

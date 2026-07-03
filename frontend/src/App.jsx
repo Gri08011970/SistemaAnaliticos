@@ -1,160 +1,162 @@
-import { useEffect, useState } from "react"
-import axios from "axios"
+import { useEffect, useState } from "react";
+import axios from "axios";
 
-import Busqueda from "./components/Busqueda"
-import TablaEstudiantes from "./components/TablaEstudiantes"
-import Estadisticas from "./components/Estadisticas"
-import FormularioNuevo from "./components/FormularioNuevo"
-import PlanillaElevacion from "./components/PlanillaElevacion"
-import ImportarExcel from "./components/ImportarExcel"
-import Login from "./components/Login"
-import Matricula from "./components/Matricula"
-import PortadaInstitucional from "./components/PortadaInstitucional"
+import Busqueda from "./components/Busqueda";
+import TablaEstudiantes from "./components/TablaEstudiantes";
+import Estadisticas from "./components/Estadisticas";
+import FormularioNuevo from "./components/FormularioNuevo";
+import PlanillaElevacion from "./components/PlanillaElevacion";
+import ImportarExcel from "./components/ImportarExcel";
+import Login from "./components/Login";
+import Matricula from "./components/Matricula";
+import PortadaInstitucional from "./components/PortadaInstitucional";
 
 export default function App() {
-  const rolUsuario = localStorage.getItem("rolUsuario") || "consulta"
-  const esAdmin = rolUsuario === "admin"
+  const rolUsuario = localStorage.getItem("rolUsuario") || "consulta";
+  const esAdmin = rolUsuario === "admin";
+  const nombreUsuario = localStorage.getItem("nombreUsuario") || "Usuario";
+  const ultimoAcceso = localStorage.getItem("ultimoAcceso");
   const [logueado, setLogueado] = useState(() => {
-  return localStorage.getItem("rolUsuario") !== null
-})
-  const [dniBusqueda, setDniBusqueda] = useState("") 
-  const [apellidoBusqueda, setApellidoBusqueda] = useState("")
-  const [estadoFiltro, setEstadoFiltro] = useState("Todos")
-  const [estudiantes, setEstudiantes] = useState([]) 
-  const [alumnoEditando, setAlumnoEditando] = useState(null)
-  const [modoImprimirLista, setModoImprimirLista] = useState(false) 
-  const [seccionActiva, setSeccionActiva] = useState("inicio")
-  
-  const [fechaDesde, setFechaDesde] = useState("")
-  const [fechaHasta, setFechaHasta] = useState("")
-  const [mostrarPortada, setMostrarPortada] = useState(true)
-  const [alumnosMatricula, setAlumnosMatricula] = useState([])
-  const [mostrarDespedida, setMostrarDespedida] = useState(false)
+    return localStorage.getItem("rolUsuario") !== null;
+  });
+  const [dniBusqueda, setDniBusqueda] = useState("");
+  const [apellidoBusqueda, setApellidoBusqueda] = useState("");
+  const [estadoFiltro, setEstadoFiltro] = useState("Todos");
+  const [estudiantes, setEstudiantes] = useState([]);
+  const [alumnoEditando, setAlumnoEditando] = useState(null);
+  const [modoImprimirLista, setModoImprimirLista] = useState(false);
+  const [seccionActiva, setSeccionActiva] = useState("inicio");
+
+  const [fechaDesde, setFechaDesde] = useState("");
+  const [fechaHasta, setFechaHasta] = useState("");
+  const [mostrarPortada, setMostrarPortada] = useState(true);
+  const [alumnosMatricula, setAlumnosMatricula] = useState([]);
+  const [mostrarDespedida, setMostrarDespedida] = useState(false);
 
   useEffect(() => {
-    obtenerAlumnos()
-  }, [])
+    obtenerAlumnos();
+  }, []);
 
   async function obtenerAlumnos() {
     try {
-      const respuesta = await axios.get("/alumnos")
-      setEstudiantes(Array.isArray(respuesta.data) ? respuesta.data : [])
+      const respuesta = await axios.get("/alumnos");
+      setEstudiantes(Array.isArray(respuesta.data) ? respuesta.data : []);
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
   }
 
   async function importarEstudiantes(alumnosImportados) {
     try {
       await axios.post("/alumnos/importar", {
-        alumnos: alumnosImportados
-      })
+        alumnos: alumnosImportados,
+      });
 
-      obtenerAlumnos()
-      setSeccionActiva("lista")
+      obtenerAlumnos();
+      setSeccionActiva("lista");
     } catch (error) {
-      console.log(error) 
+      console.log(error);
     }
   }
 
   useEffect(() => {
-    obtenerMatricula()
-  }, [])
+    obtenerMatricula();
+  }, []);
 
   async function obtenerMatricula() {
     try {
-      const respuesta = await axios.get("/api/matricula")
-      setAlumnosMatricula(Array.isArray(respuesta.data) ? respuesta.data : [])
+      const respuesta = await axios.get("/api/matricula");
+      setAlumnosMatricula(Array.isArray(respuesta.data) ? respuesta.data : []);
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
   }
 
   async function agregarEstudiante(nuevoEstudiante) {
     try {
-      await axios.post("/alumnos", nuevoEstudiante)
-      obtenerAlumnos()
-      setSeccionActiva("lista")
+      await axios.post("/alumnos", nuevoEstudiante);
+      obtenerAlumnos();
+      setSeccionActiva("lista");
     } catch (error) {
       if (error.response?.status === 400) {
-        alert(error.response.data.mensaje)
-        return
+        alert(error.response.data.mensaje);
+        return;
       }
 
-      console.log(error)
-      alert("Error al guardar el pedido")
+      console.log(error);
+      alert("Error al guardar el pedido");
     }
   }
 
   function cancelarFormulario() {
-  setAlumnoEditando(null)
-  setSeccionActiva("inicio")
-}
+    setAlumnoEditando(null);
+    setSeccionActiva("inicio");
+  }
 
   async function actualizarEstudianteEditado(id, datosActualizados) {
     try {
-      await axios.put(`/alumnos/${id}`, datosActualizados)
+      await axios.put(`/alumnos/${id}`, datosActualizados);
 
-      obtenerAlumnos()
-      setAlumnoEditando(null)
-      setSeccionActiva("lista")
+      obtenerAlumnos();
+      setAlumnoEditando(null);
+      setSeccionActiva("lista");
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
   }
 
   async function actualizarEstado(id, nuevoEstado) {
     try {
       await axios.put(`/alumnos/${id}`, {
-        estado: nuevoEstado
-      })
+        estado: nuevoEstado,
+      });
 
-      obtenerAlumnos()
+      obtenerAlumnos();
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
   }
 
   async function actualizarCarpeta(id, nuevaCarpeta) {
     try {
       await axios.put(`/alumnos/${id}`, {
-        carpeta: nuevaCarpeta
-      })
+        carpeta: nuevaCarpeta,
+      });
 
-      obtenerAlumnos()
+      obtenerAlumnos();
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
   }
 
   async function eliminarEstudiante(id) {
     const confirmar = window.confirm(
-      "¿Seguro que querés eliminar este pedido de analítico?\n\nEsta acción no se puede deshacer."
-    )
+      "¿Seguro que querés eliminar este pedido de analítico?\n\nEsta acción no se puede deshacer.",
+    );
 
-    if (!confirmar) return
+    if (!confirmar) return;
 
     try {
-      await axios.delete(`/alumnos/${id}`)
+      await axios.delete(`/alumnos/${id}`);
 
       setEstudiantes((anteriores) =>
-        anteriores.filter((alumno) => alumno._id !== id)
-      )
+        anteriores.filter((alumno) => alumno._id !== id),
+      );
     } catch (error) {
-      console.log(error)
-      console.log(error.response)
+      console.log(error);
+      console.log(error.response);
 
       alert(
         error.response?.data?.mensaje ||
-        error.response?.data?.error ||
-        error.message
-      )
+          error.response?.data?.error ||
+          error.message,
+      );
     }
   }
 
   function editarEstudiante(alumno) {
-    setAlumnoEditando(alumno)
-    setSeccionActiva("formulario")
+    setAlumnoEditando(alumno);
+    setSeccionActiva("formulario");
   }
 
   function seleccionarAlumno(id) {
@@ -162,111 +164,134 @@ export default function App() {
       if (alumno._id === id) {
         return {
           ...alumno,
-          seleccionado: !alumno.seleccionado
-        }
+          seleccionado: !alumno.seleccionado,
+        };
       }
 
-      return alumno
-    })
+      return alumno;
+    });
 
-    setEstudiantes(estudiantesActualizados)
+    setEstudiantes(estudiantesActualizados);
   }
 
   function generarPlanillaElevacion() {
-    const listaEstudiantes = Array.isArray(estudiantes) ? estudiantes : []
+    const listaEstudiantes = Array.isArray(estudiantes) ? estudiantes : [];
 
     const seleccionados = listaEstudiantes.filter(
-      (alumno) => alumno.seleccionado
-    )
+      (alumno) => alumno.seleccionado,
+    );
 
     if (seleccionados.length === 0) {
-      alert("Seleccioná al menos un alumno para generar la planilla.")
-      return
+      alert("Seleccioná al menos un alumno para generar la planilla.");
+      return;
     }
 
-    setSeccionActiva("eleve")
+    setSeccionActiva("eleve");
   }
 
-
-
   const estudiantesPorPeriodo = estudiantes.filter((alumno) => {
-    let fechaAlumno = ""
+    let fechaAlumno = "";
 
     if (alumno.fechaCarga) {
-      fechaAlumno = alumno.fechaCarga.slice(0, 10)
+      fechaAlumno = alumno.fechaCarga.slice(0, 10);
     } else if (alumno.fecha) {
-      const partes = alumno.fecha.split("/")
-      fechaAlumno = `${partes[2]}-${partes[1]}-${partes[0]}`
+      const partes = alumno.fecha.split("/");
+      fechaAlumno = `${partes[2]}-${partes[1]}-${partes[0]}`;
     }
 
-    if (!fechaAlumno) return false
+    if (!fechaAlumno) return false;
 
     return (
       (!fechaDesde || fechaAlumno >= fechaDesde) &&
       (!fechaHasta || fechaAlumno <= fechaHasta)
-    )
-  })
+    );
+  });
 
   if (mostrarPortada) {
-    return (
-      <PortadaInstitucional
-        entrar={() => setMostrarPortada(false)}
-      />
-    )
+    return <PortadaInstitucional entrar={() => setMostrarPortada(false)} />;
   }
 
-  const cursosManana = ["1°1°", "1°2°", "2°1°", "2°2°", "3°1°", "3°2°", "4°1°", "4°2°", "5°1°", "5°2°", "6°1°", "6°2°"]
+  const cursosManana = [
+    "1°1°",
+    "1°2°",
+    "2°1°",
+    "2°2°",
+    "3°1°",
+    "3°2°",
+    "4°1°",
+    "4°2°",
+    "5°1°",
+    "5°2°",
+    "6°1°",
+    "6°2°",
+  ];
 
-
-  const cursosTarde = ["1°3°", "1°4°", "2°3°", "2°4°", "3°3°", "3°4°", "4°3°", "4°4°", "5°3°", "5°4°", "6°3°", "6°4°"]
+  const cursosTarde = [
+    "1°3°",
+    "1°4°",
+    "2°3°",
+    "2°4°",
+    "3°3°",
+    "3°4°",
+    "4°3°",
+    "4°4°",
+    "5°3°",
+    "5°4°",
+    "6°3°",
+    "6°4°",
+  ];
 
   function contarPorSexo(curso, turno, sexo) {
     return alumnosMatricula.filter(
       (alumno) =>
         alumno.curso === curso &&
         alumno.turno === turno &&
-        alumno.sexo === sexo
-    ).length
+        alumno.sexo === sexo,
+    ).length;
   }
 
   function filaParteDiario(curso, turno) {
-    const mujeres = contarPorSexo(curso, turno, "Mujer")
-    const varones = contarPorSexo(curso, turno, "Varón")
+    const mujeres = contarPorSexo(curso, turno, "Mujer");
+    const varones = contarPorSexo(curso, turno, "Varón");
 
     return {
       curso,
       mujeres,
       varones,
-      total: mujeres + varones
-    }
+      total: mujeres + varones,
+    };
   }
 
   function totalParteDiario(cursos, turno) {
     return cursos.reduce(
       (acumulador, curso) => {
-        const fila = filaParteDiario(curso, turno)
+        const fila = filaParteDiario(curso, turno);
 
         return {
           mujeres: acumulador.mujeres + fila.mujeres,
           varones: acumulador.varones + fila.varones,
-          total: acumulador.total + fila.total
-        }
+          total: acumulador.total + fila.total,
+        };
       },
-      { mujeres: 0, varones: 0, total: 0 }
-    )
+      { mujeres: 0, varones: 0, total: 0 },
+    );
   }
 
   function esCicloBasico(curso) {
-    return curso.startsWith("1") || curso.startsWith("2") || curso.startsWith("3")
+    return (
+      curso.startsWith("1") || curso.startsWith("2") || curso.startsWith("3")
+    );
   }
 
   function esCicloSuperior(curso) {
-    return curso.startsWith("4") || curso.startsWith("5") || curso.startsWith("6")
+    return (
+      curso.startsWith("4") || curso.startsWith("5") || curso.startsWith("6")
+    );
   }
 
-if (!logueado) {
-  return <Login setLogueado={setLogueado} />
-}
+  if (!logueado) {
+    return <Login setLogueado={setLogueado} />;
+  }
 
   return (
     <div
@@ -275,23 +300,41 @@ if (!logueado) {
         minHeight: "100vh",
         padding: "40px",
         fontFamily: "Arial",
-        position: "relative"
+        position: "relative",
       }}
     >
+      <div style={tarjetaUsuario}>
+        
 
-      <button
-        style={botonSalir}
-        onClick={() => setMostrarDespedida(true)}
-      >
-        🚪 Cerrar sesión
-      </button>
+        <div style={datosUsuario}>
+          <strong>{nombreUsuario}</strong>
 
+          <span
+            style={rolUsuario === "admin" ? insigniaAdmin : insigniaConsulta}
+          >
+            {rolUsuario === "admin" ? "Administrador" : "Consulta"}
+          </span>
+
+          {ultimoAcceso && (
+            <span style={ultimoAccesoTexto}>
+              🕒 Último acceso: {new Date(ultimoAcceso).toLocaleString("es-AR")}
+            </span>
+          )}
+
+          <button
+            style={botonSalirTarjeta}
+            onClick={() => setMostrarDespedida(true)}
+          >
+            🚪 Cerrar sesión
+          </button>
+        </div>
+      </div>
       <div
         style={{
           backgroundColor: "white",
           padding: "30px",
           borderRadius: "15px",
-          boxShadow: "0 0 10px rgba(0,0,0,0.1)"
+          boxShadow: "0 0 10px rgba(0,0,0,0.1)",
         }}
       >
         {seccionActiva !== "inicio" &&
@@ -307,17 +350,16 @@ if (!logueado) {
               <p
                 style={{
                   color: "#666",
-                  marginBottom: "30px"
+                  marginBottom: "30px",
                 }}
               >
-                <br /> Escuela Educación Secundaria N°140 "Florencio Molina Campos"
+                <br /> Escuela Educación Secundaria N°140 "Florencio Molina
+                Campos"
               </p>
             </>
           )}
 
-
         {seccionActiva === "inicio" && (
-
           <div style={contenedorInicio}>
             <div style={tarjetaInicio}>
               <h3>Gestión de pedidos de analíticos </h3>
@@ -345,9 +387,7 @@ if (!logueado) {
 
             <div style={tarjetaInicio}>
               <h3>📋 Parte Diario Automático</h3>
-              <p>
-                Matrícula por turno, curso, sexo y totales institucionales.
-              </p>
+              <p>Matrícula por turno, curso, sexo y totales institucionales.</p>
 
               <button
                 style={botonMenu}
@@ -368,11 +408,8 @@ if (!logueado) {
                 Entrar
               </button>
             </div>
-
           </div>
         )}
-
-
 
         {seccionActiva !== "inicio" &&
           seccionActiva !== "matricula" &&
@@ -394,24 +431,32 @@ if (!logueado) {
                   gap: "10px",
                   flexWrap: "wrap",
                   marginTop: "25px",
-                  marginBottom: "20px"
+                  marginBottom: "20px",
                 }}
               >
-                {esAdmin && (
-                  <button
-                    onClick={() => setSeccionActiva("formulario")}
-                    style={botonMenu}
-                  >
-                    Nuevo Pedido de Analítico
-                  </button>
-                )}
+                <button
+                  onClick={() => esAdmin && setSeccionActiva("formulario")}
+                  disabled={!esAdmin}
+                  title={
+                    esAdmin
+                      ? "Nuevo pedido de analítico"
+                      : "Solo el administrador puede crear nuevos pedidos"
+                  }
+                  style={{
+                    ...botonMenu,
+                    opacity: esAdmin ? 1 : 0.45,
+                    cursor: esAdmin ? "pointer" : "not-allowed",
+                  }}
+                >
+                  Nuevo Pedido de Analítico
+                </button>
 
                 <button
                   onClick={() => {
-                    setDniBusqueda("")
-                    setApellidoBusqueda("")
-                    setEstadoFiltro("Todos")
-                    setSeccionActiva("lista")
+                    setDniBusqueda("");
+                    setApellidoBusqueda("");
+                    setEstadoFiltro("Todos");
+                    setSeccionActiva("lista");
                   }}
                   style={botonMenu}
                 >
@@ -422,11 +467,17 @@ if (!logueado) {
                   Planilla de Eleve
                 </button>
 
-                <button onClick={() => setSeccionActiva("estadisticas")} style={botonMenu}>
+                <button
+                  onClick={() => setSeccionActiva("estadisticas")}
+                  style={botonMenu}
+                >
                   Estadísticas
                 </button>
 
-                <button onClick={() => setSeccionActiva("inicio")} style={botonVolver}>
+                <button
+                  onClick={() => setSeccionActiva("inicio")}
+                  style={botonVolver}
+                >
                   Volver al inicio
                 </button>
               </div>
@@ -434,7 +485,10 @@ if (!logueado) {
           )}
         {(seccionActiva === "matricula" || seccionActiva === "parteDiario") && (
           <div style={{ marginBottom: "20px" }}>
-            <button onClick={() => setSeccionActiva("inicio")} style={botonMenu}>
+            <button
+              onClick={() => setSeccionActiva("inicio")}
+              style={botonMenu}
+            >
               Volver al inicio
             </button>
           </div>
@@ -445,7 +499,7 @@ if (!logueado) {
               style={{
                 textAlign: "center",
                 color: "#1e3a5f",
-                marginBottom: "5px"
+                marginBottom: "5px",
               }}
             >
               E.E.S. N° 140 "Florencio Molina Campos"
@@ -455,7 +509,7 @@ if (!logueado) {
               style={{
                 textAlign: "center",
                 color: "#666",
-                marginBottom: "25px"
+                marginBottom: "25px",
               }}
             >
               Matrícula institucional actualizada automáticamente
@@ -470,13 +524,10 @@ if (!logueado) {
               style={{
                 display: "flex",
                 justifyContent: "center",
-                marginBottom: "15px"
+                marginBottom: "15px",
               }}
             >
-              <button
-                style={botonMenu}
-                onClick={() => window.print()}
-              >
+              <button style={botonMenu} onClick={() => window.print()}>
                 🖨️ Imprimir Parte Diario
               </button>
             </div>
@@ -493,13 +544,13 @@ if (!logueado) {
                       <th style={celdaParteTitulo}>Curso</th>
                       <th style={celdaParteTitulo}>Mujeres</th>
                       <th style={celdaParteTitulo}>Varones</th>
-                      <th style={celdaParteTitulo}>Total</th> 
+                      <th style={celdaParteTitulo}>Total</th>
                     </tr>
                   </thead>
 
                   <tbody>
                     {cursosManana.map((curso) => {
-                      const fila = filaParteDiario(curso, "Mañana")
+                      const fila = filaParteDiario(curso, "Mañana");
 
                       return (
                         <tr key={curso}>
@@ -508,32 +559,62 @@ if (!logueado) {
                           <td style={celdaParte}>{fila.varones}</td>
                           <td style={celdaParteNegrita}>{fila.total}</td>
                         </tr>
-                      )
+                      );
                     })}
 
                     <tr style={filaTotalBasico}>
                       <td style={celdaParteNegrita}>TOTAL CICLO BÁSICO</td>
                       <td style={celdaParteNegrita}>
-                        {totalParteDiario(cursosManana.filter(esCicloBasico), "Mañana").mujeres}
+                        {
+                          totalParteDiario(
+                            cursosManana.filter(esCicloBasico),
+                            "Mañana",
+                          ).mujeres
+                        }
                       </td>
                       <td style={celdaParteNegrita}>
-                        {totalParteDiario(cursosManana.filter(esCicloBasico), "Mañana").varones}
+                        {
+                          totalParteDiario(
+                            cursosManana.filter(esCicloBasico),
+                            "Mañana",
+                          ).varones
+                        }
                       </td>
                       <td style={celdaParteTotal}>
-                        {totalParteDiario(cursosManana.filter(esCicloBasico), "Mañana").total}
+                        {
+                          totalParteDiario(
+                            cursosManana.filter(esCicloBasico),
+                            "Mañana",
+                          ).total
+                        }
                       </td>
                     </tr>
 
                     <tr style={filaTotalSuperior}>
                       <td style={celdaParteNegrita}>TOTAL CICLO SUPERIOR</td>
                       <td style={celdaParteNegrita}>
-                        {totalParteDiario(cursosManana.filter(esCicloSuperior), "Mañana").mujeres}
+                        {
+                          totalParteDiario(
+                            cursosManana.filter(esCicloSuperior),
+                            "Mañana",
+                          ).mujeres
+                        }
                       </td>
                       <td style={celdaParteNegrita}>
-                        {totalParteDiario(cursosManana.filter(esCicloSuperior), "Mañana").varones}
+                        {
+                          totalParteDiario(
+                            cursosManana.filter(esCicloSuperior),
+                            "Mañana",
+                          ).varones
+                        }
                       </td>
                       <td style={celdaParteTotal}>
-                        {totalParteDiario(cursosManana.filter(esCicloSuperior), "Mañana").total}
+                        {
+                          totalParteDiario(
+                            cursosManana.filter(esCicloSuperior),
+                            "Mañana",
+                          ).total
+                        }
                       </td>
                     </tr>
 
@@ -568,7 +649,7 @@ if (!logueado) {
 
                   <tbody>
                     {cursosTarde.map((curso) => {
-                      const fila = filaParteDiario(curso, "Tarde")
+                      const fila = filaParteDiario(curso, "Tarde");
 
                       return (
                         <tr key={curso}>
@@ -577,32 +658,62 @@ if (!logueado) {
                           <td style={celdaParte}>{fila.varones}</td>
                           <td style={celdaParteNegrita}>{fila.total}</td>
                         </tr>
-                      )
+                      );
                     })}
 
                     <tr style={filaTotalBasico}>
                       <td style={celdaParteNegrita}>TOTAL CICLO BÁSICO</td>
                       <td style={celdaParteNegrita}>
-                        {totalParteDiario(cursosTarde.filter(esCicloBasico), "Tarde").mujeres}
+                        {
+                          totalParteDiario(
+                            cursosTarde.filter(esCicloBasico),
+                            "Tarde",
+                          ).mujeres
+                        }
                       </td>
                       <td style={celdaParteNegrita}>
-                        {totalParteDiario(cursosTarde.filter(esCicloBasico), "Tarde").varones}
+                        {
+                          totalParteDiario(
+                            cursosTarde.filter(esCicloBasico),
+                            "Tarde",
+                          ).varones
+                        }
                       </td>
                       <td style={celdaParteTotal}>
-                        {totalParteDiario(cursosTarde.filter(esCicloBasico), "Tarde").total}
+                        {
+                          totalParteDiario(
+                            cursosTarde.filter(esCicloBasico),
+                            "Tarde",
+                          ).total
+                        }
                       </td>
                     </tr>
 
                     <tr style={filaTotalSuperior}>
                       <td style={celdaParteNegrita}>TOTAL CICLO SUPERIOR</td>
                       <td style={celdaParteNegrita}>
-                        {totalParteDiario(cursosTarde.filter(esCicloSuperior), "Tarde").mujeres}
+                        {
+                          totalParteDiario(
+                            cursosTarde.filter(esCicloSuperior),
+                            "Tarde",
+                          ).mujeres
+                        }
                       </td>
                       <td style={celdaParteNegrita}>
-                        {totalParteDiario(cursosTarde.filter(esCicloSuperior), "Tarde").varones}
+                        {
+                          totalParteDiario(
+                            cursosTarde.filter(esCicloSuperior),
+                            "Tarde",
+                          ).varones
+                        }
                       </td>
                       <td style={celdaParteTotal}>
-                        {totalParteDiario(cursosTarde.filter(esCicloSuperior), "Tarde").total}
+                        {
+                          totalParteDiario(
+                            cursosTarde.filter(esCicloSuperior),
+                            "Tarde",
+                          ).total
+                        }
                       </td>
                     </tr>
 
@@ -629,21 +740,21 @@ if (!logueado) {
                 borderRadius: "10px",
                 overflow: "hidden",
                 display: "flex",
-                justifyContent: "center"
+                justifyContent: "center",
               }}
             >
               <table
                 style={{
                   ...tablaParte,
                   width: "70%",
-                  minWidth: "450px"
+                  minWidth: "450px",
                 }}
               >
                 <thead>
                   <tr
                     style={{
                       backgroundColor: "#5f7f99",
-                      color: "white"
+                      color: "white",
                     }}
                   >
                     <th style={{ padding: "10px" }}></th>
@@ -659,7 +770,7 @@ if (!logueado) {
                       backgroundColor: "#1e3a5f",
                       color: "white",
                       fontWeight: "bold",
-                      fontSize: "16px"
+                      fontSize: "16px",
                     }}
                   >
                     <td style={{ padding: "14px", textAlign: "center" }}>
@@ -692,13 +803,10 @@ if (!logueado) {
           />
         )}
 
-
         {seccionActiva === "formulario" && (
           <>
             {esAdmin && (
-              <ImportarExcel
-                importarEstudiantes={importarEstudiantes}
-              />
+              <ImportarExcel importarEstudiantes={importarEstudiantes} />
             )}
 
             <FormularioNuevo
@@ -740,35 +848,25 @@ if (!logueado) {
           <Estadisticas estudiantes={estudiantes} />
         )}
 
-        {seccionActiva === "matricula" && (
-          <Matricula />
-        )}
+        {seccionActiva === "matricula" && <Matricula />}
       </div>
 
       {mostrarDespedida && (
         <div style={fondoModal}>
           <div style={modalDespedida}>
-            <h2 style={{ color: "#1e3a5f" }}>
-              👋 Hasta pronto
-            </h2>
+            <h2 style={{ color: "#1e3a5f" }}>👋 Hasta pronto</h2>
 
-            <p>
-              Gracias por utilizar el Sistema de Gestión Institucional
-            </p>
+            <p>Gracias por utilizar el Sistema de Gestión Institucional</p>
 
-            <h3 style={{ color: "#1e3a5f" }}>
-              E.E.S. N° 140
-            </h3>
+            <h3 style={{ color: "#1e3a5f" }}>E.E.S. N° 140</h3>
 
-            <p>
-              "Florencio Molina Campos"
-            </p>
+            <p>"Florencio Molina Campos"</p>
 
             <p
               style={{
                 fontStyle: "italic",
                 marginTop: "20px",
-                color: "#555"
+                color: "#555",
               }}
             >
               Educar es dejar huellas en el corazón de quienes aprenden.
@@ -785,22 +883,21 @@ if (!logueado) {
               <button
                 style={botonSalirModal}
                 onClick={() => {
-                  localStorage.removeItem("rolUsuario")
-                  localStorage.removeItem("usuario")
-                  setMostrarDespedida(false)
-                  setLogueado(false)
-                  setMostrarPortada(true)
+                  localStorage.removeItem("rolUsuario");
+                  localStorage.removeItem("usuario");
+                  setMostrarDespedida(false);
+                  setLogueado(false);
+                  setMostrarPortada(true);
                 }}
               >
                 Salir del sistema
               </button>
-
             </div>
           </div>
         </div>
       )}
     </div>
-  )
+  );
 }
 
 const botonMenu = {
@@ -813,8 +910,8 @@ const botonMenu = {
   fontWeight: "bold",
   fontSize: "13px",
   transition: "0.2s",
-  boxShadow: "0 2px 6px rgba(0,0,0,0.08)"
-}
+  boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+};
 
 const botonVolver = {
   backgroundColor: "#9e7ac0",
@@ -825,24 +922,24 @@ const botonVolver = {
   cursor: "pointer",
   fontWeight: "bold",
   fontSize: "13px",
-  boxShadow: "0 2px 6px rgba(0,0,0,0.08)"
-}
+  boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+};
 
 const contenedorInicio = {
   display: "grid",
   gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
   gap: "25px",
-  marginTop: "35px"
-}
+  marginTop: "110px",
+};
 
 const tarjetaInicio = {
-  backgroundColor: "#f8fafc",
-  border: "1px solid #dbe4ee",
+  backgroundColor: "#f6fbfc",
+  border:  "2px solid #b9d6df",
   borderRadius: "18px",
   padding: "28px",
-  boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-  textAlign: "center"
-}
+  boxShadow: "0 10px 24px rgba(22,58,95,0.18)",
+  textAlign: "center",
+};
 const bloquePeriodo = {
   marginTop: "20px",
   padding: "18px",
@@ -852,28 +949,16 @@ const bloquePeriodo = {
   display: "flex",
   flexDirection: "column",
   gap: "10px",
-  alignItems: "center"
-}
+  alignItems: "center",
+};
 
 const inputPeriodo = {
   padding: "10px",
   borderRadius: "8px",
   border: "1px solid #ccc",
-  width: "220px"
-}
-const botonSalir = {
-  position: "absolute",
-  top: "20px",
-  right: "20px",
-  backgroundColor: "#5c8d89",
-  color: "white",
-  border: "none",
-  borderRadius: "999px",
-  padding: "10px 18px",
-  cursor: "pointer",
-  fontWeight: "bold",
-  boxShadow: "0 3px 6px rgba(0,0,0,0.15)"
-}
+  width: "220px",
+};
+
 const fondoModal = {
   position: "fixed",
   top: 0,
@@ -884,16 +969,16 @@ const fondoModal = {
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-  zIndex: 9999
-}
+  zIndex: 9999,
+};
 const modalDespedida = {
   backgroundColor: "white",
   padding: "35px",
   borderRadius: "20px",
   width: "500px",
   textAlign: "center",
-  boxShadow: "0 10px 30px rgba(0,0,0,0.25)"
-}
+  boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
+};
 const botonVolverModal = {
   backgroundColor: "#dfeceb",
   color: "#1e3a5f",
@@ -901,16 +986,16 @@ const botonVolverModal = {
   padding: "10px 18px",
   borderRadius: "999px",
   marginRight: "10px",
-  cursor: "pointer"
-}
+  cursor: "pointer",
+};
 const botonSalirModal = {
   backgroundColor: "#5c8d89",
   color: "white",
   border: "none",
   padding: "10px 18px",
   borderRadius: "999px",
-  cursor: "pointer"
-}
+  cursor: "pointer",
+};
 const parteDiario = {
   backgroundColor: "#f7fafb",
   border: "2px solid #c7dde3",
@@ -918,20 +1003,20 @@ const parteDiario = {
   padding: "22px",
   marginTop: "25px",
   marginBottom: "28px",
-  boxShadow: "0 8px 18px rgba(0,0,0,0.08)"
-}
+  boxShadow: "0 8px 18px rgba(0,0,0,0.08)",
+};
 
 const tituloParteDiario = {
   color: "#1e3a5f",
   textAlign: "center",
-  marginBottom: "20px"
-}
+  marginBottom: "20px",
+};
 
 const grillaParteDiario = {
   display: "grid",
   gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-  gap: "20px"
-}
+  gap: "20px",
+};
 
 const subtituloParte = {
   backgroundColor: "#e8f4f1",
@@ -939,8 +1024,8 @@ const subtituloParte = {
   borderRadius: "8px",
   padding: "10px",
   color: "#1e3a5f",
-  textAlign: "center"
-}
+  textAlign: "center",
+};
 
 const tablaParte = {
   width: "100%",
@@ -948,54 +1033,112 @@ const tablaParte = {
   backgroundColor: "white",
   borderRadius: "12px",
   overflow: "hidden",
-  boxShadow: "0 3px 8px rgba(0,0,0,0.06)"
-}
+  boxShadow: "0 3px 8px rgba(0,0,0,0.06)",
+};
 
 const celdaParteTitulo = {
   backgroundColor: "#1e3a5f",
   color: "white",
   padding: "10px",
   fontWeight: "bold",
-  textAlign: "center"
-}
+  textAlign: "center",
+};
 
 const celdaParte = {
   border: "1px solid #dbe4ee",
   padding: "9px",
-  textAlign: "center"
-}
+  textAlign: "center",
+};
 
 const celdaParteNegrita = {
   ...celdaParte,
   fontWeight: "bold",
-  backgroundColor: "#eef7f6"
-}
+  backgroundColor: "#eef7f6",
+};
 const filaTotalBasico = {
   backgroundColor: "#fff7ed",
   fontWeight: "bold",
   borderTop: "3px solid #d97706",
-  borderBottom: "2px solid #d97706"
-}
+  borderBottom: "2px solid #d97706",
+};
 
 const filaTotalSuperior = {
   backgroundColor: "#eef7f6",
   fontWeight: "bold",
   borderTop: "3px solid #0f766e",
-  borderBottom: "2px solid #0f766e"
-}
+  borderBottom: "2px solid #0f766e",
+};
 
 const filaTotalTurno = {
   backgroundColor: "#dcefeb",
   fontWeight: "bold",
-  boxShadow: "inset 0 3px 0 #1e3a5f, inset 0 -3px 0 #1e3a5f"
-}
+  boxShadow: "inset 0 3px 0 #1e3a5f, inset 0 -3px 0 #1e3a5f",
+};
 const celdaParteTotal = {
   ...celdaParte,
   fontWeight: "bold",
   backgroundColor: "#dcefeb",
-  fontSize: "15px"
-}
+  fontSize: "15px",
+};
 
 const parteDiarioRef = {
-  backgroundColor: "white"
+  backgroundColor: "white",
+};
+const tarjetaUsuario = {
+  position: "absolute",
+  top: "22px",
+  right: "20px",
+  background: "#f9fcfd",
+  border: "2px solid #b9d6df",
+  borderRadius: "18px",
+  padding: "12px 14px",
+  display: "flex",
+  boxShadow: "0 10px 24px rgba(22,58,95,0.18)",
+  color: "#1e3a5f",
+  zIndex: 10,
+  minWidth: "250px",
 }
+
+const datosUsuario = {
+  display: "flex",
+  flexDirection: "column",
+  gap: "5px",
+  fontSize: "12px",
+  lineHeight: "1.3",
+};
+
+const insigniaAdmin = {
+  backgroundColor: "#dcfce7",
+  color: "#166534",
+  padding: "3px 8px",
+  borderRadius: "999px",
+  fontWeight: "bold",
+  width: "fit-content",
+};
+
+const insigniaConsulta = {
+  backgroundColor: "#dbeafe",
+  color: "#1d4ed8",
+  padding: "3px 8px",
+  borderRadius: "999px",
+  fontWeight: "bold",
+  width: "fit-content",
+};
+
+const ultimoAccesoTexto = {
+  color: "#5f6f7a",
+};
+
+const botonSalirTarjeta = {
+  marginTop: "4px",
+  backgroundColor: "#5d7387",
+  color: "white",
+  border: "none",
+  borderRadius: "999px",
+  padding: "7px 12px",
+  cursor: "pointer",
+  fontWeight: "bold",
+  fontSize: "12px",
+  Hover:  "#445a6e",
+  
+};

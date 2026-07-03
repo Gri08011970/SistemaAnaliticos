@@ -1,42 +1,44 @@
 export default function Botones({
   irAFormulario,
   verListaCompleta,
-  generarPlanillaElevacion
+  generarPlanillaElevacion,
+  esAdmin,
 }) {
-
   return (
     <div
       style={{
         display: "flex",
         gap: "15px",
         marginTop: "30px",
-        flexWrap: "wrap"
+        flexWrap: "wrap",
       }}
     >
-
       <button
-        onClick={irAFormulario}
-        style={estiloBoton}
+        onClick={() => esAdmin && irAFormulario()}
+        disabled={!esAdmin}
+        title={
+          esAdmin
+            ? "Nuevo pedido de analítico"
+            : "Solo el administrador puede crear pedidos"
+        }
+        style={{
+          ...estiloBoton,
+          opacity: esAdmin ? 1 : 0.45,
+          cursor: esAdmin ? "pointer" : "not-allowed",
+        }}
       >
         Nuevo Analítico
       </button>
 
-      <button
-        onClick={verListaCompleta}
-        style={estiloBoton}
-      >
+      <button onClick={verListaCompleta} style={estiloBoton}>
         Ver lista completa
       </button>
 
-      <button
-        onClick={generarPlanillaElevacion}
-        style={estiloBoton}
-      >
+      <button onClick={generarPlanillaElevacion} style={estiloBoton}>
         Planilla de eleve
       </button>
-
     </div>
-  )
+  );
 }
 
 const estiloBoton = {
@@ -46,5 +48,5 @@ const estiloBoton = {
   padding: "12px 20px",
   borderRadius: "10px",
   cursor: "pointer",
-  fontSize: "15px"
-}
+  fontSize: "15px",
+};
