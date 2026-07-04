@@ -7,6 +7,8 @@ import path from "path"
 import { fileURLToPath } from "url"
 import MatriculaAlumno from "./models/MatriculaAlumno.js"
 import Usuario from "./models/Usuario.js"
+import DomicilioTelefono from "./models/DomicilioTelefono.js"
+import AutorizadoRetiro from "./models/AutorizadoRetiro.js";
 
 dotenv.config()
 
@@ -271,6 +273,106 @@ app.post("/api/matricula/importar", async (req, res) => {
 })
 
 // ======================
+// DOMICILIOS Y TELÉFONOS
+// ======================
+
+app.get("/api/domicilios", async (req, res) => {
+  try {
+    const domicilios = await DomicilioTelefono.find().sort({
+      curso: 1,
+      apellidoNombre: 1
+    })
+
+    res.json(domicilios)
+  } catch (error) {
+    res.status(500).json({
+      mensaje: "Error al obtener domicilios"
+    })
+  }
+})
+
+app.post("/api/domicilios", async (req, res) => {
+  try {
+    const nuevoDomicilio = new DomicilioTelefono(req.body)
+
+    await nuevoDomicilio.save()
+
+    res.json(nuevoDomicilio)
+  } catch (error) {
+    res.status(500).json({
+      mensaje: "Error al guardar domicilio"
+    })
+  }
+})
+
+app.put("/api/domicilios/:id", async (req, res) => {
+  try {
+    const domicilioActualizado = await DomicilioTelefono.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { returnDocument: "after" }
+    )
+
+    res.json(domicilioActualizado)
+  } catch (error) {
+    res.status(500).json({
+      mensaje: "Error al actualizar domicilio"
+    })
+  }
+})
+
+app.delete("/api/domicilios/:id", async (req, res) => {
+  try {
+    await DomicilioTelefono.findByIdAndDelete(req.params.id)
+
+    res.json({
+      mensaje: "Domicilio eliminado correctamente"
+    })
+  } catch (error) {
+    res.status(500).json({
+      mensaje: "Error al eliminar domicilio"
+    })
+  }
+})
+
+// ==============================
+// AUTORIZADOS
+// ==============================
+
+app.get("/api/autorizados", async (req, res) => {
+  const datos = await AutorizadoRetiro.find().sort({
+    curso: 1,
+    apellidoNombre: 1,
+  });
+
+  res.json(datos);
+});
+
+app.post("/api/autorizados", async (req, res) => {
+  const nuevo = new AutorizadoRetiro(req.body);
+
+  await nuevo.save();
+
+  res.json(nuevo);
+});
+
+app.put("/api/autorizados/:id", async (req, res) => {
+  const actualizado = await AutorizadoRetiro.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    { new: true }
+  );
+
+  res.json(actualizado);
+});
+
+app.delete("/api/autorizados/:id", async (req, res) => {
+  await AutorizadoRetiro.findByIdAndDelete(req.params.id);
+
+  res.json({ ok: true });
+});
+
+// ======================
 // FRONTEND REACT
 // ======================
 
@@ -290,7 +392,7 @@ app.use((req, res) => {
 })
 
 // ======================
-
+// INICIAR SERVIDOR
 const PORT = process.env.PORT || 3001
 
 app.listen(PORT, () => {

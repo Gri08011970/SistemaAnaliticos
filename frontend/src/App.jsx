@@ -10,6 +10,8 @@ import ImportarExcel from "./components/ImportarExcel";
 import Login from "./components/Login";
 import Matricula from "./components/Matricula";
 import PortadaInstitucional from "./components/PortadaInstitucional";
+import DomicilioTelefono from "./components/DomicilioTelefono";
+import AutorizadosRetirar from "./components/AutorizadosRetirar";
 
 export default function App() {
   const rolUsuario = localStorage.getItem("rolUsuario") || "consulta";
@@ -344,7 +346,11 @@ export default function App() {
               <h1 style={{ color: "#1e3a5f", marginBottom: "5px" }}>
                 {seccionActiva === "matricula"
                   ? "Gestión de Matrícula"
-                  : "Gestión de pedidos de Analíticos"}
+                  : seccionActiva === "domicilioTelefono"
+                    ? "Domicilio y teléfono"
+                    : seccionActiva === "autorizadosRetirar"
+                      ? "Autorizados a retirar"
+                      : "Gestión de pedidos de Analíticos"}
               </h1>
 
               <p
@@ -413,6 +419,32 @@ export default function App() {
                 Entrar
               </button>
             </div>
+
+            <div style={tarjetaInicio} className="tarjeta-inicio">
+              <h3>🏠 Domicilio / Teléfono</h3>
+              <p>Datos de contacto, domicilio y recorrido desde la escuela.</p>
+
+              <button
+                className="boton-sistema boton-principal"
+                style={botonMenu}
+                onClick={() => setSeccionActiva("domicilioTelefono")}
+              >
+                Entrar
+              </button>
+            </div>
+
+            <div style={tarjetaInicio} className="tarjeta-inicio">
+              <h3>👥 Autorizados a retirar</h3>
+              <p>Adultos autorizados, vínculo y DNI de referencia.</p>
+
+              <button
+                className="boton-sistema boton-principal"
+                style={botonMenu}
+                onClick={() => setSeccionActiva("autorizadosRetirar")}
+              >
+                Entrar
+              </button>
+            </div>
           </div>
         )}
 
@@ -420,6 +452,8 @@ export default function App() {
           seccionActiva !== "matricula" &&
           seccionActiva !== "parteDiario" &&
           seccionActiva !== "documentacion" &&
+          seccionActiva !== "domicilioTelefono" &&
+          seccionActiva !== "autorizadosRetirar" &&
           seccionActiva !== "formulario" && (
             <>
               <Busqueda
@@ -821,6 +855,20 @@ export default function App() {
           <Matricula
             modoDocumentacion={true}
             volverInicio={() => setSeccionActiva("inicio")}
+          />
+        )}
+
+        {seccionActiva === "domicilioTelefono" && (
+          <DomicilioTelefono
+            volverInicio={() => setSeccionActiva("inicio")}
+            esAdmin={esAdmin}
+          />
+        )}
+
+        {seccionActiva === "autorizadosRetirar" && (
+          <AutorizadosRetirar
+            volverInicio={() => setSeccionActiva("inicio")}
+            esAdmin={esAdmin}
           />
         )}
 
