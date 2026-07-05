@@ -12,6 +12,7 @@ import {
 } from "./matricula/matriculaConstants";
 import BuscadorGeneralMatricula from "./matricula/BuscadorGeneralMatricula";
 import TurnosCursosMatricula from "./matricula/TurnosCursosMatricula";
+import FichaEstudianteMatricula from "./matricula/FichaEstudianteMatricula";
 
 export default function Matricula({ modoDocumentacion = false, volverInicio }) {
   const rolUsuario = localStorage.getItem("rolUsuario") || "consulta";
@@ -2047,110 +2048,20 @@ ${alumnosDocumentacion
               botonMover,
             }}
           />
-          {alumnoSeleccionado && (
-            <div id="ficha-estudiante" style={detalleCurso}>
-              <div style={tituloFicha}>
-                <h2 style={{ margin: 0 }}>📖 Ficha del estudiante</h2>
-              </div>
-
-              <div style={grillaFicha}>
-                <div style={campoFicha}>
-                  <strong>Apellido y nombre</strong>
-                  <br />
-                  <span style={nombreFicha}>
-                    {alumnoSeleccionado.apellido || ""}{" "}
-                    {alumnoSeleccionado.nombre || ""}
-                  </span>
-                </div>
-
-                <div style={campoFicha}>
-                  <strong>DNI</strong>
-                  <p>{formatearDNI(alumnoSeleccionado.dni)}</p>
-                </div>
-
-                <div style={campoFicha}>
-                  <strong>Curso</strong>
-                  <p>{alumnoSeleccionado.curso}</p>
-                </div>
-
-                <div style={campoFicha}>
-                  <strong>Turno</strong>
-                  <p>{alumnoSeleccionado.turno}</p>
-                </div>
-
-                <div style={campoFicha}>
-                  <strong>Legajo</strong>
-                  <p>
-                    {alumnoSeleccionado.legajoNumero &&
-                    alumnoSeleccionado.legajoAnio
-                      ? `${alumnoSeleccionado.legajoNumero}/${alumnoSeleccionado.legajoAnio}`
-                      : "Sin cargar"}
-                  </p>
-                </div>
-
-                <div style={campoFicha}>
-                  <strong>Libro/Folio</strong>
-                  <p>
-                    {alumnoSeleccionado.libroMatriz &&
-                    alumnoSeleccionado.folioMatriz
-                      ? `${alumnoSeleccionado.libroMatriz}/${alumnoSeleccionado.folioMatriz}`
-                      : alumnoSeleccionado.folioMatriz
-                        ? alumnoSeleccionado.folioMatriz
-                        : alumnoSeleccionado.libroMatriz
-                          ? alumnoSeleccionado.libroMatriz
-                          : "Sin cargar"}
-                  </p>
-                </div>
-
-                <div style={campoFicha}>
-                  <strong>Edad</strong>
-                  <p>
-                    {alumnoSeleccionado.fechaNacimiento
-                      ? calcularEdadAl30Junio(
-                          alumnoSeleccionado.fechaNacimiento,
-                        ) + " años"
-                      : "Sin cargar"}
-                  </p>
-                </div>
-
-                <div style={campoFicha}>
-                  <strong>Condición final</strong>
-                  <p>{alumnoSeleccionado.condicionFinal || "-"}</p>
-                </div>
-
-                <div style={campoFicha}>
-                  <strong>Previas</strong>
-                  <p>
-                    {(() => {
-                      const previasReales =
-                        alumnoSeleccionado.materiasPendientes?.filter(
-                          (previa) => previa.asignatura !== "----------",
-                        ) || [];
-
-                      return previasReales.length > 0
-                        ? previasReales
-                            .map(
-                              (previa) =>
-                                `${previa.asignatura} (${previa.anio})`,
-                            )
-                            .join(", ")
-                        : "Ninguna";
-                    })()}
-                  </p>
-                </div>
-              </div>
-
-              <div style={{ textAlign: "center", marginTop: "20px" }}>
-                <button
-                  style={botonCerrarFicha}
-                  onClick={() => setAlumnoSeleccionado(null)}
-                >
-                  Cerrar ficha
-                </button>
-              </div>
-            </div>
-          )}
-
+          <FichaEstudianteMatricula
+            alumnoSeleccionado={alumnoSeleccionado}
+            formatearDNI={formatearDNI}
+            calcularEdadAl30Junio={calcularEdadAl30Junio}
+            setAlumnoSeleccionado={setAlumnoSeleccionado}
+            estilos={{
+              detalleCurso,
+              tituloFicha,
+              grillaFicha,
+              campoFicha,
+              nombreFicha,
+              botonCerrarFicha,
+            }}
+          />
           <h3 style={tituloFicha}>🛠 Herramientas de gestión</h3>
 
           <div style={panelHerramientas}>
