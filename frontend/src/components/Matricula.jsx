@@ -13,6 +13,7 @@ import {
 import BuscadorGeneralMatricula from "./matricula/BuscadorGeneralMatricula";
 import TurnosCursosMatricula from "./matricula/TurnosCursosMatricula";
 import FichaEstudianteMatricula from "./matricula/FichaEstudianteMatricula";
+import BotonesHerramientasMatricula from "./matricula/BotonesHerramientasMatricula";
 
 export default function Matricula({ modoDocumentacion = false, volverInicio }) {
   const rolUsuario = localStorage.getItem("rolUsuario") || "consulta";
@@ -2065,48 +2066,19 @@ ${alumnosDocumentacion
           <h3 style={tituloFicha}>🛠 Herramientas de gestión</h3>
 
           <div style={panelHerramientas}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                gap: "10px",
-                flexWrap: "wrap",
-              }}
-            >
-              <button
-                style={botonImprimir}
-                onClick={() => {
-                  setVerPlanillaPrevias(!verPlanillaPrevias);
-                  setMateriaExamen("");
-                  setAnioExamen("");
-                  setTurnoExamen("");
-                }}
-              >
-                📝 Ver Planilla Previas
-              </button>
-
-              <button
-                style={botonImprimir}
-                onClick={() => setMostrarRelevamiento(!mostrarRelevamiento)}
-              >
-                {mostrarRelevamiento
-                  ? "📊 Ocultar relevamiento"
-                  : "📊 Mostrar relevamiento"}
-              </button>
-
-              <button
-                style={botonImprimir}
-                onClick={() => setVerRecursantes(!verRecursantes)}
-              >
-                🔁 {verRecursantes ? "Ocultar recursantes" : "Ver recursantes"}
-              </button>
-
-              {verRecursantes && (
-                <button style={botonImprimir} onClick={imprimirRecursantes}>
-                  🖨️ Imprimir recursantes
-                </button>
-              )}
-            </div>
+            <BotonesHerramientasMatricula
+              verPlanillaPrevias={verPlanillaPrevias}
+              setVerPlanillaPrevias={setVerPlanillaPrevias}
+              setMateriaExamen={setMateriaExamen}
+              setAnioExamen={setAnioExamen}
+              setTurnoExamen={setTurnoExamen}
+              mostrarRelevamiento={mostrarRelevamiento}
+              setMostrarRelevamiento={setMostrarRelevamiento}
+              verRecursantes={verRecursantes}
+              setVerRecursantes={setVerRecursantes}
+              imprimirRecursantes={imprimirRecursantes}
+              estilos={{ botonImprimir }}
+            />
 
             {mostrarRelevamiento && (
               <div style={bloqueHerramienta}>
