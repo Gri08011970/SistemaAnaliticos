@@ -7,7 +7,6 @@ export default function AutorizadosRetirar({ volverInicio, esAdmin }) {
   const [alumnosMatricula, setAlumnosMatricula] = useState([])
   const [cursoSeleccionado, setCursoSeleccionado] = useState("")
   const [borradores, setBorradores] = useState({})
-  const [alumnosDesplegados, setAlumnosDesplegados] = useState({})
 
   useEffect(() => {
     obtenerRegistros()
@@ -119,20 +118,6 @@ export default function AutorizadosRetirar({ volverInicio, esAdmin }) {
 
   function seleccionarCurso(curso) {
     setCursoSeleccionado(curso)
-    setAlumnosDesplegados({})
-  }
-
-  function alternarDesplegado(alumnoId) {
-    setAlumnosDesplegados((previo) => ({
-      ...previo,
-      [alumnoId]: !previo[alumnoId]
-    }))
-  }
-
-  function textoVinculo(registro) {
-    return registro.vinculo === "Otro"
-      ? registro.vinculoOtro || "Otro"
-      : registro.vinculo || ""
   }
 
   async function guardarAlumno(alumno) {
@@ -195,38 +180,22 @@ export default function AutorizadosRetirar({ volverInicio, esAdmin }) {
   }
 
   function imprimirListado() {
-    const alumnosParaImprimir = cursoSeleccionado
-      ? alumnosDelCurso
-      : alumnosActivos
+    const lista = cursoSeleccionado ? registrosDelCurso : registros
 
-    const filas = alumnosParaImprimir
-      .map((alumno) => {
-        const autorizadosAlumno = registrosPorAlumno[alumno._id] || []
-
-        const autorizadosHTML =
-          autorizadosAlumno.length > 0
-            ? autorizadosAlumno
-                .map(
-                  (registro) => `
-                    <div class="autorizado">
-                      <strong>${registro.adultoAutorizado || ""}</strong>
-                      <span>${textoVinculo(registro)}</span>
-                      <span>DNI: ${formatearDNI(registro.dniAdultoResponsable) || ""}</span>
-                    </div>
-                  `
-                )
-                .join("")
-            : `<span class="sin-datos">Sin autorizados cargados</span>`
-
-        return `
+    const filas = lista
+      .map(
+        (registro, index) => `
           <tr>
-            <td>${alumno.curso || ""}</td>
-            <td>${nombreCompletoAlumno(alumno)}</td>
-            <td>${formatearDNI(alumno.dni) || ""}</td>
-            <td>${autorizadosHTML}</td>
+            <td>${index + 1}</td>
+            <td>${registro.curso || ""}</td>
+            <td>${registro.apellidoNombre || ""}</td>
+            <td>${formatearDNI(registro.dniAlumno) || ""}</td>
+            <td>${registro.adultoAutorizado || ""}</td>
+            <td>${registro.vinculo === "Otro" ? registro.vinculoOtro || "Otro" : registro.vinculo || ""}</td>
+            <td>${formatearDNI(registro.dniAdultoResponsable) || ""}</td>
           </tr>
         `
-      })
+      )
       .join("")
 
     const ventana = window.open("", "_blank")
@@ -236,66 +205,15 @@ export default function AutorizadosRetirar({ volverInicio, esAdmin }) {
         <head>
           <title>Autorizados a retirar</title>
           <style>
-            body {
-              font-family: Arial, sans-serif;
-              padding: 30px;
-              color: #222;
-            }
-
-            h2, p {
-              text-align: center;
-            }
-
-            h2 {
-              color: #1e3a5f;
-              margin-bottom: 4px;
-            }
-
-            .fecha {
-              text-align: right;
-              color: #555;
-              font-size: 13px;
-              margin-top: 20px;
-            }
-
-            table {
-              width: 100%;
-              border-collapse: collapse;
-              margin-top: 20px;
-              font-size: 12px;
-            }
-
-            th, td {
-              border: 1px solid #444;
-              padding: 8px;
-              vertical-align: top;
-            }
-
-            th {
-              background: #1e3a5f;
-              color: white;
-              text-align: center;
-            }
-
-            .autorizado {
-              display: grid;
-              grid-template-columns: 1.3fr 0.8fr 1fr;
-              gap: 8px;
-              border-bottom: 1px solid #ddd;
-              padding: 4px 0;
-            }
-
-            .autorizado:last-child {
-              border-bottom: none;
-            }
-
-            .sin-datos {
-              color: #777;
-              font-style: italic;
-            }
+            body { font-family: Arial, sans-serif; padding: 30px; color: #222; }
+            h2, p { text-align: center; }
+            h2 { color: #1e3a5f; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
+            th, td { border: 1px solid #444; padding: 7px; text-align: center; }
+            th { background: #1e3a5f; color: white; }
+            .fecha { text-align: right; color: #555; font-size: 13px; }
           </style>
         </head>
-
         <body>
           <h2>Autorizados a retirar estudiantes</h2>
           <p>E.E.S. N° 140 "Florencio Molina Campos"</p>
@@ -305,10 +223,13 @@ export default function AutorizadosRetirar({ volverInicio, esAdmin }) {
           <table>
             <thead>
               <tr>
+                <th>N°</th>
                 <th>Curso</th>
                 <th>Apellido y Nombre</th>
                 <th>DNI estudiante</th>
-                <th>Autorizados</th>
+                <th>Adulto autorizado</th>
+                <th>Vínculo</th>
+                <th>DNI adulto responsable</th>
               </tr>
             </thead>
             <tbody>${filas}</tbody>
@@ -571,57 +492,28 @@ export default function AutorizadosRetirar({ volverInicio, esAdmin }) {
                     </td>
 
                     <td style={celdaCargados}>
-                      {registrosAlumno.length === 0 && (
-                        <span style={sinAutorizados}>—</span>
-                      )}
+                      {registrosAlumno.length === 0 && "—"}
 
-                      {registrosAlumno.length > 0 && (
-                        <>
-                          <button
-                            style={botonDesplegar}
-                            onClick={() => alternarDesplegado(alumno._id)}
-                            title="Ver autorizados cargados"
-                          >
-                            {alumnosDesplegados[alumno._id] ? "▲" : "▼"}{" "}
-                            {registrosAlumno.length}{" "}
-                            {registrosAlumno.length === 1
-                              ? "autorizado"
-                              : "autorizados"}
-                          </button>
+                      {registrosAlumno.map((registro) => (
+                        <div key={registro._id} style={chipAutorizado}>
+                          <span>
+                            {registro.adultoAutorizado} ·{" "}
+                            {registro.vinculo === "Otro"
+                              ? registro.vinculoOtro || "Otro"
+                              : registro.vinculo}
+                          </span>
 
-                          {alumnosDesplegados[alumno._id] && (
-                            <div style={contenedorAutorizados}>
-                              {registrosAlumno.map((registro) => (
-                                <div key={registro._id} style={tarjetaAutorizado}>
-                                  <div style={nombreAutorizado}>
-                                    {registro.adultoAutorizado}
-                                  </div>
-
-                                  <div>
-                                    <strong>Vínculo:</strong>{" "}
-                                    {textoVinculo(registro)}
-                                  </div>
-
-                                  <div>
-                                    <strong>DNI:</strong>{" "}
-                                    {formatearDNI(registro.dniAdultoResponsable)}
-                                  </div>
-
-                                  {esAdmin && (
-                                    <button
-                                      style={botonEliminarMini}
-                                      onClick={() => eliminarRegistro(registro._id)}
-                                      title="Eliminar autorizado"
-                                    >
-                                      🗑️ Eliminar
-                                    </button>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
+                          {esAdmin && (
+                            <button
+                              style={botonEliminarMini}
+                              onClick={() => eliminarRegistro(registro._id)}
+                              title="Eliminar"
+                            >
+                              🗑️
+                            </button>
                           )}
-                        </>
-                      )}
+                        </div>
+                      ))}
                     </td>
                   </tr>
                 )
@@ -771,42 +663,17 @@ const celdaCargados = {
   textAlign: "left"
 }
 
-const botonDesplegar = {
-  backgroundColor: "#eef5f7",
-  color: "#1e3a5f",
-  border: "1px solid #c7dde3",
-  borderRadius: "999px",
-  padding: "7px 12px",
-  cursor: "pointer",
-  fontWeight: "bold",
-  width: "100%"
-}
-
-const contenedorAutorizados = {
-  marginTop: "8px",
+const chipAutorizado = {
   display: "flex",
-  flexDirection: "column",
-  gap: "8px"
-}
-
-const tarjetaAutorizado = {
-  backgroundColor: "white",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: "8px",
+  backgroundColor: "#eef5f7",
   border: "1px solid #d6e4ea",
-  borderRadius: "12px",
-  padding: "8px",
-  color: "#4f4a68",
-  boxShadow: "0 3px 8px rgba(22,58,95,.08)"
-}
-
-const nombreAutorizado = {
-  color: "#1e3a5f",
-  fontWeight: "bold",
-  marginBottom: "4px"
-}
-
-const sinAutorizados = {
-  color: "#777",
-  fontStyle: "italic"
+  borderRadius: "999px",
+  padding: "5px 8px",
+  marginBottom: "5px",
+  color: "#1e3a5f"
 }
 
 const botonEliminarMini = {
@@ -815,8 +682,7 @@ const botonEliminarMini = {
   border: "none",
   borderRadius: "999px",
   cursor: "pointer",
-  padding: "5px 8px",
-  marginTop: "6px"
+  padding: "3px 6px"
 }
 
 const botonVolver = {
