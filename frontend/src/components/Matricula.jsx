@@ -11,6 +11,7 @@ import {
   materiasPorAnio,
 } from "./matricula/matriculaConstants";
 import BuscadorGeneralMatricula from "./matricula/BuscadorGeneralMatricula";
+import TurnosCursosMatricula from "./matricula/TurnosCursosMatricula";
 
 export default function Matricula({ modoDocumentacion = false, volverInicio }) {
   const rolUsuario = localStorage.getItem("rolUsuario") || "consulta";
@@ -2707,117 +2708,26 @@ ${alumnosDocumentacion
               </div>
             )}
 
-            <div style={contenedorTurnos}>
-              <div style={bloqueTurno}>
-                <div
-                  onClick={() => setMostrarTurnoManana(!mostrarTurnoManana)}
-                  style={{
-                    ...tituloTurno,
-                    cursor: "pointer",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <span>📚 Turno Mañana</span>
-
-                  <span style={{ fontSize: "18px" }}>
-                    {mostrarTurnoManana ? "▼" : "▶"}
-                  </span>
-                </div>
-
-                {mostrarTurnoManana && (
-                  <div style={grillaCursos}>
-                    {cursosManana.map((curso) => (
-                      <div
-                        key={curso}
-                        style={{
-                          ...tarjetaCurso,
-                          backgroundImage: fotosPreceptores[`${curso}-Mañana`]
-                            ? `linear-gradient(rgba(255,255,255,0.50), rgba(255,255,255,0.50)), url(${fotosPreceptores[`${curso}-Mañana`]})`
-                            : "none",
-                          backgroundSize: "cover",
-                          backgroundPosition: "center",
-                        }}
-                      >
-                        <h4>{curso}</h4>
-
-                        <p style={textoCantidad}>
-                          {contarAlumnos(curso, "Mañana")} estudiantes
-                        </p>
-
-                        <button
-                          style={botonCurso}
-                          onClick={() =>
-                            setCursoSeleccionado({
-                              curso,
-                              turno: "Mañana",
-                            })
-                          }
-                        >
-                          Ver curso
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div style={bloqueTurno}>
-                <div
-                  onClick={() => setMostrarTurnoTarde(!mostrarTurnoTarde)}
-                  style={{
-                    ...tituloTurno,
-                    cursor: "pointer",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <span>📚 Turno Tarde</span>
-
-                  <span style={{ fontSize: "18px" }}>
-                    {mostrarTurnoTarde ? "▼" : "▶"}
-                  </span>
-                </div>
-
-                {mostrarTurnoTarde && (
-                  <div style={grillaCursos}>
-                    {cursosTarde.map((curso) => (
-                      <div
-                        key={curso}
-                        style={{
-                          ...tarjetaCurso,
-                          backgroundImage: fotosPreceptores[`${curso}-Tarde`]
-                            ? `linear-gradient(rgba(255,255,255,0.50), rgba(255,255,255,0.50)), url(${fotosPreceptores[`${curso}-Tarde`]})`
-                            : "none",
-                          backgroundSize: "cover",
-                          backgroundPosition: "center",
-                        }}
-                      >
-                        <h4>{curso}</h4>
-
-                        <p style={textoCantidad}>
-                          {contarAlumnos(curso, "Tarde")} estudiantes
-                        </p>
-
-                        <button
-                          style={botonCurso}
-                          onClick={() =>
-                            setCursoSeleccionado({
-                              curso,
-                              turno: "Tarde",
-                            })
-                          }
-                        >
-                          Ver curso
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+            <TurnosCursosMatricula
+              cursosManana={cursosManana}
+              cursosTarde={cursosTarde}
+              mostrarTurnoManana={mostrarTurnoManana}
+              setMostrarTurnoManana={setMostrarTurnoManana}
+              mostrarTurnoTarde={mostrarTurnoTarde}
+              setMostrarTurnoTarde={setMostrarTurnoTarde}
+              fotosPreceptores={fotosPreceptores}
+              contarAlumnos={contarAlumnos}
+              setCursoSeleccionado={setCursoSeleccionado}
+              estilos={{
+                contenedorTurnos,
+                bloqueTurno,
+                tituloTurno,
+                grillaCursos,
+                tarjetaCurso,
+                textoCantidad,
+                botonCurso,
+              }}
+            />
           </div>
         </>
       )}
