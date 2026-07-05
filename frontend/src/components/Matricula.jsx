@@ -3,6 +3,13 @@ import axios from "axios";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import preceptora11 from "../assets/preceptores/preceptor_1_1.jpg";
+import {
+  cursosManana,
+  cursosTarde,
+  asignaturas,
+  aniosMateria,
+  materiasPorAnio,
+} from "./matricula/matriculaConstants";
 
 export default function Matricula({ modoDocumentacion = false, volverInicio }) {
   const rolUsuario = localStorage.getItem("rolUsuario") || "consulta";
@@ -11,7 +18,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
   const [alumnosMatricula, setAlumnosMatricula] = useState([]);
   const [alumnoEditando, setAlumnoEditando] = useState(null);
   const [alumnoMoviendo, setAlumnoMoviendo] = useState(null);
-  const [nuevoCurso, setNuevoCurso] = useState("");
+  const [nuevoCurso, setNuevoCurso] = useState(""); 
   const [nuevoTurno, setNuevoTurno] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [verEstadisticasGeneral, setVerEstadisticasGeneral] = useState(true);
@@ -289,65 +296,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
     }
   }
 
-  const cursosManana = [
-    "1°1°",
-    "1°2°",
-    "2°1°",
-    "2°2°",
-    "3°1°",
-    "3°2°",
-    "4°1°",
-    "4°2°",
-    "5°1°",
-    "5°2°",
-    "6°1°",
-    "6°2°",
-  ];
-
-  const cursosTarde = [
-    "1°3°",
-    "1°4°",
-    "2°3°",
-    "2°4°",
-    "3°3°",
-    "3°4°",
-    "4°3°",
-    "4°4°",
-    "5°3°",
-    "5°4°",
-    "6°3°",
-    "6°4°",
-  ];
-
-  const asignaturas = [
-    "----------",
-    "Ciencias Naturales",
-    "Ciencias Sociales",
-    "Educación Artística",
-    "Educación Física",
-    "Inglés",
-    "Matemática",
-    "Prácticas del Lenguaje",
-    "Construcción de Ciudadanía",
-    "Biología",
-    "Fisicoquímica",
-    "Geografía",
-    "Historia",
-    "Literatura",
-    "Matemática Ciclo Superior",
-    "NTICX",
-    "Salud y Adolescencia",
-    "Introducción a la Física",
-    "Introducción a la Química",
-    "Política y Ciudadanía",
-    "Producción y Análisis de Imágenes",
-    "Imagen y Nuevos Medios",
-    "Art. Leng. Danza",
-    "Imagen y Procedimientos Constructivos",
-  ];
-
-  const aniosMateria = ["1°", "2°", "3°", "4°", "5°", "6°"];
-
+  
   const alumnosDelCurso = cursoSeleccionado
     ? alumnosMatricula
         .filter(
@@ -1531,69 +1480,7 @@ ventana.print();
     return coincideNombre || coincideDni;
   });
 
-  const materiasPorAnio = {
-    1: [
-      "Matemática",
-      "Prácticas del Lenguaje",
-      "Inglés",
-      "Educación Artística",
-      "Educación Física",
-      "Construcción de la Ciudadanía",
-      "Ciencias Naturales",
-      "Ciencias Sociales",
-    ],
-    2: [
-      "Biología",
-      "Construcción Ciudadana",
-      "Educación Artística",
-      "Educación Física",
-      "Físico-Química",
-      "Geografía",
-      "Historia",
-      "Inglés",
-      "Matemática",
-      "Prácticas del Lenguaje",
-    ],
-    3: [
-      "Biología",
-      "Construcción Ciudadana",
-      "Educación Artística",
-      "Educación Física",
-      "Físico-Química",
-      "Geografía",
-      "Historia",
-      "Inglés",
-      "Matemática",
-      "Prácticas del Lenguaje",
-    ],
-    4: [
-      "Literatura",
-      "Matemática Superior",
-      "Educación Física",
-      "Inglés",
-      "Enetic",
-      "SADO",
-      "Introducción a la Física",
-      "Biología",
-      "Historia",
-      "Geografía",
-      "Producción y Análisis de Imágenes",
-    ],
-    5: [
-      "Literatura",
-      "Matemática Superior",
-      "Educación Física",
-      "Inglés",
-      "Política y Ciudadanía",
-      "Introducción a la Química",
-      "Historia",
-      "Geografía",
-      "Art. Leng. Danza",
-      "Imágenes y Nuevos Medios",
-      "Imágenes y Procedimientos",
-    ],
-  };
-
+ 
   function obtenerPreviasValidas(alumno) {
     return (alumno.materiasPendientes || []).filter(
       (previa) => previa.asignatura && previa.asignatura !== "----------",
