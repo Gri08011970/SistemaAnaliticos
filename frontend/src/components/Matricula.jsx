@@ -10,6 +10,7 @@ import {
   aniosMateria,
   materiasPorAnio,
 } from "./matricula/matriculaConstants";
+import BuscadorGeneralMatricula from "./matricula/BuscadorGeneralMatricula";
 
 export default function Matricula({ modoDocumentacion = false, volverInicio }) {
   const rolUsuario = localStorage.getItem("rolUsuario") || "consulta";
@@ -18,7 +19,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
   const [alumnosMatricula, setAlumnosMatricula] = useState([]);
   const [alumnoEditando, setAlumnoEditando] = useState(null);
   const [alumnoMoviendo, setAlumnoMoviendo] = useState(null);
-  const [nuevoCurso, setNuevoCurso] = useState(""); 
+  const [nuevoCurso, setNuevoCurso] = useState("");
   const [nuevoTurno, setNuevoTurno] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [verEstadisticasGeneral, setVerEstadisticasGeneral] = useState(true);
@@ -296,7 +297,6 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
     }
   }
 
-  
   const alumnosDelCurso = cursoSeleccionado
     ? alumnosMatricula
         .filter(
@@ -1078,10 +1078,9 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
   }
 
   function imprimirRecursantes() {
+    const ventana = window.open("", "_blank");
 
-  const ventana = window.open("", "_blank");
-
-  ventana.document.write(`
+    ventana.document.write(`
   <html>
   <head>
 
@@ -1148,7 +1147,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
 
   ${alumnosRecursantes
     .map(
-      (a)=>`
+      (a) => `
 
       <tr>
 
@@ -1162,7 +1161,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
 
       </tr>
 
-      `
+      `,
     )
     .join("")}
 
@@ -1175,16 +1174,14 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
   </html>
   `);
 
-  ventana.document.close();
-  ventana.print();
+    ventana.document.close();
+    ventana.print();
+  }
 
-}
+  function imprimirDocumentacion() {
+    const ventana = window.open("", "_blank");
 
-function imprimirDocumentacion(){
-
-const ventana=window.open("","_blank");
-
-ventana.document.write(`
+    ventana.document.write(`
 
 <html>
 
@@ -1284,7 +1281,9 @@ ${new Date().toLocaleString("es-AR")}
 
 <tbody>
 
-${alumnosDocumentacion.map(a=>`
+${alumnosDocumentacion
+  .map(
+    (a) => `
 
 <tr>
 
@@ -1306,7 +1305,9 @@ ${alumnosDocumentacion.map(a=>`
 
 </tr>
 
-`).join("")}
+`,
+  )
+  .join("")}
 
 </tbody>
 
@@ -1318,11 +1319,10 @@ ${alumnosDocumentacion.map(a=>`
 
 `);
 
-ventana.document.close();
+    ventana.document.close();
 
-ventana.print();
-
-}
+    ventana.print();
+  }
 
   function tieneSobreedad(alumno) {
     if (!alumno.fechaNacimiento || !alumno.curso) return false;
@@ -1480,7 +1480,6 @@ ventana.print();
     return coincideNombre || coincideDni;
   });
 
- 
   function obtenerPreviasValidas(alumno) {
     return (alumno.materiasPendientes || []).filter(
       (previa) => previa.asignatura && previa.asignatura !== "----------",
@@ -1773,16 +1772,16 @@ ventana.print();
             <option value="Tarde">Turno Tarde</option>
           </select>
         </div>
-         <div
-        style={{
-          textAlign: "center",
-          marginBottom: "20px",
-        }}
-      >
-        <button style={botonImprimir} onClick={imprimirDocumentacion}>
-          🖨️ Imprimir documentación
-        </button>
-      </div>
+        <div
+          style={{
+            textAlign: "center",
+            marginBottom: "20px",
+          }}
+        >
+          <button style={botonImprimir} onClick={imprimirDocumentacion}>
+            🖨️ Imprimir documentación
+          </button>
+        </div>
 
         <table style={tabla}>
           <thead>
@@ -2026,114 +2025,27 @@ ventana.print();
               </table>
             </div>
           )}
-          <div style={bloqueBusquedaGeneral}>
-            <h3
-              style={{
-                color: "#1e3a5f",
-                marginBottom: "10px",
-                marginTop: "0px",
-              }}
-            >
-              🔎 Buscar estudiante
-            </h3>
-
-            <input
-              type="text"
-              placeholder="Apellido, nombre o DNI"
-              style={inputBusquedaPrincipal}
-              value={busquedaAlumno}
-              onChange={(e) => setBusquedaAlumno(e.target.value)}
-            />
-
-            {busquedaAlumno && (
-              <div style={listaResultadosBusqueda}>
-                {alumnosEncontrados.map((alumno) => {
-                  const pedidoAnalitico = pedidosAnaliticos.find(
-                    (pedido) =>
-                      limpiarDNI(pedido.dni) === limpiarDNI(alumno.dni),
-                  );
-
-                  return (
-                    <div key={alumno._id} style={itemResultadoBusqueda}>
-                      <div>
-                        <strong>
-                          {alumno.apellido}, {alumno.nombre}
-                        </strong>
-
-                        <p style={{ margin: 0 }}>
-                          {alumno.curso} • Turno {alumno.turno}
-                        </p>
-
-                        {pedidoAnalitico && (
-                          <div style={alertaAnalitico}>
-                            📄 Pedido de analítico encontrado
-                            <br />
-                            Estado: {pedidoAnalitico.estado || "-"}
-                            <br />
-                            Libro: {pedidoAnalitico.libro || "-"} | Folio:{" "}
-                            {pedidoAnalitico.folio || "-"} | Carpeta:{" "}
-                            {pedidoAnalitico.carpeta || "-"}
-                          </div>
-                        )}
-                      </div>
-
-                      <button
-                        style={botonEditar}
-                        onClick={() => {
-                          setCursoSeleccionado({
-                            curso: alumno.curso,
-                            turno: alumno.turno,
-                          });
-                          editarAlumno(alumno);
-                        }}
-                      >
-                        ✏️
-                      </button>
-
-                      <button
-                        style={botonMover}
-                        onClick={() => {
-                          setAlumnoSeleccionado(alumno);
-
-                          setTimeout(() => {
-                            document
-                              .getElementById("ficha-estudiante")
-                              ?.scrollIntoView({
-                                behavior: "smooth",
-                                block: "start",
-                              });
-                          }, 100);
-                        }}
-                      >
-                        📖
-                      </button>
-                    </div>
-                  );
-                })}
-
-                {pedidosAnaliticosEncontrados.map((pedido) => (
-                  <div key={pedido._id} style={alertaAnalitico}>
-                    📄 Estudiante con pedido de analítico cargado
-                    <br />
-                    <strong>{pedido.nombre}</strong>
-                    <br />
-                    DNI: {formatearDNI(pedido.dni)}
-                    <br />
-                    Estado: {pedido.estado || "-"}
-                    <br />
-                    Libro: {pedido.libro || "-"} | Folio: {pedido.folio || "-"}{" "}
-                    | Carpeta: {pedido.carpeta || "-"}
-                  </div>
-                ))}
-
-                {alumnosEncontrados.length === 0 &&
-                  pedidosAnaliticosEncontrados.length === 0 && (
-                    <p>No se encontraron estudiantes.</p>
-                  )}
-              </div>
-            )}
-          </div>
-
+          <BuscadorGeneralMatricula
+            busquedaAlumno={busquedaAlumno}
+            setBusquedaAlumno={setBusquedaAlumno}
+            alumnosEncontrados={alumnosEncontrados}
+            pedidosAnaliticos={pedidosAnaliticos}
+            pedidosAnaliticosEncontrados={pedidosAnaliticosEncontrados}
+            limpiarDNI={limpiarDNI}
+            formatearDNI={formatearDNI}
+            setCursoSeleccionado={setCursoSeleccionado}
+            editarAlumno={editarAlumno}
+            setAlumnoSeleccionado={setAlumnoSeleccionado}
+            estilos={{
+              bloqueBusquedaGeneral,
+              inputBusquedaPrincipal,
+              listaResultadosBusqueda,
+              itemResultadoBusqueda,
+              alertaAnalitico,
+              botonEditar,
+              botonMover,
+            }}
+          />
           {alumnoSeleccionado && (
             <div id="ficha-estudiante" style={detalleCurso}>
               <div style={tituloFicha}>
