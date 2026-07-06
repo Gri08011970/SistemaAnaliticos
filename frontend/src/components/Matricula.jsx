@@ -16,6 +16,7 @@ import FichaEstudianteMatricula from "./matricula/FichaEstudianteMatricula";
 import BotonesHerramientasMatricula from "./matricula/BotonesHerramientasMatricula";
 import RelevamientoInspeccionMatricula from "./matricula/RelevamientoInspeccionMatricula";
 import FiltrosLegajoMatrizMatricula from "./matricula/FiltrosLegajoMatrizMatricula";
+import ArchivoLegajoMatrizMatricula from "./matricula/ArchivoLegajoMatrizMatricula";
 
 export default function Matricula({ modoDocumentacion = false, volverInicio }) {
   const rolUsuario = localStorage.getItem("rolUsuario") || "consulta";
@@ -2107,169 +2108,32 @@ ${alumnosDocumentacion
               }}
             />
 
-            <div style={bloqueHerramienta}>
-              <h3 style={{ color: "#1e3a5f" }}>
-                📦 Legajos y matriz para archivo
-              </h3>
-
-              {!anioLegajoFiltro && !libroMatrizFiltro ? (
-                <p>Seleccioná un año de legajo o un libro matriz.</p>
-              ) : (
-                <>
-                  {anioLegajoFiltro && (
-                    <>
-                      <p>
-                        Año de legajo: <strong>{anioLegajoFiltro}</strong>
-                      </p>
-
-                      <p>
-                        Legajos faltantes:{" "}
-                        <strong>
-                          {obtenerLegajosFaltantes(anioLegajoFiltro).length}
-                        </strong>
-                      </p>
-
-                      <button
-                        style={botonImprimir}
-                        onClick={() =>
-                          setMostrarLegajosArchivo(!mostrarLegajosArchivo)
-                        }
-                      >
-                        {mostrarLegajosArchivo
-                          ? "Ocultar legajos"
-                          : "Ver legajos"}
-                      </button>
-
-                      {mostrarLegajosArchivo && (
-                        <div
-                          style={{
-                            marginTop: "12px",
-                            padding: "12px",
-                            border: "1px solid #c7dde3",
-                            borderRadius: "10px",
-                            backgroundColor: "#f7fafb",
-                          }}
-                        >
-                          {obtenerLegajosFaltantes(anioLegajoFiltro).length ===
-                          0 ? (
-                            <p>No hay legajos faltantes.</p>
-                          ) : (
-                            <p>
-                              {obtenerLegajosFaltantes(anioLegajoFiltro)
-                                .map(
-                                  (numero) => `${numero}/${anioLegajoFiltro}`,
-                                )
-                                .join(" - ")}
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    </>
-                  )}
-
-                  {libroMatrizFiltro && (
-                    <div style={detalleCurso}>
-                      <h3 style={{ color: "#1e3a5f" }}>
-                        📖 Listado de matriz - Libro {libroMatrizFiltro}
-                      </h3>
-
-                      <p>
-                        Cantidad de registros del libro {libroMatrizFiltro}:{" "}
-                        {alumnosPorMatriz.length}
-                      </p>
-
-                      <table style={tabla}>
-                        <thead>
-                          <tr>
-                            <th style={celda}>Libro/Folio</th>
-                            <th style={celda}>Apellido y Nombre</th>
-                            <th style={celda}>DNI</th>
-                            <th style={celda}>Curso</th>
-                            <th style={celda}>Turno</th>
-                            <th style={celda}>Legajo</th>
-                          </tr>
-                        </thead>
-
-                        <tbody>
-                          {alumnosPorMatriz.map((alumno) => (
-                            <tr key={alumno._id}>
-                              <td style={celda}>
-                                {alumno.folioMatriz ||
-                                  alumno.libroMatriz ||
-                                  "-"}
-                              </td>
-
-                              <td style={celda}>
-                                {alumno.apellido}, {alumno.nombre}
-                              </td>
-
-                              <td style={celda}>{formatearDNI(alumno.dni)}</td>
-                              <td style={celda}>{alumno.curso}</td>
-                              <td style={celda}>{alumno.turno}</td>
-
-                              <td style={celda}>
-                                {alumno.legajoNumero && alumno.legajoAnio
-                                  ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
-                                  : "-"}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-
-                  {libroMatrizFiltro && (
-                    <>
-                      <hr />
-
-                      <p>
-                        Libro matriz: <strong>{libroMatrizFiltro}</strong>
-                      </p>
-
-                      <p>
-                        Folios faltantes:{" "}
-                        <strong>
-                          {obtenerFoliosFaltantes(libroMatrizFiltro).length}
-                        </strong>
-                      </p>
-
-                      <button
-                        style={botonImprimir}
-                        onClick={() =>
-                          setMostrarMatrizArchivo(!mostrarMatrizArchivo)
-                        }
-                      >
-                        {mostrarMatrizArchivo ? "Ocultar folios" : "Ver folios"}
-                      </button>
-
-                      {mostrarMatrizArchivo && (
-                        <div
-                          style={{
-                            marginTop: "12px",
-                            padding: "12px",
-                            border: "1px solid #c7dde3",
-                            borderRadius: "10px",
-                            backgroundColor: "#f7fafb",
-                          }}
-                        >
-                          {obtenerFoliosFaltantes(libroMatrizFiltro).length ===
-                          0 ? (
-                            <p>No hay folios faltantes.</p>
-                          ) : (
-                            <p>
-                              {obtenerFoliosFaltantes(libroMatrizFiltro).join(
-                                " - ",
-                              )}
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    </>
-                  )}
-                </>
-              )}
-            </div>
+            <ArchivoLegajoMatrizMatricula
+              anioLegajoFiltro={anioLegajoFiltro}
+              libroMatrizFiltro={libroMatrizFiltro}
+              mostrarLegajosArchivo={mostrarLegajosArchivo}
+              setMostrarLegajosArchivo={setMostrarLegajosArchivo}
+              mostrarMatrizArchivo={mostrarMatrizArchivo}
+              setMostrarMatrizArchivo={setMostrarMatrizArchivo}
+              obtenerLegajosFaltantes={obtenerLegajosFaltantes}
+              obtenerFoliosFaltantes={obtenerFoliosFaltantes}
+              alumnosPorMatriz={alumnosPorMatriz}
+              formatearDNI={formatearDNI}
+              estilos={{
+                bloqueHerramienta,
+                botonImprimir,
+                detalleCurso,
+                tabla,
+                celda,
+                cajaArchivo: {
+                  marginTop: "12px",
+                  padding: "12px",
+                  border: "1px solid #c7dde3",
+                  borderRadius: "10px",
+                  backgroundColor: "#f7fafb",
+                },
+              }}
+            />
             {verPlanillaPrevias && (
               <div style={detalleCurso}>
                 <h3 style={{ color: "#1e3a5f" }}>
