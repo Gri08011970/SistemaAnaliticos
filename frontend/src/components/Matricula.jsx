@@ -20,6 +20,7 @@ import ArchivoLegajoMatrizMatricula from "./matricula/ArchivoLegajoMatrizMatricu
 import PlanillaPreviasMatricula from "./matricula/PlanillaPreviasMatricula";
 import ListadoLegajosMatricula from "./matricula/ListadoLegajosMatricula";
 import RecursantesMatricula from "./matricula/RecursantesMatricula";
+import AccionesCursoMatricula from "./matricula/AccionesCursoMatricula";
 
 export default function Matricula({ modoDocumentacion = false, volverInicio }) {
   const rolUsuario = localStorage.getItem("rolUsuario") || "consulta";
@@ -2208,50 +2209,19 @@ ${alumnosDocumentacion
 
       {cursoSeleccionado && (
         <div style={detalleCurso} className="area-impresion">
-          <div className="no-print">
-            <button
-              style={botonVolver}
-              onClick={() => setCursoSeleccionado(null)}
-            >
-              Volver a todos los cursos
-            </button>
-
-            <button style={botonImprimir} onClick={imprimirCurso}>
-              🖨️ Imprimir curso
-            </button>
-
-            <button
-              style={botonImprimir}
-              onClick={() => setVerEstadisticasCurso(!verEstadisticasCurso)}
-            >
-              📊 Estadísticas
-            </button>
-
-            <button style={botonImprimir} onClick={exportarExcel}>
-              Exportar Excel
-            </button>
-
-            {esAdmin && (
-              <label
-                style={{
-                  ...botonImprimir,
-                  display: "inline-block",
-                  cursor: "pointer",
-                  fontSize: "12,5px",
-                  padding: "3px 10px",
-                }}
-              >
-                📁 Cargar Excel
-                <input
-                  type="file"
-                  accept=".xlsx,.xls"
-                  onChange={importarReporteOficial}
-                  style={{ display: "none" }}
-                />
-              </label>
-            )}
-          </div>
-
+          <AccionesCursoMatricula
+            esAdmin={esAdmin}
+            setCursoSeleccionado={setCursoSeleccionado}
+            imprimirCurso={imprimirCurso}
+            verEstadisticasCurso={verEstadisticasCurso}
+            setVerEstadisticasCurso={setVerEstadisticasCurso}
+            exportarExcel={exportarExcel}
+            importarReporteOficial={importarReporteOficial}
+            estilos={{
+              botonVolver,
+              botonImprimir,
+            }}
+          />
           <div id="curso-imprimir">
             <h3 style={{ color: "#1e3a5f" }}>
               Curso: {cursoSeleccionado.curso} - Turno {cursoSeleccionado.turno}
