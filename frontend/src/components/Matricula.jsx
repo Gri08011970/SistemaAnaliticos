@@ -21,6 +21,7 @@ import PlanillaPreviasMatricula from "./matricula/PlanillaPreviasMatricula";
 import ListadoLegajosMatricula from "./matricula/ListadoLegajosMatricula";
 import RecursantesMatricula from "./matricula/RecursantesMatricula";
 import AccionesCursoMatricula from "./matricula/AccionesCursoMatricula";
+import EstadisticasCursoMatricula from "./matricula/EstadisticasCursoMatricula";
 
 export default function Matricula({ modoDocumentacion = false, volverInicio }) {
   const rolUsuario = localStorage.getItem("rolUsuario") || "consulta";
@@ -2229,56 +2230,22 @@ ${alumnosDocumentacion
 
             <p>Cantidad de estudiantes: {alumnosDelCurso.length}</p>
 
-            {verEstadisticasCurso && (
-              <>
-                <div style={bloqueEstadisticas}>
-                  <div style={tarjetaEstadistica}>
-                    <h3>Total</h3>
-                    <p>{totalEstudiantes}</p>
-                  </div>
-
-                  <div style={tarjetaEstadistica}>
-                    <h3>Prom</h3>
-                    <p>
-                      {totalProm} ({porcentajeProm}%)
-                    </p>
-                  </div>
-
-                  <div style={tarjetaEstadistica}>
-                    <h3>Rec</h3>
-                    <p>
-                      {totalRec} ({porcentajeRec}%)
-                    </p>
-                  </div>
-
-                  <div style={tarjetaEstadistica}>
-                    <h3>Ingresantes</h3>
-                    <p>{totalIngresantes}</p>
-                  </div>
-
-                  <div style={tarjetaEstadistica}>
-                    <h3>Reinscriptos</h3>
-                    <p>{totalReinscriptos}</p>
-                  </div>
-
-                  <div style={tarjetaEstadistica}>
-                    <h3>Con previas</h3>
-                    <p>{totalConPrevias}</p>
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    ...tarjetaEstadistica,
-                    maxWidth: "180px",
-                    margin: "20px auto 10px auto",
-                  }}
-                >
-                  <h3>Sobreedad</h3>
-                  <p>{totalSobreedad}</p>
-                </div>
-              </>
-            )}
+            <EstadisticasCursoMatricula
+              verEstadisticasCurso={verEstadisticasCurso}
+              totalEstudiantes={totalEstudiantes}
+              totalProm={totalProm}
+              porcentajeProm={porcentajeProm}
+              totalRec={totalRec}
+              porcentajeRec={porcentajeRec}
+              totalIngresantes={totalIngresantes}
+              totalReinscriptos={totalReinscriptos}
+              totalConPrevias={totalConPrevias}
+              totalSobreedad={totalSobreedad}
+              estilos={{
+                bloqueEstadisticas,
+                tarjetaEstadistica,
+              }}
+            />
 
             <div style={bloqueEdades}>
               <h3 style={{ color: "#1e3a5f" }}>Edades del curso</h3>
