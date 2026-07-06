@@ -18,6 +18,7 @@ import RelevamientoInspeccionMatricula from "./matricula/RelevamientoInspeccionM
 import FiltrosLegajoMatrizMatricula from "./matricula/FiltrosLegajoMatrizMatricula";
 import ArchivoLegajoMatrizMatricula from "./matricula/ArchivoLegajoMatrizMatricula";
 import PlanillaPreviasMatricula from "./matricula/PlanillaPreviasMatricula";
+import ListadoLegajosMatricula from "./matricula/ListadoLegajosMatricula";
 
 export default function Matricula({ modoDocumentacion = false, volverInicio }) {
   const rolUsuario = localStorage.getItem("rolUsuario") || "consulta";
@@ -2160,50 +2161,16 @@ ${alumnosDocumentacion
               }}
             />
 
-            {anioLegajoFiltro && (
-              <div style={detalleCurso}>
-                <h3 style={{ color: "#1e3a5f" }}>
-                  🧾 Listado de legajos {anioLegajoFiltro}
-                </h3>
-
-                <p>
-                  Cantidad de legajos {anioLegajoFiltro}:{" "}
-                  {alumnosPorLegajo.length}
-                </p>
-
-                <table style={tabla}>
-                  <thead>
-                    <tr>
-                      <th style={celda}>Legajo</th>
-                      <th style={celda}>Apellido y Nombre</th>
-                      <th style={celda}>DNI</th>
-                      <th style={celda}>Curso</th>
-                      <th style={celda}>Turno</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {alumnosPorLegajo.map((alumno) => (
-                      <tr key={alumno._id}>
-                        <td style={celda}>
-                          {alumno.legajoNumero && alumno.legajoAnio
-                            ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
-                            : "-"}
-                        </td>
-
-                        <td style={celda}>
-                          {alumno.apellido}, {alumno.nombre}
-                        </td>
-                        <td style={celda}>{formatearDNI(alumno.dni)}</td>
-                        <td style={celda}>{alumno.curso}</td>
-                        <td style={celda}>{alumno.turno}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
+            <ListadoLegajosMatricula
+              anioLegajoFiltro={anioLegajoFiltro}
+              alumnosPorLegajo={alumnosPorLegajo}
+              formatearDNI={formatearDNI}
+              estilos={{
+                detalleCurso,
+                tabla,
+                celda,
+              }}
+            />
             {verRecursantes && (
               <div style={detalleCurso}>
                 <h3 style={{ color: "#1e3a5f" }}>🔁 Estudiantes recursantes</h3>
