@@ -13,7 +13,7 @@ export default function DomicilioTelefono({ volverInicio, esAdmin }) {
 
   useEffect(() => {
     obtenerRegistros();
-    obtenerMatricula(); 
+    obtenerMatricula();
   }, []);
 
   async function obtenerRegistros() {
@@ -218,24 +218,24 @@ export default function DomicilioTelefono({ volverInicio, esAdmin }) {
     );
   }
 
-async function imprimirActa(alumno) {
-  const registro = registrosPorAlumno[alumno._id];
+  async function imprimirActa(alumno) {
+    const registro = registrosPorAlumno[alumno._id];
 
-  if (!registro) {
-    alert("Primero guardá el domicilio del estudiante.");
-    return;
-  }
+    if (!registro) {
+      alert("Primero guardá el domicilio del estudiante.");
+      return;
+    }
 
-  const origen = encodeURIComponent(DOMICILIO_ESCUELA);
-  const destino = encodeURIComponent(registro.domicilio);
+    const origen = encodeURIComponent(DOMICILIO_ESCUELA);
+    const destino = encodeURIComponent(registro.domicilio);
 
-  const urlMapa = `https://www.google.com/maps/dir/?api=1&origin=${origen}&destination=${destino}&travelmode=driving`;
+    const urlMapa = `https://www.google.com/maps/dir/?api=1&origin=${origen}&destination=${destino}&travelmode=driving`;
 
-  const qrMapa = await QRCode.toDataURL(urlMapa);
+    const qrMapa = await QRCode.toDataURL(urlMapa);
 
-  const ventana = window.open("", "_blank");
+    const ventana = window.open("", "_blank");
 
-  ventana.document.write(`
+    ventana.document.write(`
 <html>
 <head>
 <title>Acta de Visita Domiciliaria</title>
@@ -361,7 +361,7 @@ h3{
 }  
 
 
-</style>
+</style> 
 </head>
 
 <body>
@@ -456,9 +456,9 @@ h3{
 </html>
 `);
 
-  ventana.document.close();
-  ventana.print();
-}
+    ventana.document.close();
+    ventana.print();
+  }
 
   function imprimirListado() {
     const lista = cursoSeleccionado ? registrosDelCurso : registros;
@@ -552,6 +552,74 @@ h3{
     XLSX.writeFile(libro, `Domicilio_Telefono_${cursoSeleccionado}.xlsx`);
   }
 
+  function normalizarTexto(texto = "") {
+    return String(texto)
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[.,;:()]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toUpperCase();
+  }
+
+  function nombreAlumnoParaComparar(alumno) {
+    return normalizarTexto(
+      alumno.apellidoNombre ||
+        alumno.nombreCompleto ||
+        `${alumno.apellido || ""} ${alumno.nombre || ""}`,
+    );
+  }
+
+  function distanciaLeve(a = "", b = "") {
+    if (a === b) return 0;
+    if (!a || !b) return Math.max(a.length, b.length);
+
+    const matriz = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+
+    for (let j = 1; j <= b.length; j++) matriz[0][j] = j;
+
+    for (let i = 1; i <= a.length; i++) {
+      for (let j = 1; j <= b.length; j++) {
+        matriz[i][j] =
+          a[i - 1] === b[j - 1]
+            ? matriz[i - 1][j - 1]
+            : Math.min(
+                matriz[i - 1][j] + 1,
+                matriz[i][j - 1] + 1,
+                matriz[i - 1][j - 1] + 1,
+              );
+      }
+    }
+
+    return matriz[a.length][b.length];
+  }
+
+  function coincideNombre(nombreSistema, nombreExcel) {
+    const sistema = normalizarTexto(nombreSistema);
+    const excel = normalizarTexto(nombreExcel);
+
+    if (!sistema || !excel) return false;
+    if (sistema === excel) return true;
+
+    const palabrasSistema = sistema.split(" ").filter(Boolean);
+    const palabrasExcel = excel.split(" ").filter(Boolean);
+
+    return palabrasExcel.every((palabraExcel) => {
+      if (palabraExcel.length === 1) {
+        return palabrasSistema.some((p) => p.startsWith(palabraExcel));
+      }
+
+      return palabrasSistema.some((palabraSistema) => {
+        return (
+          palabraSistema === palabraExcel ||
+          palabraSistema.includes(palabraExcel) ||
+          palabraExcel.includes(palabraSistema) ||
+          distanciaLeve(palabraSistema, palabraExcel) <= 1
+        );
+      });
+    });
+  }
+
   async function importarExcel(evento) {
     if (!esAdmin) {
       alert("Solo el administrador puede importar.");
@@ -568,12 +636,33 @@ h3{
       const filas = XLSX.utils.sheet_to_json(hoja, { defval: "" });
 
       for (const fila of filas) {
-        const dniFila = String(fila["DNI estudiante"] || "").replace(/\D/g, "");
-        const alumno = alumnosActivos.find(
-          (item) => String(item.dni || "").replace(/\D/g, "") === dniFila,
+        const nombreFila = normalizarTexto(
+          fila.Estudiante || fila["Apellido y Nombre"] || fila["Alumno"] || "",
         );
 
-        if (!alumno) continue;
+        const dniFila = String(
+          fila["DNI estudiante"] || fila.DNI || "",
+        ).replace(/\D/g, "");
+
+        const alumno = alumnosActivos.find((item) => {
+          const dniAlumno = String(item.dni || "").replace(/\D/g, "");
+
+          if (dniFila && dniAlumno && dniAlumno === dniFila) {
+            return true;
+          }
+
+          return coincideNombre(nombreAlumnoParaComparar(item), nombreFila);
+        });
+
+        if (!alumno) {
+          console.log(
+            "No encontrado:",
+            nombreFila,
+            "Fila Excel:",
+            fila.Estudiante || fila["Apellido y Nombre"] || fila["Alumno"],
+          );
+          continue;
+        }
 
         const registroExistente = registrosPorAlumno[alumno._id];
 
@@ -584,24 +673,50 @@ h3{
           dni: alumno.dni || "",
           domicilio: fila.Domicilio || "",
           telefono: fila.Teléfono || "",
-          nombreResponsable: fila["Nombre adulto responsable"] || "",
+          nombreResponsable:
+            fila["Madre / Responsable"] ||
+            fila["Nombre adulto responsable"] ||
+            "",
           adultoResponsable: fila["Vínculo responsable"] || "MADRE",
         };
+        const tieneDatosParaGuardar =
+          datosAGuardar.domicilio ||
+          datosAGuardar.telefono ||
+          datosAGuardar.nombreResponsable;
 
-        if (registroExistente?._id) {
-          await axios.put(
-            `/api/domicilios/${registroExistente._id}`,
-            datosAGuardar,
+        if (!tieneDatosParaGuardar) {
+          console.log("Sin datos para guardar:", datosAGuardar.apellidoNombre);
+          continue;
+        }
+
+        console.log("DATOS A GUARDAR:", datosAGuardar);
+
+        try {
+          if (registroExistente?._id) {
+            await axios.put(
+              `/api/domicilios/${registroExistente._id}`,
+              datosAGuardar,
+            );
+          } else {
+            await axios.post("/api/domicilios", datosAGuardar);
+          }
+        } catch (errorRegistro) {
+          console.error("ERROR EN REGISTRO:", datosAGuardar);
+          console.error(
+            "RESPUESTA BACKEND:",
+            JSON.stringify(errorRegistro.response?.data, null, 2),
           );
-        } else {
-          await axios.post("/api/domicilios", datosAGuardar);
         }
       }
 
       await obtenerRegistros();
       alert("Archivo importado correctamente.");
     } catch (error) {
-      console.log(error);
+      console.error("ERROR IMPORTANDO:", error);
+      console.error(
+        "RESPUESTA BACKEND:",
+        JSON.stringify(error.response?.data, null, 2),
+      );
       alert("Error al importar el archivo.");
     }
 
@@ -868,7 +983,7 @@ const titulo = {
 const subtitulo = {
   textAlign: "center",
   color: "#5f6f7a",
-  marginBottom: "22px", 
+  marginBottom: "22px",
 };
 
 const selectorCurso = {
@@ -1000,4 +1115,3 @@ const botonVolver = {
   border: "none",
   marginBottom: "12px",
 };
-
