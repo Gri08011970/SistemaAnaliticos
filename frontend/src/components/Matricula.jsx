@@ -24,6 +24,7 @@ import AccionesCursoMatricula from "./matricula/AccionesCursoMatricula";
 import EstadisticasCursoMatricula from "./matricula/EstadisticasCursoMatricula";
 import FormularioAlumnoMatricula from "./matricula/FormularioAlumnoMatricula";
 import MovimientoMatricula from "./matricula/MovimientoMatricula";
+import SeguimientoPedagogico from "./matricula/SeguimientoPedagogico/SeguimientoPedagogico";
 
 export default function Matricula({ modoDocumentacion = false, volverInicio }) {
   const rolUsuario = localStorage.getItem("rolUsuario") || "consulta";
@@ -50,6 +51,8 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
   const [busquedaAlumno, setBusquedaAlumno] = useState("");
   const [ordenCurso, setOrdenCurso] = useState("apellido");
   const [mostrarRelevamiento, setMostrarRelevamiento] = useState(false);
+  const [verSeguimientoPedagogico, setVerSeguimientoPedagogico] =
+    useState(false);
 
   const fotosPreceptores = {
     "6°1°-Mañana": preceptora11,
@@ -2076,6 +2079,18 @@ ${alumnosDocumentacion
           <h3 style={tituloFicha}>🛠 Herramientas de gestión</h3>
 
           <div style={panelHerramientas}>
+            <button
+              style={botonImprimir}
+              onClick={() =>
+                setVerSeguimientoPedagogico(!verSeguimientoPedagogico)
+              } 
+            >
+              🚦 Seguimiento Pedagógico
+            </button>
+            {verSeguimientoPedagogico && (
+              <SeguimientoPedagogico alumnos={alumnosMatricula} />
+            )}
+
             <BotonesHerramientasMatricula
               verPlanillaPrevias={verPlanillaPrevias}
               setVerPlanillaPrevias={setVerPlanillaPrevias}
