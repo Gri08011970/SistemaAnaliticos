@@ -2,23 +2,14 @@ import { useState, useEffect } from "react";
 import CeldaSemaforo from "./CeldaSemaforo";
 
 export default function TablaSeguimiento({ curso, asignatura, alumnos }) {
- const [seguimiento, setSeguimiento] = useState(() => {
-  const datosGuardados = localStorage.getItem("seguimientoPedagogico");
+  const [seguimiento, setSeguimiento] = useState(() => {
+    const datosGuardados = localStorage.getItem("seguimientoPedagogico");
+    return datosGuardados ? JSON.parse(datosGuardados) : {};
+  });
 
-  if (datosGuardados) {
-    return JSON.parse(datosGuardados);
-  }
-
-  return {};
-});
-
- 
-useEffect(() => {
-  localStorage.setItem(
-    "seguimientoPedagogico",
-    JSON.stringify(seguimiento)
-  );
-}, [seguimiento]);
+  useEffect(() => {
+    localStorage.setItem("seguimientoPedagogico", JSON.stringify(seguimiento));
+  }, [seguimiento]);
 
   const alumnosCurso = alumnos.filter((a) => a.curso === curso);
 
@@ -30,7 +21,6 @@ useEffect(() => {
     const valorActual = seguimiento[clave]?.conceptual || "-";
 
     let nuevoValor = "-";
-
     if (valorActual === "-") nuevoValor = "TEA";
     else if (valorActual === "TEA") nuevoValor = "TEP";
     else if (valorActual === "TEP") nuevoValor = "TED";
@@ -56,13 +46,40 @@ useEffect(() => {
     });
   };
 
+  const periodos = [
+    { clave: "mayo", etiqueta: "Mayo" },
+    { clave: "primerCuat", etiqueta: "1° Cuat." },
+    { clave: "octubre", etiqueta: "Octubre" },
+    { clave: "segundoCuat", etiqueta: "2° Cuat." },
+    { clave: "diciembre", etiqueta: "Dic." },
+    { clave: "febrero", etiqueta: "Feb." },
+    { clave: "marzo", etiqueta: "Mar." },
+    { clave: "final", etiqueta: "Final" },
+  ];
+
+  const bordeVertical = (clave) => {
+    if (
+      clave === "primerCuat" ||
+      clave === "segundoCuat" ||
+      clave === "marzo"
+    ) {
+      return "4px solid #5f91b2";
+    }
+
+    return "1px solid #cfd8dc";
+  };
+
   return (
     <div
       style={{
-        border: "1px solid #ddd",
-        borderRadius: "10px",
-        padding: "20px",
+        border: "1px solid #cfe3ea",
+        borderRadius: "16px",
+        padding: "24px",
         background: "white",
+        margin: "24px auto",
+        maxWidth: "1100px",
+        overflowX: "auto",
+        boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
       }}
     >
       <h3>
@@ -73,45 +90,89 @@ useEffect(() => {
         style={{
           width: "100%",
           borderCollapse: "collapse",
+          border: "2px solid #7fa6c2",
         }}
       >
         <thead>
           <tr>
-            <th>Alumno</th>
-            <th>Mayo</th>
-            <th>1° Cuat.</th>
-            <th>Octubre</th>
-            <th>2° Cuat.</th>
+            <th
+              style={{
+                padding: "12px",
+                background: "#f5f7fa",
+                border: "1px solid #cfd8dc",
+                borderRight: "4px solid #5f91b2",
+              }}
+            >
+              Alumno
+            </th>
+
+            {periodos.map((periodo) => (
+              <th
+                key={periodo.clave}
+                style={{
+                  padding: "12px 8px",
+                  background: "#f5f7fa",
+                  borderTop: "1px solid #cfd8dc",
+                  borderLeft: "1px solid #cfd8dc",
+                  borderBottom: "2px solid #9fb8c9",
+                  borderRight: bordeVertical(periodo.clave),
+                }}
+              >
+                {periodo.etiqueta}
+              </th>
+            ))}
           </tr>
         </thead>
 
         <tbody>
           {alumnosCurso.map((alumno) => (
             <tr key={alumno.dni}>
-              <td>
+              <td
+                style={{
+                  textAlign: "left",
+                  padding: "10px 12px",
+                  minWidth: "290px",
+                  borderTop: "1px solid #cfd8dc",
+                  borderBottom: "2px solid #9fb8c9",
+                  borderLeft: "1px solid #cfd8dc",
+                  borderRight: "4px solid #5f91b2",
+                  fontWeight: 400,
+                  fontSize: "13px",
+                  lineHeight: "1.2",
+                  color: "#3f4f67",
+                }}
+              >
                 {alumno.apellido}, {alumno.nombre}
               </td>
 
-              {["mayo", "primerCuat", "octubre", "segundoCuat"].map(
-                (periodo) => {
-                  const clave = obtenerClave(alumno._id, periodo);
+              {periodos.map((periodo) => {
+                const clave = obtenerClave(alumno._id, periodo.clave);
 
-                  return (
-                    <td key={periodo}>
-                      <CeldaSemaforo
-                        valor={seguimiento[clave]?.conceptual || "-"}
-                        nota={seguimiento[clave]?.nota || ""}
-                        onChangeEstado={() =>
-                          cambiarEstado(alumno._id, periodo)
-                        }
-                        onChangeNota={(nota) =>
-                          cambiarNota(alumno._id, periodo, nota)
-                        }
-                      />
-                    </td>
-                  );
-                },
-              )}
+                return (
+                  <td
+                    key={periodo.clave}
+                    style={{
+                      textAlign: "center",
+                      padding: "8px 6px",
+                      borderTop: "1px solid #cfd8dc",
+                      borderBottom: "2px solid #9fb8c9",
+                      borderLeft: "1px solid #cfd8dc",
+                      borderRight: bordeVertical(periodo.clave),
+                    }}
+                  >
+                    <CeldaSemaforo
+                      valor={seguimiento[clave]?.conceptual || "-"}
+                      nota={seguimiento[clave]?.nota || ""}
+                      onChangeEstado={() =>
+                        cambiarEstado(alumno._id, periodo.clave)
+                      }
+                      onChangeNota={(nota) =>
+                        cambiarNota(alumno._id, periodo.clave, nota)
+                      }
+                    />
+                  </td>
+                );
+              })}
             </tr>
           ))}
         </tbody>
