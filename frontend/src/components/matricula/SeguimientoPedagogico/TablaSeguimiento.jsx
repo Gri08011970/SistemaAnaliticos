@@ -79,6 +79,8 @@ export default function TablaSeguimiento({ curso, asignatura, alumnos }) {
         margin: "24px auto",
         maxWidth: "1100px",
         overflowX: "auto",
+        overflowY: "auto",
+        maxHeight: "650px",
         boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
       }}
     >
@@ -101,6 +103,10 @@ export default function TablaSeguimiento({ curso, asignatura, alumnos }) {
                 background: "#f5f7fa",
                 border: "1px solid #cfd8dc",
                 borderRight: "4px solid #5f91b2",
+                position: "sticky",
+                top: 0,
+                left: 0,
+                zIndex: 10,
               }}
             >
               Alumno
@@ -111,7 +117,11 @@ export default function TablaSeguimiento({ curso, asignatura, alumnos }) {
                 key={periodo.clave}
                 style={{
                   padding: "12px 8px",
+                  position: "sticky",
+                  top: 0,
+                  zIndex: 6,
                   background: "#f5f7fa",
+
                   borderTop: "1px solid #cfd8dc",
                   borderLeft: "1px solid #cfd8dc",
                   borderBottom: "2px solid #9fb8c9",
@@ -132,6 +142,10 @@ export default function TablaSeguimiento({ curso, asignatura, alumnos }) {
                   textAlign: "left",
                   padding: "10px 12px",
                   minWidth: "290px",
+                  position: "sticky",
+                  left: 0,
+                  background: "white",
+                  zIndex: 2,
                   borderTop: "1px solid #cfd8dc",
                   borderBottom: "2px solid #9fb8c9",
                   borderLeft: "1px solid #cfd8dc",

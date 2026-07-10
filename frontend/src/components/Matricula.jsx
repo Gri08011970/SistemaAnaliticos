@@ -2083,12 +2083,23 @@ ${alumnosDocumentacion
               style={botonImprimir}
               onClick={() =>
                 setVerSeguimientoPedagogico(!verSeguimientoPedagogico)
-              } 
+              }
             >
               🚦 Seguimiento Pedagógico
             </button>
             {verSeguimientoPedagogico && (
-              <SeguimientoPedagogico alumnos={alumnosMatricula} />
+              <div
+                style={{
+                  margin: "24px 0",
+                  padding: "24px",
+                  border: "2px solid #b8d8e0",
+                  borderRadius: "18px",
+                  background: "#ffffff",
+                  boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                }}
+              >
+                <SeguimientoPedagogico alumnos={alumnosMatricula} />
+              </div>
             )}
 
             <BotonesHerramientasMatricula
