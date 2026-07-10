@@ -1,4 +1,5 @@
 import { useState } from "react";
+import PanelAnalisisCurso from "./PanelAnalisisCurso";
 import {
   obtenerIndicePedagogico,
   obtenerEstadoPorIndice,
@@ -89,6 +90,7 @@ function obtenerAsignaturasPorCurso(curso) {
 
 export default function ResumenCurso({ curso, alumnos }) {
   const [periodoSeleccionado, setPeriodoSeleccionado] = useState("mayo");
+  const [mostrarPanelAnalisis, setMostrarPanelAnalisis] = useState(false);
 
   const alumnosCurso = alumnos.filter((a) => a.curso === curso);
   const asignaturasResumen = obtenerAsignaturasPorCurso(curso);
@@ -140,40 +142,44 @@ export default function ResumenCurso({ curso, alumnos }) {
 
   const estadisticas = calcularEstadisticas();
 
-  const calcularEstadisticasPorAsignatura = () => {
-    return asignaturasResumen.map((asignatura) => {
-      let tea = 0;
-      let tep = 0;
-      let ted = 0;
-      let sumaNotas = 0;
-      let cantidadNotas = 0;
+ const calcularEstadisticasPorAsignatura = () => {
+  return asignaturasResumen.map((asignatura) => {
+    let tea = 0;
+    let tep = 0;
+    let ted = 0;
 
-      alumnosCurso.forEach((alumno) => {
-        const dato = obtenerDato(alumno._id, asignatura);
+    alumnosCurso.forEach((alumno) => {
+      const dato = obtenerDato(alumno._id, asignatura);
 
-        if (dato.conceptual === "TEA") tea++;
-        if (dato.conceptual === "TEP") tep++;
-        if (dato.conceptual === "TED") ted++;
-
-        if (dato.nota) {
-          sumaNotas += Number(dato.nota);
-          cantidadNotas++;
-        }
-      });
-
-      const indice = obtenerIndicePedagogico({ tea, tep, ted });
-      const estado = obtenerEstadoAsignatura(indice);
-
-      return {
-        asignatura,
-        tea,
-        tep,
-        ted,
-        indice: cantidadNotas > 0 ? (sumaNotas / cantidadNotas).toFixed(2) : 0,
-        estado,
-      };
+      if (dato.conceptual === "TEA") tea++;
+      if (dato.conceptual === "TEP") tep++;
+      if (dato.conceptual === "TED") ted++;
     });
-  };
+
+    const totalCargados = tea + tep + ted;
+
+    const indice = obtenerIndicePedagogico({
+      tea,
+      tep,
+      ted,
+    });
+
+    const estado =
+      totalCargados === 0
+        ? "⚪ Pendiente de carga"
+        : obtenerEstadoAsignatura(indice);
+
+    return {
+      asignatura,
+      tea,
+      tep,
+      ted,
+      totalCargados,
+      indice,
+      estado,
+    };
+  });
+};
 
   const estadisticasPorAsignatura = calcularEstadisticasPorAsignatura();
 
@@ -230,6 +236,21 @@ export default function ResumenCurso({ curso, alumnos }) {
     return "#ffffff";
   };
 
+  if (mostrarPanelAnalisis) {
+    return (
+      <PanelAnalisisCurso
+        estadisticas={estadisticas}
+        fechaAnalisis={fechaAnalisis}
+        alumnosCurso={alumnosCurso}
+        asignaturasResumen={asignaturasResumen}
+        periodoSeleccionado={periodoSeleccionado}
+        observacionesSistema={observacionesSistema}
+        estadisticasPorAsignatura={estadisticasPorAsignatura}
+        obtenerDato={obtenerDato}
+        onVolver={() => setMostrarPanelAnalisis(false)}
+      />
+    );
+  }
   return (
     <div
       id="resumen-curso-imprimir"
@@ -241,7 +262,6 @@ export default function ResumenCurso({ curso, alumnos }) {
         margin: "24px auto",
         maxWidth: "1120px",
         boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
-        overflowX: "auto",
       }}
     >
       <h3>📊 Resumen del curso</h3>
@@ -267,6 +287,22 @@ export default function ResumenCurso({ curso, alumnos }) {
           <option value="final">Final</option>
         </select>
       </div>
+      <button
+        type="button"
+        onClick={() => setMostrarPanelAnalisis(true)}
+        style={{
+          padding: "10px 16px",
+          marginRight: "10px",
+          borderRadius: "10px",
+          border: "1px solid #c8d5e5",
+          background: "#f8f9fc",
+          fontWeight: "600",
+          cursor: "pointer",
+          boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+        }}
+      >
+        📈 Ver análisis y estadísticas
+      </button>
 
       <button
         onClick={() => {
@@ -341,37 +377,28 @@ export default function ResumenCurso({ curso, alumnos }) {
         <br />
         Estudiantes del curso: <strong>{alumnosCurso.length}</strong>
       </p>
-      <DiagnosticoCurso
-        indice={estadisticas.indice}
-        estadoCurso={estadisticas.estadoCurso}
-      />
 
-      <AnalisisAutomatico
-        fechaAnalisis={fechaAnalisis}
-        alumnosCurso={alumnosCurso}
-        asignaturasResumen={asignaturasResumen}
-        periodoSeleccionado={periodoSeleccionado}
-        observacionesSistema={observacionesSistema}
-      />
-
-      <TarjetasEstadisticas estadisticas={estadisticas} />
-
-      <ResumenAsignaturas
-        estadisticasPorAsignatura={estadisticasPorAsignatura}
-      />
-
-      <ResumenEstudiantes
-        alumnosCurso={alumnosCurso}
-        asignaturasResumen={asignaturasResumen}
-        obtenerDato={obtenerDato}
-      />
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "100%",
+          height: "620px",
+          overflow: "auto",
+          marginTop: "22px",
+          border: "3px solid #5e88b3",
+          borderRadius: "8px",
+          position: "relative",
+        }}
+      >
 
       <table
         style={{
-          width: "100%",
-          marginTop: "22px",
-          borderCollapse: "collapse",
-          border: "2px solid #7fa6c2",
+          width: "max-content",
+          minWidth: "100%",
+          marginTop: 0,
+          borderCollapse: "separate",
+          borderSpacing: 0,
+          border: "none",
           boxShadow: "0 2px 10px rgba(0,0,0,0.06)",
           tableLayout: "fixed",
         }}
@@ -388,6 +415,10 @@ export default function ResumenCurso({ curso, alumnos }) {
                 background: "#f5f7fa",
                 fontSize: "11px",
                 lineHeight: "1.1",
+                position: "sticky",
+                top: 0,
+                left: 0,
+                zIndex: 50,
               }}
             >
               Alumno
@@ -400,13 +431,17 @@ export default function ResumenCurso({ curso, alumnos }) {
                   width: "68px",
                   minWidth: "68px",
                   maxWidth: "68px",
-                  border: "1px solid #9fb8c9",
+                  border: "2px solid #7a9fc4",
+
                   padding: "6px 3px",
                   background: "#f5f7fa",
                   fontSize: "10.5px",
                   lineHeight: "1.15",
                   fontWeight: "700",
                   wordBreak: "break-word",
+                  position: "sticky",
+                  top: 0,
+                  zIndex: 40,
                 }}
               >
                 {asignatura}
@@ -442,6 +477,10 @@ export default function ResumenCurso({ curso, alumnos }) {
                     textAlign: "left",
                     verticalAlign: "middle",
                     wordBreak: "break-word",
+                    position: "sticky",
+                    left: 0,
+                    zIndex: 20,
+                    background: filaMarcada ? "#f8fbfd" : "#ffffff",
                   }}
                 >
                   {alumno.apellido}, {alumno.nombre}
@@ -459,7 +498,7 @@ export default function ResumenCurso({ curso, alumnos }) {
                         maxWidth: "68px",
                         borderTop: "1px solid #d9e3e8",
                         borderLeft: "1px solid #d9e3e8",
-                        borderRight: "1px solid #d9e3e8",
+                        borderRight: "3px solid #5d86b0",
                         borderBottom: filaMarcada
                           ? "3px solid #7fa6c2"
                           : "1px solid #d9e3e8",
@@ -488,16 +527,7 @@ export default function ResumenCurso({ curso, alumnos }) {
           })}
         </tbody>
       </table>
+      </div>
     </div>
   );
-}
-
-function tarjetaEstadistica(color) {
-  return {
-    padding: "10px 16px",
-    borderRadius: "10px",
-    background: color,
-    boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
-    fontWeight: "600",
-  };
 }

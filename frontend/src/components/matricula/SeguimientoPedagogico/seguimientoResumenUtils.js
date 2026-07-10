@@ -1,21 +1,34 @@
 export function obtenerIndicePedagogico({ tea, tep, ted }) {
-  const totalCargados = tea + tep + ted;
-  const puntos = tea * 3 + tep * 2 + ted;
+ const totalCargados = tea + tep + ted;
+const puntos = tea * 3 + tep * 2 + ted;
 
-  if (totalCargados === 0) return 0;
+if (totalCargados === 0) return 0;
 
-  return Math.round((puntos / (totalCargados * 3)) * 100);
+return Math.round((puntos / (totalCargados * 3)) * 100);
+  
 }
 
+
+const UMBRAL_ROJO = 40;
+const UMBRAL_VERDE = 70;
+
 export function obtenerEstadoPorIndice(indice) {
-  if (indice < 50) return "🔴 Intervención pedagógica prioritaria";
-  if (indice < 75) return "🟡 Requiere seguimiento";
+  if (indice < UMBRAL_ROJO)
+    return "🔴 Intervención pedagógica prioritaria";
+
+  if (indice < UMBRAL_VERDE)
+    return "🟡 Requiere seguimiento";
+
   return "🟢 Evolución favorable";
 }
 
 export function obtenerEstadoAsignatura(indice) {
-  if (indice < 50) return "🔴 Atención";
-  if (indice < 75) return "🟡 Observar";
+  if (indice < UMBRAL_ROJO)
+    return "🔴 Atención";
+
+  if (indice < UMBRAL_VERDE)
+    return "🟡 Observar";
+
   return "🟢 Excelente";
 }
 
