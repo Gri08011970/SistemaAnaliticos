@@ -72,7 +72,7 @@ export default function TablaSeguimiento({ curso, asignatura, alumnos }) {
   return (
     <div
       style={{
-        border: "1px solid #cfe3ea",
+        border:  "2px solid #bdd9e4",
         borderRadius: "16px",
         padding: "24px",
         background: "white",
@@ -81,7 +81,8 @@ export default function TablaSeguimiento({ curso, asignatura, alumnos }) {
         overflowX: "auto",
         overflowY: "auto",
         maxHeight: "650px",
-        boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
+        boxShadow:  "0 8px 24px rgba(44, 84, 116, 0.14)",
+        borderTop: "6px solid #5d86b0",
       }}
     >
       <h3>

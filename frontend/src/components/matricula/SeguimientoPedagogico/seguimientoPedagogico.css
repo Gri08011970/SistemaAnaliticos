@@ -4,11 +4,13 @@
   padding: 24px;
   margin-top: 20px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+ 
 }
 
 .seguimiento-container h2 {
   margin-bottom: 10px;
   color: #2f5d50;
+   
 }
 
 .seguimiento-container p {

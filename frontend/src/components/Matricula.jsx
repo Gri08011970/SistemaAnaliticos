@@ -25,6 +25,20 @@ import EstadisticasCursoMatricula from "./matricula/EstadisticasCursoMatricula";
 import FormularioAlumnoMatricula from "./matricula/FormularioAlumnoMatricula";
 import MovimientoMatricula from "./matricula/MovimientoMatricula";
 import SeguimientoPedagogico from "./matricula/SeguimientoPedagogico/SeguimientoPedagogico";
+import {
+  calcularEdadAl30Junio,
+  formatearFecha,
+  formatearDNI,
+  limpiarDNI,
+  normalizarTexto,
+  obtenerPreviasValidas,
+  contarPrevias,
+  tieneSobreedad,
+} from "./matricula/matriculaUtils";
+import { imprimirCurso } from "./matricula/impresiones/imprimirCurso";
+import { imprimirPlanillaPrevias } from "./matricula/impresiones/imprimirPrevias";
+import { imprimirRecursantes } from "./matricula/impresiones/imprimirRecursantes";
+import { imprimirDocumentacion } from "./matricula/impresiones/imprimirDocumentacion";
 
 export default function Matricula({ modoDocumentacion = false, volverInicio }) {
   const rolUsuario = localStorage.getItem("rolUsuario") || "consulta";
@@ -497,36 +511,6 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
     return edad > edadesEsperadas[anioCurso];
   }).length;
 
-  function calcularEdadAl30Junio(fechaNacimiento) {
-    if (!fechaNacimiento) return "-";
-
-    const nacimiento = new Date(fechaNacimiento);
-    const anioActual = new Date().getFullYear();
-    const fechaCorte = new Date(anioActual, 5, 30);
-
-    let edad = fechaCorte.getFullYear() - nacimiento.getFullYear();
-
-    const cumpleEsteAnio = new Date(
-      anioActual,
-      nacimiento.getMonth(),
-      nacimiento.getDate(),
-    );
-
-    if (cumpleEsteAnio > fechaCorte) {
-      edad--;
-    }
-
-    return edad;
-  }
-
-  function formatearFecha(fecha) {
-    if (!fecha) return "-";
-
-    const [anio, mes, dia] = fecha.split("-");
-
-    return `${dia}-${mes}-${anio}`;
-  }
-
   async function eliminarAlumnoMatricula(id) {
     const confirmar = confirm("¿Eliminar este estudiante de la matrícula?");
 
@@ -541,266 +525,19 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
   }
 
   const alumnosEncontrados = alumnosMatricula.filter((alumno) => {
-    const texto = busquedaAlumno.toLowerCase();
+    const texto = normalizarTexto(busquedaAlumno);
+    const dniBuscado = limpiarDNI(busquedaAlumno);
+    const dniAlumno = limpiarDNI(alumno.dni);
 
-    return (
-      alumno.apellido?.toLowerCase().includes(texto) ||
-      alumno.nombre?.toLowerCase().includes(texto) ||
-      alumno.dni?.includes(texto)
-    );
+    const coincideNombre =
+      normalizarTexto(alumno.apellido).includes(texto) ||
+      normalizarTexto(alumno.nombre).includes(texto) ||
+      normalizarTexto(`${alumno.apellido} ${alumno.nombre}`).includes(texto);
+
+    const coincideDni = dniBuscado.length > 0 && dniAlumno.includes(dniBuscado);
+
+    return coincideNombre || coincideDni;
   });
-
-  function imprimirCurso() {
-    if (!cursoSeleccionado) return;
-
-    const mostrarLegajo = alumnosFiltrados.some(
-      (alumno) => alumno.legajoNumero || alumno.legajoAnio,
-    );
-
-    const mostrarMatriz = alumnosFiltrados.some(
-      (alumno) => alumno.folioMatriz || alumno.libroMatriz,
-    );
-
-    const mostrarFechaNacimiento = alumnosFiltrados.some(
-      (alumno) => alumno.fechaNacimiento,
-    );
-
-    const mostrarEdad = mostrarFechaNacimiento;
-
-    const mostrarCondicion = alumnosFiltrados.some(
-      (alumno) => alumno.condicionFinal,
-    );
-
-    const mostrarPendientes = alumnosFiltrados.some(
-      (alumno) =>
-        Array.isArray(alumno.materiasPendientes) &&
-        alumno.materiasPendientes.length > 0,
-    );
-
-    const alumnosParaImprimir = [...alumnosFiltrados].sort((a, b) => {
-      if (ordenCurso === "legajo") {
-        const anioA = Number(a.legajoAnio || 0);
-        const anioB = Number(b.legajoAnio || 0);
-
-        if (anioA !== anioB) return anioB - anioA;
-
-        const numeroA = Number(a.legajoNumero || 999999);
-        const numeroB = Number(b.legajoNumero || 999999);
-
-        return numeroA - numeroB;
-      }
-
-      if (ordenCurso === "matriz") {
-        const matrizA = Number(
-          String(a.folioMatriz || a.libroMatriz || "999999").split("/")[0],
-        );
-
-        const matrizB = Number(
-          String(b.folioMatriz || b.libroMatriz || "999999").split("/")[0],
-        );
-
-        return matrizA - matrizB;
-      }
-
-      return `${a.apellido} ${a.nombre}`.localeCompare(
-        `${b.apellido} ${b.nombre}`,
-        "es",
-        { sensitivity: "base" },
-      );
-    });
-
-    const filas = alumnosParaImprimir
-      .map(
-        (alumno, index) => `
-        <tr class="${alumno.sexo === "Varón" ? "fila-varon" : ""}">
-          <td>${index + 1}</td>
-          <td class="nombre">${alumno.apellido || ""}, ${alumno.nombre || ""}</td>
-          <td>${formatearDNI(alumno.dni)}</td>
-
-          ${
-            mostrarLegajo
-              ? `<td>${
-                  alumno.legajoNumero && alumno.legajoAnio
-                    ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
-                    : ""
-                }</td>`
-              : ""
-          }
-
-         ${
-           mostrarMatriz
-             ? `<td>${alumno.folioMatriz || alumno.libroMatriz || ""}</td>`
-             : ""
-         }
-  
-
-          ${
-            mostrarFechaNacimiento
-              ? `<td>${
-                  alumno.fechaNacimiento
-                    ? formatearFecha(alumno.fechaNacimiento)
-                    : ""
-                }</td>`
-              : ""
-          }
-
-          ${
-            mostrarEdad
-              ? `<td>${
-                  alumno.fechaNacimiento
-                    ? calcularEdadAl30Junio(alumno.fechaNacimiento)
-                    : ""
-                }</td>`
-              : ""
-          }
-
-          ${mostrarCondicion ? `<td>${alumno.condicionFinal || ""}</td>` : ""}
-
-          ${
-            mostrarPendientes
-              ? `<td>${
-                  Array.isArray(alumno.materiasPendientes)
-                    ? alumno.materiasPendientes
-                        .map(
-                          (previa) => `${previa.asignatura} (${previa.anio})`,
-                        )
-                        .join(", ")
-                    : ""
-                }</td>`
-              : ""
-          }
-        </tr>
-      `,
-      )
-      .join("");
-
-    const ventana = window.open("", "_blank");
-
-    ventana.document.write(`
-    <html>
-      <head>
-        <title>Lista de matrícula por curso</title>
-
-        <style>
-          * {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
-
-          body {
-            font-family: Arial, sans-serif;
-            padding: 28px;
-            color: #222;
-          }
-
-          h2, h3, p {
-            text-align: center;
-            margin: 4px 0;
-          }
-
-          h2 {
-            color: #1e3a5f;
-            font-size: 20px;
-          }
-
-          h3 {
-            font-size: 16px;
-            margin-top: 18px;
-          }
-
-          .subtitulo {
-            font-size: 12px;
-            color: #555;
-          }
-
-          table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 18px;
-            font-size: 11px;
-          }
-
-          th, td {
-            border: 1px solid #333;
-            padding: 5px;
-            text-align: center;
-          }
-
-          th {
-            background-color: #1e3a5f !important;
-            color: white !important;
-          }
-
-          .nombre {
-            text-align: left;
-          }
-
-          .fila-varon td {
-            background-color:  #d9d9d9  !important;
-          }
-
-          @page {
-            size: landscape;
-            margin: 12mm;
-          }
-        </style>
-      </head> 
-
-      <body>
-        <h2>Escuela Educación Secundaria N°140</h2>
-        <p class="subtitulo">"Florencio Molina Campos"</p>
-
-        <h3>
-          Lista de matrícula - Curso ${cursoSeleccionado.curso}
-          - Turno ${cursoSeleccionado.turno}
-        </h3>
-
-        <p>Cantidad de estudiantes: ${alumnosParaImprimir.length}</p>
-         <p style="margin-bottom:20px;font-size:14px;">
-         Fecha de impresión:
-         ${new Date().toLocaleString("es-AR")}
-        </p>
-        <table>
-          <thead>
-            <tr>
-              <th>N°</th>
-              <th>Apellido y Nombre</th>
-              <th>DNI</th>
-              ${mostrarLegajo ? "<th>Legajo</th>" : ""}
-              ${mostrarMatriz ? "<th>Libro/Folio</th>" : ""}
-              ${mostrarFechaNacimiento ? "<th>Fecha nac.</th>" : ""}
-              ${mostrarEdad ? "<th>Edad</th>" : ""}
-              ${mostrarCondicion ? "<th>Cond.</th>" : ""}
-              ${mostrarPendientes ? "<th>Pendientes</th>" : ""}
-            </tr>
-          </thead>
-
-          <tbody>
-            ${filas}
-          </tbody>
-        </table>
-      </body>
-    </html>
-  `);
-
-    ventana.document.close();
-    ventana.print();
-  }
-
-  function formatearDNI(dni) {
-    if (!dni) return "";
-
-    return dni
-      .toString()
-      .replace(/\D/g, "")
-      .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-  }
-
-  function limpiarDNI(dni) {
-    if (!dni) return "";
-
-    return dni.toString().replace(/\D/g, "");
-  }
 
   function exportarExcel() {
     const datos = alumnosDelCurso.map((alumno) => ({
@@ -836,15 +573,6 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
       archivo,
       `Matricula_${cursoSeleccionado?.curso || "curso"}_${cursoSeleccionado?.turno || "turno"}.xlsx`,
     );
-  }
-
-  function normalizarTexto(texto) {
-    return texto
-      ?.toString()
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .trim();
   }
 
   function calcularCondicionDesdeEstado(estado) {
@@ -1007,357 +735,6 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
     return contador;
   }, {});
 
-  function imprimirPlanillaPrevias() {
-    const contenido = document.getElementById("planilla-previas-imprimir");
-
-    if (!contenido) return;
-
-    const ventana = window.open("", "_blank");
-
-    ventana.document.write(`
-    <html>
-      <head>
-        <title>Planilla de examen por previas</title>
-        
-        <style>
-          body {
-            font-family: Arial, sans-serif;
-            padding: 30px;
-            color: #222;
-          }
-
-          h2, h3, p {
-            text-align: center;
-          }
-
-          h2 {
-            color: #1e3a5f;
-            margin-bottom: 5px;
-          }
-
-          table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            font-size: 12px;
-          }
-
-          th, td {
-            border: 1px solid #333;
-            padding: 6px;
-            text-align: center;
-          }
-
-          th {
-            background-color: #1e3a5f;
-            color: white;
-          }
-
-          .firmas {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 60px;
-          }
-
-          .firma {
-            width: 40%;
-            text-align: center;
-            border-top: 1px solid #333;
-            padding-top: 8px;
-          }
-        </style>
-      </head>
-
-      <body>
-      <p style="
-      text-align:right;
-      font-size:13px;
-      margin-bottom:20px;
-      color:#555;
-  ">
-    Fecha de impresión:
-    ${new Date().toLocaleString("es-AR")}
-  </p>
-
-        ${contenido.innerHTML}
-
-        <div class="firmas">
-          <div class="firma">Firma docente</div>
-          <div class="firma">Firma autoridad</div>
-        </div>
-      </body>
-    </html>
-  `);
-
-    ventana.document.close();
-    ventana.print();
-  }
-
-  function imprimirRecursantes() {
-    const ventana = window.open("", "_blank");
-
-    ventana.document.write(`
-  <html>
-  <head>
-
-  <title>Recursantes</title>
-
-  <style>
-
-  body{
-      font-family:Arial,sans-serif;
-      padding:30px;
-  }
-
-  h2{
-      text-align:center;
-      color:#1e3a5f;
-  }
-
-  table{
-      width:100%;
-      border-collapse:collapse;
-      margin-top:20px;
-  }
-
-  th,td{
-      border:1px solid #444;
-      padding:8px;
-      text-align:center;
-  }
-
-  th{
-      background:#1e3a5f;
-      color:white;
-  }
-
-  </style>
-
-  </head>
-
-  <body>
-
-  <h2>Listado de estudiantes recursantes</h2>
-
-  <p style="text-align:right">
-  Fecha de impresión:
-  ${new Date().toLocaleString("es-AR")}
-  </p>
-
-  <table>
-
-  <thead>
-
-  <tr>
-
-  <th>Apellido y Nombre</th>
-  <th>DNI</th>
-  <th>Curso</th>
-  <th>Turno</th>
-
-  </tr>
-
-  </thead>
-
-  <tbody>
-
-  ${alumnosRecursantes
-    .map(
-      (a) => `
-
-      <tr>
-
-      <td>${a.apellido}, ${a.nombre}</td>
-
-      <td>${formatearDNI(a.dni)}</td>
-
-      <td>${a.curso}</td>
-
-      <td>${a.turno}</td>
-
-      </tr>
-
-      `,
-    )
-    .join("")}
-
-  </tbody>
-
-  </table>
-
-  </body>
-
-  </html>
-  `);
-
-    ventana.document.close();
-    ventana.print();
-  }
-
-  function imprimirDocumentacion() {
-    const ventana = window.open("", "_blank");
-
-    ventana.document.write(`
-
-<html>
-
-<head>
-
-<title>Documentación</title>
-
-<style>
-
-body{
-
-font-family:Arial,sans-serif;
-
-padding:30px;
-
-}
-
-table{
-
-width:100%;
-
-border-collapse:collapse;
-
-margin-top:20px;
-
-font-size:12px;
-
-}
-
-th,td{
-
-border:1px solid #444;
-
-padding:6px;
-
-text-align:center;
-
-}
-
-th{
-
-background:#1e3a5f;
-
-color:white;
-
-}
-
-h2{
-
-text-align:center;
-
-color:#1e3a5f;
-
-}
-
-</style>
-
-</head>
-
-<body>
-
-<h2>Control de documentación</h2>
-
-<p style="text-align:right">
-
-Fecha de impresión:
-
-${new Date().toLocaleString("es-AR")}
-
-</p>
-
-<table>
-
-<thead>
-
-<tr>
-
-<th>Curso</th>
-
-<th>Apellido y Nombre</th>
-
-<th>DNI</th>
-
-<th>Legajo</th>
-
-<th>DNI físico</th>
-
-<th>Partida</th>
-
-<th>Analítico</th>
-
-<th>Observaciones</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-${alumnosDocumentacion
-  .map(
-    (a) => `
-
-<tr>
-
-<td>${a.curso}</td>
-
-<td>${a.apellido}, ${a.nombre}</td>
-
-<td>${formatearDNI(a.dni)}</td>
-
-<td>${a.legajoNumero || ""}/${a.legajoAnio || ""}</td>
-
-<td>${a.dniFisico || ""}</td>
-
-<td>${a.partidaNacimiento || ""}</td>
-
-<td>${a.analiticoParcial || ""}</td>
-
-<td>${a.observacionDocumentacion || ""}</td>
-
-</tr>
-
-`,
-  )
-  .join("")}
-
-</tbody>
-
-</table>
-
-</body>
-
-</html>
-
-`);
-
-    ventana.document.close();
-
-    ventana.print();
-  }
-
-  function tieneSobreedad(alumno) {
-    if (!alumno.fechaNacimiento || !alumno.curso) return false;
-
-    const edad = calcularEdadAl30Junio(alumno.fechaNacimiento);
-    const anioCurso = Number(alumno.curso.charAt(0));
-
-    const edadesEsperadas = {
-      1: 12,
-      2: 13,
-      3: 14,
-      4: 15,
-      5: 16,
-      6: 17,
-    };
-
-    return edad > edadesEsperadas[anioCurso];
-  }
-
   function cerrarPlanillaPrevias() {
     setVerPlanillaPrevias(false);
     setMateriaExamen("");
@@ -1495,16 +872,6 @@ ${alumnosDocumentacion
 
     return coincideNombre || coincideDni;
   });
-
-  function obtenerPreviasValidas(alumno) {
-    return (alumno.materiasPendientes || []).filter(
-      (previa) => previa.asignatura && previa.asignatura !== "----------",
-    );
-  }
-
-  function contarPrevias(alumno) {
-    return obtenerPreviasValidas(alumno).length;
-  }
 
   function debeTodasLasMaterias(alumno, anio) {
     const previasValidas = obtenerPreviasValidas(alumno);
@@ -1794,7 +1161,17 @@ ${alumnosDocumentacion
             marginBottom: "20px",
           }}
         >
-          <button style={botonImprimir} onClick={imprimirDocumentacion}>
+          <button
+            type="button"
+            style={{
+              ...botonImprimir,
+              minWidth: "220px",
+              padding: "10px 18px",
+              fontSize: "15px",
+              fontWeight: "700",
+            }}
+            onClick={() => imprimirDocumentacion(alumnosDocumentacion)} 
+          >
             🖨️ Imprimir documentación
           </button>
         </div>
@@ -2092,10 +1469,11 @@ ${alumnosDocumentacion
                 style={{
                   margin: "24px 0",
                   padding: "24px",
-                  border: "2px solid #b8d8e0",
+                  border: "2px solid  #bdd9e4",
                   borderRadius: "18px",
                   background: "#ffffff",
-                  boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                  boxShadow: "0 8px 24px rgba(49, 92, 126, 0.12)",
+                  marginBottom: "36px",
                 }}
               >
                 <SeguimientoPedagogico alumnos={alumnosMatricula} />
@@ -2112,7 +1490,9 @@ ${alumnosDocumentacion
               setMostrarRelevamiento={setMostrarRelevamiento}
               verRecursantes={verRecursantes}
               setVerRecursantes={setVerRecursantes}
-              imprimirRecursantes={imprimirRecursantes}
+              imprimirRecursantes={() =>
+                imprimirRecursantes(alumnosRecursantes)
+              }
               estilos={{ botonImprimir }}
             />
 
@@ -2164,6 +1544,7 @@ ${alumnosDocumentacion
                   border: "1px solid #c7dde3",
                   borderRadius: "10px",
                   backgroundColor: "#f7fafb",
+                  marginBottom: "36px",
                 },
               }}
             />
@@ -2241,7 +1622,13 @@ ${alumnosDocumentacion
           <AccionesCursoMatricula
             esAdmin={esAdmin}
             setCursoSeleccionado={setCursoSeleccionado}
-            imprimirCurso={imprimirCurso}
+            imprimirCurso={() =>
+              imprimirCurso({
+                cursoSeleccionado,
+                alumnosFiltrados,
+                ordenCurso,
+              })
+            }
             verEstadisticasCurso={verEstadisticasCurso}
             setVerEstadisticasCurso={setVerEstadisticasCurso}
             exportarExcel={exportarExcel}

@@ -58,7 +58,8 @@ export default function ResumenAsignaturas({ estadisticasPorAsignatura }) {
       style={{
         margin: "16px 0",
         padding: "12px",
-        border: "1px solid #cfe3ea",
+        border: "2px solid  #bcd7e3",
+        boxShadow:  "0 5px 14px rgba(44, 84, 116, 0.10)",
         borderRadius: "14px",
         background: "#f9fcff",
       }}
@@ -95,6 +96,7 @@ export default function ResumenAsignaturas({ estadisticasPorAsignatura }) {
               gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
               gap: "8px",
               marginTop: "10px",
+              borderTop: "6px solid #5d86b0",
             }}
           >
             {estadisticasPorAsignatura.map((item) => (
@@ -107,6 +109,7 @@ export default function ResumenAsignaturas({ estadisticasPorAsignatura }) {
                   background: "white",
                   boxShadow: "0 2px 6px rgba(0,0,0,.05)",
                   minHeight: "118px",
+                  
                 }}
               >
                 <div
@@ -116,6 +119,7 @@ export default function ResumenAsignaturas({ estadisticasPorAsignatura }) {
                     marginBottom: "6px",
                     lineHeight: "1.15",
                     color: "#43506f",
+                   
                   }}
                 >
                   {item.asignatura}
@@ -128,6 +132,7 @@ export default function ResumenAsignaturas({ estadisticasPorAsignatura }) {
                     gap: "4px",
                     fontSize: "12px",
                     fontWeight: 600,
+                     
                   }}
                 >
                   <span>🟢 {item.tea}</span>

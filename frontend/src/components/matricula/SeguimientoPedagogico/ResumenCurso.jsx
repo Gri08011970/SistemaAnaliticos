@@ -142,44 +142,44 @@ export default function ResumenCurso({ curso, alumnos }) {
 
   const estadisticas = calcularEstadisticas();
 
- const calcularEstadisticasPorAsignatura = () => {
-  return asignaturasResumen.map((asignatura) => {
-    let tea = 0;
-    let tep = 0;
-    let ted = 0;
+  const calcularEstadisticasPorAsignatura = () => {
+    return asignaturasResumen.map((asignatura) => {
+      let tea = 0;
+      let tep = 0;
+      let ted = 0;
 
-    alumnosCurso.forEach((alumno) => {
-      const dato = obtenerDato(alumno._id, asignatura);
+      alumnosCurso.forEach((alumno) => {
+        const dato = obtenerDato(alumno._id, asignatura);
 
-      if (dato.conceptual === "TEA") tea++;
-      if (dato.conceptual === "TEP") tep++;
-      if (dato.conceptual === "TED") ted++;
+        if (dato.conceptual === "TEA") tea++;
+        if (dato.conceptual === "TEP") tep++;
+        if (dato.conceptual === "TED") ted++;
+      });
+
+      const totalCargados = tea + tep + ted;
+
+      const indice = obtenerIndicePedagogico({
+        tea,
+        tep,
+        ted,
+      });
+
+      const estado =
+        totalCargados === 0
+          ? "⚪ Pendiente de carga"
+          : obtenerEstadoAsignatura(indice);
+
+      return {
+        asignatura,
+        tea,
+        tep,
+        ted,
+        totalCargados,
+        indice,
+        estado,
+      };
     });
-
-    const totalCargados = tea + tep + ted;
-
-    const indice = obtenerIndicePedagogico({
-      tea,
-      tep,
-      ted,
-    });
-
-    const estado =
-      totalCargados === 0
-        ? "⚪ Pendiente de carga"
-        : obtenerEstadoAsignatura(indice);
-
-    return {
-      asignatura,
-      tea,
-      tep,
-      ted,
-      totalCargados,
-      indice,
-      estado,
-    };
-  });
-};
+  };
 
   const estadisticasPorAsignatura = calcularEstadisticasPorAsignatura();
 
@@ -255,53 +255,75 @@ export default function ResumenCurso({ curso, alumnos }) {
     <div
       id="resumen-curso-imprimir"
       style={{
-        border: "1px solid #cfe3ea",
-        borderRadius: "16px",
+        border: "3px solid #cfe3ea",
+        borderRadius: "18px",
         padding: "20px",
-        background: "white",
+        background: "#ffffff",
         margin: "24px auto",
         maxWidth: "1120px",
-        boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
+        boxShadow: "0 8px 24px rgba(37, 99, 235, 0.12)",
+        borderTop: "6px solid #5d86b0",
       }}
     >
-      <h3>📊 Resumen del curso</h3>
-
-      <p>
-        Curso: <strong>{curso}</strong>
-      </p>
-
-      <div style={{ margin: "16px 0" }}>
-        <label>Período:&nbsp;</label>
-
-        <select
-          value={periodoSeleccionado}
-          onChange={(e) => setPeriodoSeleccionado(e.target.value)}
+      <div
+        style={{
+          maxWidth: "520px",
+          margin: "0 auto 18px",
+          padding: "18px 20px",
+          border: "1px solid #bdd9e4",
+          borderTop: "6px solid #5d86b0",
+          borderRadius: "16px",
+          background: "#f9fcff",
+          boxShadow: "0 6px 18px rgba(44, 84, 116, 0.12)",
+          textAlign: "center",
+        }}
+      >
+        <h3
+          style={{
+            margin: "0 0 14px",
+            color: "#43506f",
+          }}
         >
-          <option value="mayo">Mayo</option>
-          <option value="primerCuat">1° Cuatrimestre</option>
-          <option value="octubre">Octubre</option>
-          <option value="segundoCuat">2° Cuatrimestre</option>
-          <option value="diciembre">Diciembre</option>
-          <option value="febrero">Febrero</option>
-          <option value="marzo">Marzo</option>
-          <option value="final">Final</option>
-        </select>
+          📊 Resumen del curso
+        </h3>
+
+        <p style={{ margin: "0 0 14px" }}>
+          Curso: <strong>{curso}</strong>
+        </p>
+
+        <div>
+          <label>Período:&nbsp;</label>
+
+          <select
+            value={periodoSeleccionado}
+            onChange={(e) => setPeriodoSeleccionado(e.target.value)}
+          >
+            <option value="mayo">Mayo</option>
+            <option value="primerCuat">1° Cuatrimestre</option>
+            <option value="octubre">Octubre</option>
+            <option value="segundoCuat">2° Cuatrimestre</option>
+            <option value="diciembre">Diciembre</option>
+            <option value="febrero">Febrero</option>
+            <option value="marzo">Marzo</option>
+            <option value="final">Final</option>
+          </select>
+        </div>
       </div>
       <button
         type="button"
         onClick={() => setMostrarPanelAnalisis(true)}
         style={{
-          padding: "10px 16px",
+          padding: "12px 20px",
           marginRight: "10px",
-          borderRadius: "10px",
+          borderRadius: "12px",
           border: "1px solid #c8d5e5",
-          background: "#f8f9fc",
-          fontWeight: "600",
+          background: "#f4f8ff",
+          fontWeight: 700,
           cursor: "pointer",
-          boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+          boxShadow: "0 4px 10px rgba(0,0,0,.10)",
         }}
       >
-        📈 Ver análisis y estadísticas
+        📈 Panel de análisis
       </button>
 
       <button
@@ -360,7 +382,7 @@ export default function ResumenCurso({ curso, alumnos }) {
           ventana.close();
         }}
         style={{
-          padding: "10px 16px",
+          padding: "12px 20px",
           borderRadius: "10px",
           border: "1px solid #c8d5e5",
           background: "#f8f9fc",
@@ -369,7 +391,7 @@ export default function ResumenCurso({ curso, alumnos }) {
           boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
         }}
       >
-        🖨️ Imprimir resumen
+        🖨️ Imprimir informe
       </button>
 
       <p style={{ marginTop: "20px", color: "#666" }}>
@@ -390,143 +412,142 @@ export default function ResumenCurso({ curso, alumnos }) {
           position: "relative",
         }}
       >
-
-      <table
-        style={{
-          width: "max-content",
-          minWidth: "100%",
-          marginTop: 0,
-          borderCollapse: "separate",
-          borderSpacing: 0,
-          border: "none",
-          boxShadow: "0 2px 10px rgba(0,0,0,0.06)",
-          tableLayout: "fixed",
-        }}
-      >
-        <thead>
-          <tr>
-            <th
-              style={{
-                width: "155px",
-                minWidth: "155px",
-                border: "1px solid #9fb8c9",
-                borderRight: "3px solid #5f91b2",
-                padding: "6px 4px",
-                background: "#f5f7fa",
-                fontSize: "11px",
-                lineHeight: "1.1",
-                position: "sticky",
-                top: 0,
-                left: 0,
-                zIndex: 50,
-              }}
-            >
-              Alumno
-            </th>
-
-            {asignaturasResumen.map((asignatura) => (
+        <table
+          style={{
+            width: "max-content",
+            minWidth: "100%",
+            marginTop: 0,
+            borderCollapse: "separate",
+            borderSpacing: 0,
+            border: "none",
+            boxShadow: "0 2px 10px rgba(0,0,0,0.06)",
+            tableLayout: "fixed",
+          }}
+        >
+          <thead>
+            <tr>
               <th
-                key={asignatura}
                 style={{
-                  width: "68px",
-                  minWidth: "68px",
-                  maxWidth: "68px",
-                  border: "2px solid #7a9fc4",
-
-                  padding: "6px 3px",
+                  width: "155px",
+                  minWidth: "155px",
+                  border: "1px solid #9fb8c9",
+                  borderRight: "3px solid #5f91b2",
+                  padding: "6px 4px",
                   background: "#f5f7fa",
-                  fontSize: "10.5px",
-                  lineHeight: "1.15",
-                  fontWeight: "700",
-                  wordBreak: "break-word",
+                  fontSize: "11px",
+                  lineHeight: "1.1",
                   position: "sticky",
                   top: 0,
-                  zIndex: 40,
+                  left: 0,
+                  zIndex: 50,
                 }}
               >
-                {asignatura}
+                Alumno
               </th>
-            ))}
-          </tr>
-        </thead>
 
-        <tbody>
-          {alumnosCurso.map((alumno, index) => {
-            const filaMarcada = (index + 1) % 5 === 0;
-
-            return (
-              <tr
-                key={alumno._id || alumno.dni}
-                style={{
-                  background: filaMarcada ? "#f8fbfd" : "#ffffff",
-                }}
-              >
-                <td
+              {asignaturasResumen.map((asignatura) => (
+                <th
+                  key={asignatura}
                   style={{
-                    borderLeft: "1px solid #cfd8dc",
-                    borderRight: "3px solid #5f91b2",
-                    borderTop: "1px solid #d9e3e8",
-                    borderBottom: filaMarcada
-                      ? "3px solid #7fa6c2"
-                      : "1px solid #d9e3e8",
-                    padding: "5px 6px",
-                    fontSize: "11px",
+                    width: "68px",
+                    minWidth: "68px",
+                    maxWidth: "68px",
+                    border: "2px solid #7a9fc4",
+
+                    padding: "6px 3px",
+                    background: "#f5f7fa",
+                    fontSize: "10.5px",
                     lineHeight: "1.15",
-                    fontWeight: "500",
-                    color: "#3f4f67",
-                    textAlign: "left",
-                    verticalAlign: "middle",
+                    fontWeight: "700",
                     wordBreak: "break-word",
                     position: "sticky",
-                    left: 0,
-                    zIndex: 20,
+                    top: 0,
+                    zIndex: 40,
+                  }}
+                >
+                  {asignatura}
+                </th>
+              ))}
+            </tr>
+          </thead>
+
+          <tbody>
+            {alumnosCurso.map((alumno, index) => {
+              const filaMarcada = (index + 1) % 5 === 0;
+
+              return (
+                <tr
+                  key={alumno._id || alumno.dni}
+                  style={{
                     background: filaMarcada ? "#f8fbfd" : "#ffffff",
                   }}
                 >
-                  {alumno.apellido}, {alumno.nombre}
-                </td>
+                  <td
+                    style={{
+                      borderLeft: "1px solid #cfd8dc",
+                      borderRight: "3px solid #5f91b2",
+                      borderTop: "1px solid #d9e3e8",
+                      borderBottom: filaMarcada
+                        ? "3px solid #7fa6c2"
+                        : "1px solid #d9e3e8",
+                      padding: "5px 6px",
+                      fontSize: "11px",
+                      lineHeight: "1.15",
+                      fontWeight: "500",
+                      color: "#3f4f67",
+                      textAlign: "left",
+                      verticalAlign: "middle",
+                      wordBreak: "break-word",
+                      position: "sticky",
+                      left: 0,
+                      zIndex: 20,
+                      background: filaMarcada ? "#f8fbfd" : "#ffffff",
+                    }}
+                  >
+                    {alumno.apellido}, {alumno.nombre}
+                  </td>
 
-                {asignaturasResumen.map((asignatura) => {
-                  const dato = obtenerDato(alumno._id, asignatura);
+                  {asignaturasResumen.map((asignatura) => {
+                    const dato = obtenerDato(alumno._id, asignatura);
 
-                  return (
-                    <td
-                      key={asignatura}
-                      style={{
-                        width: "68px",
-                        minWidth: "68px",
-                        maxWidth: "68px",
-                        borderTop: "1px solid #d9e3e8",
-                        borderLeft: "1px solid #d9e3e8",
-                        borderRight: "3px solid #5d86b0",
-                        borderBottom: filaMarcada
-                          ? "3px solid #7fa6c2"
-                          : "1px solid #d9e3e8",
-                        padding: "4px 3px",
-                        textAlign: "center",
-                        verticalAlign: "middle",
-                        background: colorCelda(dato.conceptual),
-                        fontSize: "10px",
-                        lineHeight: "1.1",
-                        fontWeight: "700",
-                      }}
-                    >
-                      {dato.conceptual ? (
-                        <span>
-                          {dato.conceptual}
-                          {dato.nota ? ` ${dato.nota}` : ""}
-                        </span>
-                      ) : (
-                        <span style={{ color: "#777" }}>-</span>
-                      )}
-                    </td>
-                  );
-                })}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                    return (
+                      <td
+                        key={asignatura}
+                        style={{
+                          width: "68px",
+                          minWidth: "68px",
+                          maxWidth: "68px",
+                          borderTop: "1px solid #d9e3e8",
+                          borderLeft: "1px solid #d9e3e8",
+                          borderRight: "3px solid #5d86b0",
+                          borderBottom: filaMarcada
+                            ? "3px solid #7fa6c2"
+                            : "1px solid #d9e3e8",
+                          padding: "4px 3px",
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                          background: colorCelda(dato.conceptual),
+                          fontSize: "10px",
+                          lineHeight: "1.1",
+                          fontWeight: "700",
+                        }}
+                      >
+                        {dato.conceptual ? (
+                          <span>
+                            {dato.conceptual}
+                            {dato.nota ? ` ${dato.nota}` : ""}
+                          </span>
+                        ) : (
+                          <span style={{ color: "#777" }}>-</span>
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );

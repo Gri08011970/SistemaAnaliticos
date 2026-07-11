@@ -106,6 +106,7 @@ export default function SeguimientoPedagogico({ alumnos }) {
           gap: "16px",
           margin: "20px 0 30px",
           flexWrap: "wrap",
+          
         }}
       >
         <button type="button" onClick={() => setVistaActiva("carga")}>

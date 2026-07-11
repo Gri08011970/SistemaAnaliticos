@@ -7,6 +7,7 @@ export default function TarjetasEstadisticas({ estadisticas }) {
         gap: "14px",
         margin: "20px 0",
         flexWrap: "wrap",
+       
       }}
     >
       <div style={tarjetaEstadistica("#d9f5d6")}>
@@ -37,7 +38,9 @@ function tarjetaEstadistica(color) {
     padding: "10px 16px",
     borderRadius: "10px",
     background: color,
-    boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
+    
     fontWeight: "600",
+    border: "2px solid  #bcd7e3",
+    boxShadow:  "0 5px 14px rgba(44, 84, 116, 0.10)",
   };
 }

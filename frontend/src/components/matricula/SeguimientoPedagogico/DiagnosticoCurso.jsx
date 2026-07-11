@@ -51,9 +51,10 @@ export default function DiagnosticoCurso({ indice, estadoCurso }) {
         padding: "16px",
         borderRadius: "16px",
         background: "#f9fcff",
-        border: "1px solid #cfe3ea",
-        boxShadow: "0 3px 10px rgba(0,0,0,0.08)",
+        border: "2px solid  #bcd7e3",
+        boxShadow:  "0 5px 14px rgba(44, 84, 116, 0.10)",
         textAlign: "center",
+      
       }}
     >
       <h4 style={{ margin: "0 0 10px" }}>

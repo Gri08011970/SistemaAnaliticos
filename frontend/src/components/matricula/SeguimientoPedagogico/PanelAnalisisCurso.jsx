@@ -3,6 +3,7 @@ import AnalisisAutomatico from "./AnalisisAutomatico";
 import TarjetasEstadisticas from "./TarjetasEstadisticas";
 import ResumenAsignaturas from "./ResumenAsignaturas";
 import ResumenEstudiantes from "./ResumenEstudiantes";
+import EvolucionCurso from "./EvolucionCurso";
 
 export default function PanelAnalisisCurso({
   estadisticas,
@@ -95,6 +96,14 @@ export default function PanelAnalisisCurso({
 
       <ResumenAsignaturas
         estadisticasPorAsignatura={estadisticasPorAsignatura}
+      />
+      <EvolucionCurso
+        curso={alumnosCurso[0]?.curso || ""}
+        alumnosCurso={alumnosCurso}
+        asignaturasResumen={asignaturasResumen}
+        seguimiento={JSON.parse(
+          localStorage.getItem("seguimientoPedagogico") || "{}",
+        )}
       />
 
       <ResumenEstudiantes

@@ -162,7 +162,9 @@ export default function ResumenEstudiantes({
         className="grupo-listado"
         style={{
           marginTop: "10px",
-          border: `1px solid ${borde}`,
+          border: "2px solid  #bcd7e3",
+          
+          boxShadow:  "0 5px 14px rgba(44, 84, 116, 0.10)",
           borderRadius: "10px",
           overflow: "hidden",
           background: "#ffffff",
@@ -258,7 +260,8 @@ export default function ResumenEstudiantes({
       style={{
         margin: "16px 0",
         padding: "12px",
-        border: "1px solid #cfe3ea",
+        border: "2px solid  #bcd7e3",
+        boxShadow:  "0 5px 14px rgba(44, 84, 116, 0.10)",
         borderRadius: "14px",
         background: "#f9fcff",
       }}

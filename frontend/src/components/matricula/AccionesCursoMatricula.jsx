@@ -8,41 +8,68 @@ export default function AccionesCursoMatricula({
   importarReporteOficial,
   estilos,
 }) {
+  const { botonVolver, botonImprimir } = estilos;
+
   return (
-    <div className="no-print">
+    <div
+      className="no-print"
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        gap: "10px",
+        flexWrap: "wrap",
+        marginBottom: "20px",
+      }}
+    >
       <button
-        style={estilos.botonVolver}
+        type="button"
+        style={botonVolver}
         onClick={() => setCursoSeleccionado(null)}
       >
-        Volver a todos los cursos
+        ← Volver
       </button>
 
-      <button style={estilos.botonImprimir} onClick={imprimirCurso}>
+      <button
+        type="button"
+        style={botonImprimir}
+        onClick={imprimirCurso}
+      >
         🖨️ Imprimir curso
       </button>
 
       <button
-        style={estilos.botonImprimir}
-        onClick={() => setVerEstadisticasCurso(!verEstadisticasCurso)}
+        type="button"
+        style={botonImprimir}
+        onClick={() =>
+          setVerEstadisticasCurso(!verEstadisticasCurso)
+        }
       >
-        📊 Estadísticas
+        {verEstadisticasCurso
+          ? "📊 Ocultar estadísticas"
+          : "📊 Ver estadísticas"}
       </button>
 
-      <button style={estilos.botonImprimir} onClick={exportarExcel}>
-        Exportar Excel
+      <button
+        type="button"
+        style={botonImprimir}
+        onClick={exportarExcel}
+      >
+        📥 Exportar Excel
       </button>
 
       {esAdmin && (
         <label
           style={{
-            ...estilos.botonImprimir,
-            display: "inline-block",
+            ...botonImprimir,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
             cursor: "pointer",
-            fontSize: "12,5px",
-            padding: "3px 10px",
           }}
         >
-          📁 Cargar Excel
+          📤 Cargar Excel
+
           <input
             type="file"
             accept=".xlsx,.xls"
