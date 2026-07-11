@@ -39,6 +39,20 @@ import { imprimirCurso } from "./matricula/impresiones/imprimirCurso";
 import { imprimirPlanillaPrevias } from "./matricula/impresiones/imprimirPrevias";
 import { imprimirRecursantes } from "./matricula/impresiones/imprimirRecursantes";
 import { imprimirDocumentacion } from "./matricula/impresiones/imprimirDocumentacion";
+import { obtenerEstadisticasCurso } from "./matricula/estadisticas/obtenerEstadisticasCurso";
+import { obtenerAlertas } from "./matricula/estadisticas/obtenerAlertas";
+import { obtenerEdadesCurso } from "./matricula/estadisticas/obtenerEdadesCurso";
+import { obtenerEstadisticasDocumentacion } from "./matricula/estadisticas/obtenerEstadisticasDocumentacion";
+import DocumentacionMatricula from "./matricula/DocumentacionMatricula";
+import { obtenerEstadisticasGenerales } from "./matricula/estadisticas/obtenerEstadisticasGenerales";
+import { obtenerRelevamientoInspeccion } from "./matricula/estadisticas/obtenerRelevamientoInspeccion";
+import {
+  obtenerLegajosFaltantes,
+  obtenerFoliosFaltantes,
+} from "./matricula/legajos/legajoMatrizUtils";
+import AlertasInstitucionalesMatricula from "./matricula/AlertasInstitucionalesMatricula";
+import EstadisticasGeneralesMatricula from "./matricula/EstadisticasGeneralesMatricula";
+import EdadesCursoMatricula from "./matricula/EdadesCursoMatricula";
 
 export default function Matricula({ modoDocumentacion = false, volverInicio }) {
   const rolUsuario = localStorage.getItem("rolUsuario") || "consulta";
@@ -456,60 +470,17 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
     ).length;
   }
 
-  const totalEstudiantes = alumnosDelCurso.length;
-
-  const totalProm = alumnosDelCurso.filter(
-    (alumno) => alumno.condicionFinal === "Prom",
-  ).length;
-
-  const totalRec = alumnosDelCurso.filter(
-    (alumno) => alumno.condicionFinal === "Rec",
-  ).length;
-
-  const totalConPrevias = alumnosDelCurso.filter((alumno) => {
-    const previasReales = Array.isArray(alumno.materiasPendientes)
-      ? alumno.materiasPendientes.filter(
-          (previa) => previa.asignatura !== "----------",
-        )
-      : [];
-
-    return previasReales.length > 0;
-  }).length;
-
-  const porcentajeProm =
-    totalEstudiantes > 0
-      ? ((totalProm / totalEstudiantes) * 100).toFixed(0)
-      : 0;
-
-  const porcentajeRec =
-    totalEstudiantes > 0 ? ((totalRec / totalEstudiantes) * 100).toFixed(0) : 0;
-
-  const totalIngresantes = alumnosDelCurso.filter(
-    (alumno) => alumno.condicionFinal === "Ingresante",
-  ).length;
-
-  const totalReinscriptos = alumnosDelCurso.filter(
-    (alumno) => alumno.condicionFinal === "Reinscripto",
-  ).length;
-
-  const totalSobreedad = alumnosDelCurso.filter((alumno) => {
-    if (!alumno.fechaNacimiento) return false;
-
-    const edad = calcularEdadAl30Junio(alumno.fechaNacimiento);
-
-    const anioCurso = Number(cursoSeleccionado.curso.charAt(0));
-
-    const edadesEsperadas = {
-      1: 12,
-      2: 13,
-      3: 14,
-      4: 15,
-      5: 16,
-      6: 17,
-    };
-
-    return edad > edadesEsperadas[anioCurso];
-  }).length;
+  const {
+    totalEstudiantes,
+    totalProm,
+    totalRec,
+    totalConPrevias,
+    porcentajeProm,
+    porcentajeRec,
+    totalIngresantes,
+    totalReinscriptos,
+    totalSobreedad,
+  } = obtenerEstadisticasCurso(alumnosDelCurso);
 
   async function eliminarAlumnoMatricula(id) {
     const confirmar = confirm("¿Eliminar este estudiante de la matrícula?");
@@ -688,29 +659,8 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
       console.log(error);
     }
   }
-  const totalGeneral = alumnosMatricula.length;
-
-  const totalManana = alumnosMatricula.filter(
-    (alumno) => alumno.turno === "Mañana",
-  ).length;
-
-  const totalTarde = alumnosMatricula.filter(
-    (alumno) => alumno.turno === "Tarde",
-  ).length;
-
-  const cicloBasico = alumnosMatricula.filter(
-    (alumno) =>
-      alumno.curso?.startsWith("1°") ||
-      alumno.curso?.startsWith("2°") ||
-      alumno.curso?.startsWith("3°"),
-  ).length;
-
-  const cicloSuperior = alumnosMatricula.filter(
-    (alumno) =>
-      alumno.curso?.startsWith("4°") ||
-      alumno.curso?.startsWith("5°") ||
-      alumno.curso?.startsWith("6°"),
-  ).length;
+  const { totalGeneral, totalManana, totalTarde, cicloBasico, cicloSuperior } =
+    obtenerEstadisticasGenerales(alumnosMatricula);
 
   function eliminarPrevia(index) {
     setNuevoAlumno({
@@ -724,16 +674,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
   function obtenerAnioDelCurso(curso) {
     return curso?.charAt(0);
   }
-
-  const edadesDelCurso = alumnosDelCurso.reduce((contador, alumno) => {
-    const edad = calcularEdadAl30Junio(alumno.fechaNacimiento);
-
-    if (edad === "-") return contador;
-
-    contador[edad] = (contador[edad] || 0) + 1;
-
-    return contador;
-  }, {});
+  const edadesDelCurso = obtenerEdadesCurso(alumnosDelCurso);
 
   function cerrarPlanillaPrevias() {
     setVerPlanillaPrevias(false);
@@ -827,26 +768,12 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
       );
     });
 
-  const alumnosSinLegajo = alumnosMatricula.filter(
-    (alumno) => !alumno.legajoNumero || !alumno.legajoAnio,
-  );
-
-  const alumnosSinFechaNacimiento = alumnosMatricula.filter(
-    (alumno) => !alumno.fechaNacimiento,
-  );
-
-  const alumnosConPrevias = alumnosMatricula.filter((alumno) => {
-    const previasReales =
-      alumno.materiasPendientes?.filter(
-        (previa) => previa.asignatura !== "----------",
-      ) || [];
-
-    return previasReales.length > 0;
-  });
-
-  const alumnosConSobreedad = alumnosMatricula.filter((alumno) =>
-    tieneSobreedad(alumno),
-  );
+  const {
+    alumnosSinLegajo,
+    alumnosSinFechaNacimiento,
+    alumnosConPrevias,
+    alumnosConSobreedad,
+  } = obtenerAlertas(alumnosMatricula);
 
   const alumnosAlertaActiva =
     alertaActiva === "sinLegajo"
@@ -873,411 +800,58 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
     return coincideNombre || coincideDni;
   });
 
-  function debeTodasLasMaterias(alumno, anio) {
-    const previasValidas = obtenerPreviasValidas(alumno);
-
-    const cantidadMateriasPorAnio = {
-      1: 8,
-      2: 10,
-      3: 10,
-      4: 11,
-      5: 11,
-    };
-
-    const obtenerNumeroAnio = (valor) => {
-      return Number(
-        String(valor || "")
-          .replace("°", "")
-          .trim(),
-      );
-    };
-
-    const resumenPorAnio = {};
-
-    previasValidas.forEach((previa) => {
-      const anioPrevia = obtenerNumeroAnio(previa.anio);
-
-      if (!anioPrevia) return;
-
-      resumenPorAnio[anioPrevia] = (resumenPorAnio[anioPrevia] || 0) + 1;
-    });
-
-    return Object.keys(resumenPorAnio).some((anioPrevia) => {
-      const cantidadAdeudada = resumenPorAnio[anioPrevia];
-      const totalMaterias = cantidadMateriasPorAnio[anioPrevia];
-
-      return totalMaterias && cantidadAdeudada >= totalMaterias;
-    });
-  }
-
-  function calcularRelevamientoPorAnio(anio) {
-    const alumnosDelAnio = alumnosMatricula.filter((alumno) =>
-      alumno.curso?.startsWith(String(anio)),
-    );
-
-    const resumen = {
-      promocionaron: 0,
-      unaODos: 0,
-      tresOCuatro: 0,
-      cincoOMas: 0,
-      todas: 0,
-
-      extranjeros: 0,
-      boliviana: 0,
-      paraguaya: 0,
-      peruana: 0,
-      chilena: 0,
-      otros: 0,
-
-      recursantes: 0,
-      recursantesVarones: 0,
-    };
-
-    alumnosDelAnio.forEach((alumno) => {
-      const cantidad = contarPrevias(alumno);
-
-      if (debeTodasLasMaterias(alumno, anio)) {
-        resumen.todas++;
-      } else if (cantidad === 0) {
-        resumen.promocionaron++;
-      } else if (cantidad <= 2) {
-        resumen.unaODos++;
-      } else if (cantidad <= 4) {
-        resumen.tresOCuatro++;
-      } else {
-        resumen.cincoOMas++;
-      }
-
-      if (alumno.condicionFinal === "Rec") {
-        resumen.recursantes++;
-
-        if (alumno.sexo === "Varón") {
-          resumen.recursantesVarones++;
-        }
-      }
-
-      const nacionalidad = alumno.nacionalidad || "";
-
-      if (nacionalidad && nacionalidad !== "Argentina") {
-        resumen.extranjeros++;
-      }
-
-      if (nacionalidad === "Boliviana") resumen.boliviana++;
-      if (nacionalidad === "Paraguaya") resumen.paraguaya++;
-      if (nacionalidad === "Peruana") resumen.peruana++;
-      if (nacionalidad === "Chilena") resumen.chilena++;
-      if (nacionalidad === "Otros") resumen.otros++;
-    });
-
-    return resumen;
-  }
-
-  const relevamientoInspeccion = calcularRelevamientoPorAnio(
+  const relevamientoInspeccion = obtenerRelevamientoInspeccion(
+    alumnosMatricula,
     Number(anioRelevamiento),
   );
-
-  function obtenerNumerosLegajoPorAnio(anio) {
-    return alumnosMatricula
-      .filter((alumno) => String(alumno.legajoAnio) === String(anio))
-      .map((alumno) => Number(alumno.legajoNumero))
-      .filter((numero) => !isNaN(numero))
-      .sort((a, b) => a - b);
-  }
-
-  function obtenerLegajosFaltantes(anio) {
-    const numeros = obtenerNumerosLegajoPorAnio(anio);
-
-    if (numeros.length === 0) return [];
-
-    const menor = Math.min(...numeros);
-    const mayor = Math.max(...numeros);
-
-    const faltantes = [];
-
-    for (let numero = menor; numero <= mayor; numero++) {
-      if (!numeros.includes(numero)) {
-        faltantes.push(numero);
-      }
-    }
-
-    return faltantes;
-  }
-
-  function obtenerFoliosPorLibro(libro) {
-    return alumnosMatricula
-      .map((alumno) =>
-        String(alumno.folioMatriz || alumno.libroMatriz || "").trim(),
-      )
-      .filter((matriz) => matriz.includes("/"))
-      .map((matriz) => {
-        const [libroNum, folioNum] = matriz.split("/");
-        return {
-          libro: libroNum,
-          folio: Number(folioNum),
-        };
-      })
-      .filter((item) => String(item.libro) === String(libro) && item.folio)
-      .map((item) => item.folio)
-      .sort((a, b) => a - b);
-  }
-
-  function obtenerFoliosFaltantes(libro) {
-    const folios = obtenerFoliosPorLibro(libro);
-
-    if (folios.length === 0) return [];
-
-    const menor = Math.min(...folios);
-    const mayor = Math.max(...folios);
-    const faltantes = [];
-
-    for (let folio = menor; folio <= mayor; folio++) {
-      if (!folios.includes(folio)) {
-        faltantes.push(folio);
-      }
-    }
-
-    return faltantes;
-  }
 
   const [busquedaDocumentacion, setBusquedaDocumentacion] = useState("");
   const [cursoDocumentacion, setCursoDocumentacion] = useState("");
   const [turnoDocumentacion, setTurnoDocumentacion] = useState("");
 
-  const alumnosDocumentacion = alumnosMatricula
-    .filter((alumno) => alumno.estadoMatricula === "Activo")
-    .filter((alumno) =>
-      cursoDocumentacion ? alumno.curso === cursoDocumentacion : true,
-    )
-    .filter((alumno) =>
-      turnoDocumentacion ? alumno.turno === turnoDocumentacion : true,
-    )
-    .filter((alumno) => {
-      const texto =
-        `${alumno.apellido} ${alumno.nombre} ${alumno.dni}`.toLowerCase();
-      return texto.includes(busquedaDocumentacion.toLowerCase());
-    })
-    .sort((a, b) =>
-      `${a.curso} ${a.turno} ${a.apellido}`.localeCompare(
-        `${b.curso} ${b.turno} ${b.apellido}`,
-        "es",
-      ),
-    );
-  const totalDocumentacion = alumnosDocumentacion.length;
-
-  const dniFisicoCompletos = alumnosDocumentacion.filter(
-    (alumno) => alumno.dniFisico === "SI",
-  ).length;
-
-  const partidasCompletas = alumnosDocumentacion.filter(
-    (alumno) => alumno.partidaNacimiento === "SI",
-  ).length;
-
-  const analiticosCompletos = alumnosDocumentacion.filter(
-    (alumno) => alumno.analiticoParcial === "SI",
-  ).length;
+  const {
+    alumnosDocumentacion,
+    totalDocumentacion,
+    dniFisicoCompletos,
+    partidasCompletas,
+    analiticosCompletos,
+  } = obtenerEstadisticasDocumentacion({
+    alumnosMatricula,
+    cursoDocumentacion,
+    turnoDocumentacion,
+    busquedaDocumentacion,
+  });
 
   if (modoDocumentacion) {
     return (
-      <div style={detalleCurso}>
-        <button style={botonVolver} onClick={volverInicio}>
-          Volver al inicio
-        </button>
-
-        <h2 style={{ color: "#1e3a5f", textAlign: "center" }}>
-          📁 Documentación
-        </h2>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: "10px",
-            marginBottom: "15px",
-          }}
-        >
-          <div style={tarjetaResumen}>
-            Total alumnos
-            <br />
-            <strong>{totalDocumentacion}</strong>
-          </div>
-          <div style={tarjetaResumen}>
-            DNI físico
-            <br />
-            <strong>{dniFisicoCompletos}</strong>
-          </div>
-          <div style={tarjetaResumen}>
-            Partidas
-            <br />
-            <strong>{partidasCompletas}</strong>
-          </div>
-          <div style={tarjetaResumen}>
-            Analíticos
-            <br />
-            <strong>{analiticosCompletos}</strong>
-          </div>
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            gap: "10px",
-            flexWrap: "wrap",
-            marginBottom: "15px",
-          }}
-        >
-          <input
-            style={inputAlumno}
-            placeholder="Buscar por apellido, nombre o DNI"
-            value={busquedaDocumentacion}
-            onChange={(e) => setBusquedaDocumentacion(e.target.value)}
-          />
-
-          <select
-            style={inputAlumno}
-            value={cursoDocumentacion}
-            onChange={(e) => setCursoDocumentacion(e.target.value)}
-          >
-            <option value="">Todos los cursos</option>
-            {[...cursosManana, ...cursosTarde].map((curso) => (
-              <option key={curso} value={curso}>
-                {curso}
-              </option>
-            ))}
-          </select>
-
-          <select
-            style={inputAlumno}
-            value={turnoDocumentacion}
-            onChange={(e) => setTurnoDocumentacion(e.target.value)}
-          >
-            <option value="">Ambos turnos</option>
-            <option value="Mañana">Turno Mañana</option>
-            <option value="Tarde">Turno Tarde</option>
-          </select>
-        </div>
-        <div
-          style={{
-            textAlign: "center",
-            marginBottom: "20px",
-          }}
-        >
-          <button
-            type="button"
-            style={{
-              ...botonImprimir,
-              minWidth: "220px",
-              padding: "10px 18px",
-              fontSize: "15px",
-              fontWeight: "700",
-            }}
-            onClick={() => imprimirDocumentacion(alumnosDocumentacion)} 
-          >
-            🖨️ Imprimir documentación
-          </button>
-        </div>
-
-        <table style={tabla}>
-          <thead>
-            <tr>
-              <th style={celda}>Curso</th>
-              <th style={celda}>Apellido y Nombre</th>
-              <th style={celda}>DNI</th>
-              <th style={celda}>Legajo</th>
-              <th style={celda}>DNI Físico</th>
-              <th style={celda}>Partida Nac.</th>
-              <th style={celda}>Analítico Parcial</th>
-              <th style={celda}>Observaciones</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {alumnosDocumentacion.map((alumno) => (
-              <tr key={alumno._id}>
-                <td style={celda}>{alumno.curso}</td>
-
-                <td style={celda}>
-                  {alumno.apellido}, {alumno.nombre}
-                </td>
-
-                <td style={celda}>{formatearDNI(alumno.dni)}</td>
-
-                <td style={celda}>
-                  {alumno.legajoNumero && alumno.legajoAnio
-                    ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
-                    : "-"}
-                </td>
-
-                <td style={celda}>
-                  <select
-                    disabled={!esAdmin}
-                    defaultValue={alumno.dniFisico || "NO"}
-                    onChange={(e) =>
-                      actualizarDocumentacion(
-                        alumno,
-                        "dniFisico",
-                        e.target.value,
-                      )
-                    }
-                  >
-                    <option value="NO">🟥 NO</option>
-                    <option value="SI">🟩 SÍ</option>
-                  </select>
-                </td>
-
-                <td style={celda}>
-                  <select
-                    disabled={!esAdmin}
-                    defaultValue={alumno.partidaNacimiento || "NO"}
-                    onChange={(e) =>
-                      actualizarDocumentacion(
-                        alumno,
-                        "partidaNacimiento",
-                        e.target.value,
-                      )
-                    }
-                  >
-                    <option value="NO">🟥 NO</option>
-                    <option value="SI">🟩 SÍ</option>
-                  </select>
-                </td>
-
-                <td style={celda}>
-                  <select
-                    disabled={!esAdmin}
-                    defaultValue={alumno.analiticoParcial || "-----"}
-                    onChange={(e) =>
-                      actualizarDocumentacion(
-                        alumno,
-                        "analiticoParcial",
-                        e.target.value,
-                      )
-                    }
-                  >
-                    <option value="-----">⚪ -----</option>
-                    <option value="SI">🟩 SÍ</option>
-                    <option value="Debe">🟨 Debe</option>
-                  </select>
-                </td>
-                <td style={celda}>
-                  <input
-                    disabled={!esAdmin}
-                    style={{ ...inputAlumno, width: "160px" }}
-                    placeholder="📝 Observación"
-                    defaultValue={alumno.observacionDocumentacion || ""}
-                    onBlur={(e) =>
-                      actualizarDocumentacion(
-                        alumno,
-                        "observacionDocumentacion",
-                        e.target.value,
-                      )
-                    }
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <DocumentacionMatricula
+        esAdmin={esAdmin}
+        volverInicio={volverInicio}
+        alumnosDocumentacion={alumnosDocumentacion}
+        totalDocumentacion={totalDocumentacion}
+        dniFisicoCompletos={dniFisicoCompletos}
+        partidasCompletas={partidasCompletas}
+        analiticosCompletos={analiticosCompletos}
+        busquedaDocumentacion={busquedaDocumentacion}
+        setBusquedaDocumentacion={setBusquedaDocumentacion}
+        cursoDocumentacion={cursoDocumentacion}
+        setCursoDocumentacion={setCursoDocumentacion}
+        turnoDocumentacion={turnoDocumentacion}
+        setTurnoDocumentacion={setTurnoDocumentacion}
+        cursosManana={cursosManana}
+        cursosTarde={cursosTarde}
+        actualizarDocumentacion={actualizarDocumentacion}
+        formatearDNI={formatearDNI}
+        estilos={{
+          detalleCurso,
+          botonVolver,
+          tarjetaResumen,
+          inputAlumno,
+          botonImprimir,
+          tabla,
+          celda,
+        }}
+      />
     );
   }
 
@@ -1289,135 +863,39 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
 
       {!cursoSeleccionado && (
         <>
-          {verEstadisticasGeneral && (
-            <div style={bloqueEstadisticas}>
-              <div style={tarjetaEstadistica}>
-                <h3>Total general</h3>
-                <p>{totalGeneral}</p>
-              </div>
+          <EstadisticasGeneralesMatricula
+            mostrar={verEstadisticasGeneral}
+            totalGeneral={totalGeneral}
+            totalManana={totalManana}
+            totalTarde={totalTarde}
+            cicloBasico={cicloBasico}
+            cicloSuperior={cicloSuperior}
+            estilos={{
+              bloqueEstadisticas,
+              tarjetaEstadistica,
+            }}
+          />
 
-              <div style={tarjetaEstadistica}>
-                <h3>turno mañana</h3>
-                <p>{totalManana}</p>
-              </div>
-
-              <div style={tarjetaEstadistica}>
-                <h3>Turno Tarde</h3>
-                <p>{totalTarde}</p>
-              </div>
-
-              <div style={tarjetaEstadistica}>
-                <h3>Ciclo básico</h3>
-                <p>{cicloBasico}</p>
-              </div>
-
-              <div style={tarjetaEstadistica}>
-                <h3>Ciclo superior</h3>
-                <p>{cicloSuperior}</p>
-              </div>
-            </div>
-          )}
-
-          <div style={panelAlertas}>
-            <h3 style={{ color: "#1e3a5f", textAlign: "center" }}>
-              🚨 Alertas institucionales
-            </h3>
-
-            <div style={grillaAlertas}>
-              <div
-                style={tarjetaAlerta}
-                onClick={() => setAlertaActiva("sinLegajo")}
-              >
-                <strong>Sin legajo</strong>
-                <p>{alumnosSinLegajo.length}</p>
-              </div>
-
-              <div
-                style={tarjetaAlerta}
-                onClick={() => setAlertaActiva("sinFecha")}
-              >
-                <strong>Sin fecha nacimiento</strong>
-                <p>{alumnosSinFechaNacimiento.length}</p>
-              </div>
-
-              <div
-                style={tarjetaAlerta}
-                onClick={() => setAlertaActiva("previas")}
-              >
-                <strong>Con previas</strong>
-                <p>{alumnosConPrevias.length}</p>
-              </div>
-
-              <div
-                style={tarjetaAlerta}
-                onClick={() => setAlertaActiva("sobreedad")}
-              >
-                <strong>Sobreedad</strong>
-                <p>{alumnosConSobreedad.length}</p>
-              </div>
-            </div>
-          </div>
-
-          {alertaActiva && (
-            <div style={detalleCurso}>
-              <h3 style={{ color: "#1e3a5f" }}>🚨 Listado de alerta</h3>
-
-              <button style={botonVolver} onClick={() => setAlertaActiva("")}>
-                Cerrar alerta
-              </button>
-
-              <p>Cantidad: {alumnosAlertaActiva.length}</p>
-
-              <table style={tabla}>
-                <thead>
-                  <tr>
-                    <th style={celda}>Apellido y Nombre</th>
-                    <th style={celda}>DNI</th>
-                    <th style={celda}>Curso</th>
-                    <th style={celda}>Turno</th>
-                    <th style={celda}>Legajo</th>
-                    <th style={celda}>Detalle de alerta</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {alumnosAlertaActiva.map((alumno) => (
-                    <tr key={alumno._id}>
-                      <td style={celda}>
-                        {alumno.apellido}, {alumno.nombre}
-                      </td>
-                      <td style={celda}>{formatearDNI(alumno.dni)}</td>
-                      <td style={celda}>{alumno.curso}</td>
-                      <td style={celda}>{alumno.turno}</td>
-                      <td style={celda}>
-                        {alumno.legajoNumero && alumno.legajoAnio
-                          ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
-                          : "-"}
-                      </td>
-                      <td style={celda}>
-                        {alertaActiva === "sinLegajo" &&
-                          "Falta número o año de legajo"}
-
-                        {alertaActiva === "sinFecha" &&
-                          "Falta fecha de nacimiento"}
-
-                        {alertaActiva === "previas" &&
-                          alumno.materiasPendientes
-                            ?.map(
-                              (previa) =>
-                                `${previa.asignatura} (${previa.anio})`,
-                            )
-                            .join(", ")}
-
-                        {alertaActiva === "sobreedad" &&
-                          `${calcularEdadAl30Junio(alumno.fechaNacimiento)} años`}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+          <AlertasInstitucionalesMatricula
+            alertaActiva={alertaActiva}
+            setAlertaActiva={setAlertaActiva}
+            alumnosSinLegajo={alumnosSinLegajo}
+            alumnosSinFechaNacimiento={alumnosSinFechaNacimiento}
+            alumnosConPrevias={alumnosConPrevias}
+            alumnosConSobreedad={alumnosConSobreedad}
+            alumnosAlertaActiva={alumnosAlertaActiva}
+            formatearDNI={formatearDNI}
+            calcularEdadAl30Junio={calcularEdadAl30Junio}
+            estilos={{
+              panelAlertas,
+              grillaAlertas,
+              tarjetaAlerta,
+              detalleCurso,
+              botonVolver,
+              tabla,
+              celda,
+            }}
+          />
           <BuscadorGeneralMatricula
             busquedaAlumno={busquedaAlumno}
             setBusquedaAlumno={setBusquedaAlumno}
@@ -1528,8 +1006,12 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
               setMostrarLegajosArchivo={setMostrarLegajosArchivo}
               mostrarMatrizArchivo={mostrarMatrizArchivo}
               setMostrarMatrizArchivo={setMostrarMatrizArchivo}
-              obtenerLegajosFaltantes={obtenerLegajosFaltantes}
-              obtenerFoliosFaltantes={obtenerFoliosFaltantes}
+              obtenerLegajosFaltantes={(anio) =>
+                obtenerLegajosFaltantes(alumnosMatricula, anio)
+              }
+              obtenerFoliosFaltantes={(libro) =>
+                obtenerFoliosFaltantes(alumnosMatricula, libro)
+              }
               alumnosPorMatriz={alumnosPorMatriz}
               formatearDNI={formatearDNI}
               estilos={{
@@ -1662,20 +1144,14 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
               }}
             />
 
-            <div style={bloqueEdades}>
-              <h3 style={{ color: "#1e3a5f" }}>Edades del curso</h3>
-
-              <div style={grillaEdades}>
-                {Object.entries(edadesDelCurso)
-                  .sort((a, b) => Number(a[0]) - Number(b[0]))
-                  .map(([edad, cantidad]) => (
-                    <div key={edad} style={tarjetaEdad}>
-                      <strong>{edad} años</strong>
-                      <p>{cantidad}</p>
-                    </div>
-                  ))}
-              </div>
-            </div>
+            <EdadesCursoMatricula
+              edadesDelCurso={edadesDelCurso}
+              estilos={{
+                bloqueEdades,
+                grillaEdades,
+                tarjetaEdad,
+              }}
+            />
           </div>
 
           <FormularioAlumnoMatricula
