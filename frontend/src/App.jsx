@@ -12,6 +12,7 @@ import Matricula from "./components/Matricula";
 import PortadaInstitucional from "./components/PortadaInstitucional";
 import DomicilioTelefono from "./components/DomicilioTelefono";
 import AutorizadosRetirar from "./components/AutorizadosRetirar";
+import ParteDiarioMatricula from "./components/ParteDiarioMatricula";
 
 export default function App() {
   const rolUsuario = localStorage.getItem("rolUsuario") || "consulta";
@@ -243,54 +244,6 @@ export default function App() {
     "6°4°",
   ];
 
-  function contarPorSexo(curso, turno, sexo) {
-    return alumnosMatricula.filter(
-      (alumno) =>
-        alumno.curso === curso &&
-        alumno.turno === turno &&
-        alumno.sexo === sexo,
-    ).length;
-  }
-
-  function filaParteDiario(curso, turno) {
-    const mujeres = contarPorSexo(curso, turno, "Mujer");
-    const varones = contarPorSexo(curso, turno, "Varón");
-
-    return {
-      curso,
-      mujeres,
-      varones,
-      total: mujeres + varones,
-    };
-  }
-
-  function totalParteDiario(cursos, turno) {
-    return cursos.reduce(
-      (acumulador, curso) => {
-        const fila = filaParteDiario(curso, turno);
-
-        return {
-          mujeres: acumulador.mujeres + fila.mujeres,
-          varones: acumulador.varones + fila.varones,
-          total: acumulador.total + fila.total,
-        };
-      },
-      { mujeres: 0, varones: 0, total: 0 },
-    );
-  }
-
-  function esCicloBasico(curso) {
-    return (
-      curso.startsWith("1") || curso.startsWith("2") || curso.startsWith("3")
-    );
-  }
-
-  function esCicloSuperior(curso) {
-    return (
-      curso.startsWith("4") || curso.startsWith("5") || curso.startsWith("6")
-    );
-  }
-
   if (!logueado) {
     return <Login setLogueado={setLogueado} />;
   }
@@ -396,7 +349,6 @@ export default function App() {
             <div style={tarjetaInicio} className="tarjeta-inicio">
               <h3>📋 Parte Diario Automático</h3>
               <p>Matrícula por turno, curso, sexo y totales institucionales.</p>
-              
 
               <button
                 className="boton-sistema boton-principal"
@@ -542,313 +494,26 @@ export default function App() {
           </div>
         )}
         {seccionActiva === "parteDiario" && (
-          <>
-            <h2
-              style={{
-                textAlign: "center",
-                color: "#1e3a5f",
-                marginBottom: "5px",
-              }}
-            >
-              E.E.S. N° 140 "Florencio Molina Campos"
-            </h2>
-
-            <p
-              style={{
-                textAlign: "center",
-                color: "#666",
-                marginBottom: "25px",
-              }}
-            >
-              Matrícula institucional actualizada automáticamente
-            </p>
-          </>
-        )}
-
-        {seccionActiva === "parteDiario" && (
-          <div id="parte-diario" style={parteDiario}>
-            <div
-              className="no-print"
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                marginBottom: "15px",
-              }}
-            >
-              <button
-                className="boton-sistema boton-imprimir"
-                style={botonMenu}
-                onClick={() => window.print()}
-              >
-                🖨️ Imprimir Parte Diario
-              </button>
-            </div>
-
-            <h2 style={tituloParteDiario}>📋 Parte Diario Automático</h2>
-              <p>
-               Fecha de impresión:
-               {new Date().toLocaleString("es-AR")}
-              </p>
-            <div style={grillaParteDiario}>
-              <div>
-                <h3 style={subtituloParte}>Turno Mañana</h3>
-
-                <table style={tablaParte}>
-                  <thead>
-                    <tr>
-                      <th style={celdaParteTitulo}>Curso</th>
-                      <th style={celdaParteTitulo}>Mujeres</th>
-                      <th style={celdaParteTitulo}>Varones</th>
-                      <th style={celdaParteTitulo}>Total</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {cursosManana.map((curso) => {
-                      const fila = filaParteDiario(curso, "Mañana");
-
-                      return (
-                        <tr key={curso}>
-                          <td style={celdaParte}>{fila.curso}</td>
-                          <td style={celdaParte}>{fila.mujeres}</td>
-                          <td style={celdaParte}>{fila.varones}</td>
-                          <td style={celdaParteNegrita}>{fila.total}</td>
-                        </tr>
-                      );
-                    })}
-
-                    <tr style={filaTotalBasico}>
-                      <td style={celdaParteNegrita}>TOTAL CICLO BÁSICO</td>
-                      <td style={celdaParteNegrita}>
-                        {
-                          totalParteDiario(
-                            cursosManana.filter(esCicloBasico),
-                            "Mañana",
-                          ).mujeres
-                        }
-                      </td>
-                      <td style={celdaParteNegrita}>
-                        {
-                          totalParteDiario(
-                            cursosManana.filter(esCicloBasico),
-                            "Mañana",
-                          ).varones
-                        }
-                      </td>
-                      <td style={celdaParteTotal}>
-                        {
-                          totalParteDiario(
-                            cursosManana.filter(esCicloBasico),
-                            "Mañana",
-                          ).total
-                        }
-                      </td>
-                    </tr>
-
-                    <tr style={filaTotalSuperior}>
-                      <td style={celdaParteNegrita}>TOTAL CICLO SUPERIOR</td>
-                      <td style={celdaParteNegrita}>
-                        {
-                          totalParteDiario(
-                            cursosManana.filter(esCicloSuperior),
-                            "Mañana",
-                          ).mujeres
-                        }
-                      </td>
-                      <td style={celdaParteNegrita}>
-                        {
-                          totalParteDiario(
-                            cursosManana.filter(esCicloSuperior),
-                            "Mañana",
-                          ).varones
-                        }
-                      </td>
-                      <td style={celdaParteTotal}>
-                        {
-                          totalParteDiario(
-                            cursosManana.filter(esCicloSuperior),
-                            "Mañana",
-                          ).total
-                        }
-                      </td>
-                    </tr>
-
-                    <tr style={filaTotalTurno}>
-                      <td style={celdaParteTotal}>TOTAL TURNO MAÑANA</td>
-                      <td style={celdaParteTotal}>
-                        {totalParteDiario(cursosManana, "Mañana").mujeres}
-                      </td>
-                      <td style={celdaParteTotal}>
-                        {totalParteDiario(cursosManana, "Mañana").varones}
-                      </td>
-                      <td style={celdaParteTotal}>
-                        {totalParteDiario(cursosManana, "Mañana").total}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <div>
-                <h3 style={subtituloParte}>Turno Tarde</h3>
-
-                <table style={tablaParte}>
-                  <thead>
-                    <tr>
-                      <th style={celdaParteTitulo}>Curso</th>
-                      <th style={celdaParteTitulo}>Mujeres</th>
-                      <th style={celdaParteTitulo}>Varones</th>
-                      <th style={celdaParteTitulo}>Total</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {cursosTarde.map((curso) => {
-                      const fila = filaParteDiario(curso, "Tarde");
-
-                      return (
-                        <tr key={curso}>
-                          <td style={celdaParte}>{fila.curso}</td>
-                          <td style={celdaParte}>{fila.mujeres}</td>
-                          <td style={celdaParte}>{fila.varones}</td>
-                          <td style={celdaParteNegrita}>{fila.total}</td>
-                        </tr>
-                      );
-                    })}
-
-                    <tr style={filaTotalBasico}>
-                      <td style={celdaParteNegrita}>TOTAL CICLO BÁSICO</td>
-                      <td style={celdaParteNegrita}>
-                        {
-                          totalParteDiario(
-                            cursosTarde.filter(esCicloBasico),
-                            "Tarde",
-                          ).mujeres
-                        }
-                      </td>
-                      <td style={celdaParteNegrita}>
-                        {
-                          totalParteDiario(
-                            cursosTarde.filter(esCicloBasico),
-                            "Tarde",
-                          ).varones
-                        }
-                      </td>
-                      <td style={celdaParteTotal}>
-                        {
-                          totalParteDiario(
-                            cursosTarde.filter(esCicloBasico),
-                            "Tarde",
-                          ).total
-                        }
-                      </td>
-                    </tr>
-
-                    <tr style={filaTotalSuperior}>
-                      <td style={celdaParteNegrita}>TOTAL CICLO SUPERIOR</td>
-                      <td style={celdaParteNegrita}>
-                        {
-                          totalParteDiario(
-                            cursosTarde.filter(esCicloSuperior),
-                            "Tarde",
-                          ).mujeres
-                        }
-                      </td>
-                      <td style={celdaParteNegrita}>
-                        {
-                          totalParteDiario(
-                            cursosTarde.filter(esCicloSuperior),
-                            "Tarde",
-                          ).varones
-                        }
-                      </td>
-                      <td style={celdaParteTotal}>
-                        {
-                          totalParteDiario(
-                            cursosTarde.filter(esCicloSuperior),
-                            "Tarde",
-                          ).total
-                        }
-                      </td>
-                    </tr>
-
-                    <tr style={filaTotalTurno}>
-                      <td style={celdaParteTotal}>TOTAL TURNO TARDE</td>
-                      <td style={celdaParteTotal}>
-                        {totalParteDiario(cursosTarde, "Tarde").mujeres}
-                      </td>
-                      <td style={celdaParteTotal}>
-                        {totalParteDiario(cursosTarde, "Tarde").varones}
-                      </td>
-                      <td style={celdaParteTotal}>
-                        {totalParteDiario(cursosTarde, "Tarde").total}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div
-              style={{
-                marginTop: "20px",
-                borderRadius: "10px",
-                overflow: "hidden",
-                display: "flex",
-                justifyContent: "center",
-              }}
-            >
-              <table
-                style={{
-                  ...tablaParte,
-                  width: "70%",
-                  minWidth: "450px",
-                }}
-              >
-                <thead>
-                  <tr
-                    style={{
-                      backgroundColor: "#5f7f99",
-                      color: "white",
-                    }}
-                  >
-                    <th style={{ padding: "10px" }}></th>
-                    <th style={{ padding: "10px" }}>Turno Mañana</th>
-                    <th style={{ padding: "10px" }}>Turno Tarde</th>
-                    <th style={{ padding: "10px" }}>Total</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  <tr
-                    style={{
-                      backgroundColor: "#1e3a5f",
-                      color: "white",
-                      fontWeight: "bold",
-                      fontSize: "16px",
-                    }}
-                  >
-                    <td style={{ padding: "14px", textAlign: "center" }}>
-                      TOTAL GENERAL ESCUELA
-                    </td>
-
-                    <td style={{ padding: "14px", textAlign: "center" }}>
-                      {totalParteDiario(cursosManana, "Mañana").total}
-                    </td>
-
-                    <td style={{ padding: "14px", textAlign: "center" }}>
-                      {totalParteDiario(cursosTarde, "Tarde").total}
-                    </td>
-
-                    <td style={{ padding: "14px", textAlign: "center" }}>
-                      {totalParteDiario(cursosManana, "Mañana").total +
-                        totalParteDiario(cursosTarde, "Tarde").total}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <ParteDiarioMatricula
+            alumnosMatricula={alumnosMatricula}
+            cursosManana={cursosManana}
+            cursosTarde={cursosTarde}
+            botonMenu={botonMenu}
+            estilos={{
+              parteDiario,
+              tituloParteDiario,
+              grillaParteDiario,
+              subtituloParte,
+              tablaParte,
+              celdaParteTitulo,
+              celdaParte,
+              celdaParteNegrita,
+              celdaParteTotal,
+              filaTotalBasico,
+              filaTotalSuperior,
+              filaTotalTurno,
+            }}
+          />
         )}
 
         {seccionActiva === "documentacion" && (
@@ -907,7 +572,7 @@ export default function App() {
             fechaHasta={fechaHasta}
             setFechaHasta={setFechaHasta}
             estudiantesPorPeriodo={estudiantesPorPeriodo}
-            esAdmin={esAdmin} 
+            esAdmin={esAdmin}
           />
         )}
         {seccionActiva === "eleve" && (

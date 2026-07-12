@@ -129,7 +129,7 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
             body { font-family: Arial, sans-serif; color: #222; }
             h2, h3 { text-align: center; }
             table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 10px; }
-            th, td { border: 1px solid #999; padding: 5px; text-align: center; }
+            th, td { border: 2px solid #999; padding: 5px; text-align: center; }
             th { background: #eef3f7; }
             .materia { margin-top: 16px; font-weight: bold; color: #1d4f73; }
             button, input { display: none; }
@@ -148,7 +148,7 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
   return (
     <div
       style={{
-        border: "1px solid #cfe3ea",
+        border: "3px solid #cfe3ea",
         borderRadius: "16px",
         padding: "24px",
         background: "white",
@@ -172,7 +172,7 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
             width: "420px",
             padding: "10px",
             borderRadius: "8px",
-            border: "1px solid #cfd8dc",
+            border: "3px solid #cfd8dc",
           }}
         />
       </div>
@@ -182,19 +182,19 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
           style={{
             maxHeight: "220px",
             overflowY: "auto",
-            border: "1px solid #d8e3ea",
+            border: "3px solid #d8e3ea",
             borderRadius: "10px",
             marginBottom: "25px",
           }}
         >
-          {resultados.map((alumno) => (
+          {resultados.map((alumno) => ( 
             <div
               key={alumno._id || alumno.dni}
               onClick={() => setAlumnoSeleccionado(alumno)}
               style={{
                 padding: "10px 15px",
                 cursor: "pointer",
-                borderBottom: "1px solid #ececec",
+                borderBottom: "2px solid #ececec",
               }}
             >
               <strong>
@@ -212,7 +212,7 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
           <div
             id="ficha-seguimiento-imprimir"
             style={{
-              border: "1px solid #bcd8ea",
+              border: "2px solid #bcd8ea",
               borderRadius: "12px",
               padding: "18px",
               background: "#f9fcff",
@@ -251,7 +251,7 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
                         <th
                           key={periodo.clave}
                           style={{
-                            border: "1px solid #cfd8dc",
+                            border: "2px solid #cfd8dc",
                             padding: "6px",
                             background: "#eef3f7",
                             fontSize: "12px",
@@ -272,7 +272,7 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
                           <td
                             key={periodo.clave}
                             style={{
-                              border: "1px solid #cfd8dc",
+                              border: "2px solid #cfd8dc",
                               padding: "7px",
                               textAlign: "center",
                               background: colorConceptual(dato.conceptual),
