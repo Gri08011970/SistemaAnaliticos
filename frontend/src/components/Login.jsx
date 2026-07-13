@@ -40,8 +40,8 @@ export default function Login({ setLogueado }) {
   }
 
   return (
-    <div style={contenedor}>
-      <div style={tarjeta}>
+    <div  className="login-contenedor" style={contenedor}>
+      <div  className="login-tarjeta" style={tarjeta}>
         <h1 style={titulo}>Bienvenidos</h1>
         <p style={subtitulo}>E.E.S. N° 140</p>
 

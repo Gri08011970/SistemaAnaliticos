@@ -21,6 +21,7 @@ export default function FormularioAlumnoMatricula({
   return (
     <div
       id="formulario-matricula"
+      className="formulario-alumno-matricula"
       style={estilos.formularioAlumno}
       className="no-print"
     >
@@ -50,7 +51,9 @@ export default function FormularioAlumnoMatricula({
 
       <input type="date" style={estilos.inputAlumno} value={nuevoAlumno.fechaNacimiento} onChange={(e) => setNuevoAlumno({ ...nuevoAlumno, fechaNacimiento: e.target.value })} />
 
-      <div style={estilos.bloquePrevias}>
+      <div
+         className="bloque-previas-responsive"
+         style={estilos.bloquePrevias}>
         <select style={estilos.inputAlumno} value={previaSeleccionada} onChange={(e) => setPreviaSeleccionada(e.target.value)}>
           <option value="">Asignatura</option>
           {asignaturas.map((asignatura) => (
@@ -69,7 +72,7 @@ export default function FormularioAlumnoMatricula({
           Agregar previa
         </button>
 
-        <div style={estilos.listaPreviasInline}>
+        <div className="lista-previas-responsive" style={estilos.listaPreviasInline}>
           {nuevoAlumno.materiasPendientes.map((previa, index) => (
             <div key={index} style={estilos.chipPrevia}>
               {previa.asignatura} ({previa.anio})

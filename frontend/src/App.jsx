@@ -258,7 +258,7 @@ export default function App() {
         position: "relative",
       }}
     >
-      <div style={tarjetaUsuario}>
+      <div className="tarjeta-usuario" style={tarjetaUsuario}>
         <div style={datosUsuario}>
           <strong>{nombreUsuario}</strong>
 
@@ -283,11 +283,11 @@ export default function App() {
         </div>
       </div>
       <div
+        className="contenedor-seccion"
         style={{
           backgroundColor: "white",
           padding: "30px",
           paddingTop: seccionActiva === "formulario" ? "95px" : "30px",
-
           borderRadius: "15px",
           boxShadow: "0 0 10px rgba(0,0,0,0.1)",
         }}
@@ -319,7 +319,7 @@ export default function App() {
           )}
 
         {seccionActiva === "inicio" && (
-          <div style={contenedorInicio}>
+          <div className="contenedor-inicio" style={contenedorInicio}>
             <div style={tarjetaInicio} className="tarjeta-inicio">
               <h3>Gestión de pedidos de analíticos </h3>
               <p> carga, seguimiento, estados y planilla de eleve.</p>

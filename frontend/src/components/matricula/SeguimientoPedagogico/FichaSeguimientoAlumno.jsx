@@ -146,170 +146,251 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
   };
 
   return (
-    <div
-      style={{
-        border: "3px solid #cfe3ea",
-        borderRadius: "16px",
-        padding: "24px",
-        background: "white",
-        margin: "24px auto",
-        maxWidth: "1100px",
-        boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
-      }}
-    >
-    
+  <div
+    className="ficha-seguimiento-contenedor"
+    style={{
+      border: "3px solid #cfe3ea",
+      borderRadius: "16px",
+      padding: "24px",
+      background: "white",
+      margin: "24px auto",
+      maxWidth: "1100px",
+      boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
+    }}
+  >
+    <div style={{ textAlign: "center", marginBottom: "25px" }}>
+      <input
+        className="buscador-ficha-seguimiento"
+        type="text"
+        placeholder="Buscar por apellido, nombre o DNI..."
+        value={busqueda}
+        onChange={(e) => {
+          setBusqueda(e.target.value);
+          setAlumnoSeleccionado(null);
+        }}
+        style={{
+          width: "420px",
+          padding: "10px",
+          borderRadius: "8px",
+          border: "3px solid #cfd8dc",
+        }}
+      />
+    </div>
 
-      <div style={{ textAlign: "center", marginBottom: "25px" }}>
-        <input
-          type="text"
-          placeholder="Buscar por apellido, nombre o DNI..."
-          value={busqueda}
-          onChange={(e) => {
-            setBusqueda(e.target.value);
-            setAlumnoSeleccionado(null);
-          }}
-          style={{
-            width: "420px",
-            padding: "10px",
-            borderRadius: "8px",
-            border: "3px solid #cfd8dc",
-          }}
-        />
-      </div>
-
-      {busqueda !== "" && !alumnoSeleccionado && (
-        <div
-          style={{
-            maxHeight: "220px",
-            overflowY: "auto",
-            border: "3px solid #d8e3ea",
-            borderRadius: "10px",
-            marginBottom: "25px",
-          }}
-        >
-          {resultados.map((alumno) => ( 
-            <div
-              key={alumno._id || alumno.dni}
-              onClick={() => setAlumnoSeleccionado(alumno)}
-              style={{
-                padding: "10px 15px",
-                cursor: "pointer",
-                borderBottom: "2px solid #ececec",
-              }}
-            >
-              <strong>
-                {alumno.apellido}, {alumno.nombre}
-              </strong>
-              <br />
-              DNI: {alumno.dni} | Curso: {alumno.curso}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {alumnoSeleccionado && (
-        <>
+    {busqueda !== "" && !alumnoSeleccionado && (
+      <div
+        style={{
+          maxHeight: "220px",
+          overflowY: "auto",
+          border: "3px solid #d8e3ea",
+          borderRadius: "10px",
+          marginBottom: "25px",
+        }}
+      >
+        {resultados.map((alumno) => (
           <div
-            id="ficha-seguimiento-imprimir"
+            key={alumno._id || alumno.dni}
+            onClick={() => setAlumnoSeleccionado(alumno)}
             style={{
-              border: "2px solid #bcd8ea",
-              borderRadius: "12px",
-              padding: "18px",
-              background: "#f9fcff",
+              padding: "10px 15px",
+              cursor: "pointer",
+              borderBottom: "2px solid #ececec",
             }}
           >
-            <h3 style={{ marginTop: 0 }}>
-              E.E.S 140 - Seguimiento Pedagógico
-            </h3>
+            <strong>
+              {alumno.apellido}, {alumno.nombre}
+            </strong>
 
-            <h2>
-              {alumnoSeleccionado.apellido}, {alumnoSeleccionado.nombre}
-            </h2>
+            <br />
 
-            <p style={{ textAlign: "center" }}>
-              <strong>DNI:</strong> {alumnoSeleccionado.dni} &nbsp; | &nbsp;
-              <strong>Curso:</strong> {alumnoSeleccionado.curso}
-            </p>
+            DNI: {alumno.dni} | Curso: {alumno.curso}
+          </div>
+        ))}
+      </div>
+    )}
 
-            <hr style={{ margin: "20px 0" }} />
+    {alumnoSeleccionado && (
+      <>
+        <div
+          id="ficha-seguimiento-imprimir"
+          className="ficha-seguimiento-imprimir"
+          style={{
+            border: "2px solid #bcd8ea",
+            borderRadius: "12px",
+            padding: "18px",
+            background: "#f9fcff",
+          }}
+        >
+          <h3 style={{ marginTop: 0 }}>
+            E.E.S 140 - Seguimiento Pedagógico
+          </h3>
 
+          <h2>
+            {alumnoSeleccionado.apellido},{" "}
+            {alumnoSeleccionado.nombre}
+          </h2>
+
+          <p style={{ textAlign: "center" }}>
+            <strong>DNI:</strong> {alumnoSeleccionado.dni}
+            &nbsp; | &nbsp;
+            <strong>Curso:</strong> {alumnoSeleccionado.curso}
+          </p>
+
+          <hr style={{ margin: "20px 0" }} />
+
+          <div className="ficha-seguimiento-desktop">
             {asignaturas.map((asignatura) => (
               <div key={asignatura}>
-                <h4 className="materia">{asignatura}</h4>
+                <h4 className="materia">
+                  {asignatura}
+                </h4>
 
-                <table
-                  style={{
-                    width: "100%",
-                    borderCollapse: "collapse",
-                    marginBottom: "18px",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-                  }}
-                >
-                  <thead>
-                    <tr>
-                      {periodos.map((periodo) => (
-                        <th
-                          key={periodo.clave}
-                          style={{
-                            border: "2px solid #cfd8dc",
-                            padding: "6px",
-                            background: "#eef3f7",
-                            fontSize: "12px",
-                          }}
-                        >
-                          {periodo.etiqueta}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    <tr>
-                      {periodos.map((periodo) => {
-                        const dato = obtenerDato(asignatura, periodo.clave);
-
-                        return (
-                          <td
+                <div className="tabla-scroll-mobile">
+                  <table
+                    style={{
+                      width: "100%",
+                      borderCollapse: "collapse",
+                      marginBottom: "18px",
+                      boxShadow:
+                        "0 2px 8px rgba(0,0,0,0.05)",
+                    }}
+                  >
+                    <thead>
+                      <tr>
+                        {periodos.map((periodo) => (
+                          <th
                             key={periodo.clave}
                             style={{
-                              border: "2px solid #cfd8dc",
-                              padding: "7px",
-                              textAlign: "center",
-                              background: colorConceptual(dato.conceptual),
-                              fontWeight: "700",
+                              border:
+                                "2px solid #cfd8dc",
+                              padding: "6px",
+                              background: "#eef3f7",
                               fontSize: "12px",
                             }}
                           >
-                            {dato.conceptual
-                              ? `${dato.conceptual}${dato.nota ? ` ${dato.nota}` : ""}`
-                              : "-"}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  </tbody>
-                </table>
+                            {periodo.etiqueta}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      <tr>
+                        {periodos.map((periodo) => {
+                          const dato = obtenerDato(
+                            asignatura,
+                            periodo.clave,
+                          );
+
+                          return (
+                            <td
+                              key={periodo.clave}
+                              style={{
+                                border:
+                                  "2px solid #cfd8dc",
+                                padding: "7px",
+                                textAlign: "center",
+                                background:
+                                  colorConceptual(
+                                    dato.conceptual,
+                                  ),
+                                fontWeight: "700",
+                                fontSize: "12px",
+                              }}
+                            >
+                              {dato.conceptual
+                                ? `${dato.conceptual}${
+                                    dato.nota
+                                      ? ` ${dato.nota}`
+                                      : ""
+                                  }`
+                                : "—"}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             ))}
           </div>
 
-          <div style={{ textAlign: "center", marginTop: "25px" }}>
-            <button
-              onClick={imprimirFicha}
-              style={{
-                padding: "10px 18px",
-                borderRadius: "10px",
-                border: "1px solid #c8d5e5",
-                background: "#f8f9fc",
-                cursor: "pointer",
-                fontWeight: "600",
-              }}
-            >
-              🖨️ Imprimir ficha
-            </button>
+          <div className="ficha-seguimiento-mobile">
+            {asignaturas.map((asignatura) => (
+              <div
+                key={`mobile-${asignatura}`}
+                className="tarjeta-materia-seguimiento"
+              >
+                <h4 className="materia materia-mobile">
+                  {asignatura}
+                </h4>
+
+                <div className="periodos-mobile">
+                  {periodos.map((periodo) => {
+                    const dato = obtenerDato(
+                      asignatura,
+                      periodo.clave,
+                    );
+
+                    return (
+                      <div
+                        key={`mobile-${asignatura}-${periodo.clave}`}
+                        className="fila-periodo-mobile"
+                      >
+                        <span className="nombre-periodo-mobile">
+                          {periodo.etiqueta}
+                        </span>
+
+                        <span
+                          className="valor-periodo-mobile"
+                          style={{
+                            background:
+                              colorConceptual(
+                                dato.conceptual,
+                              ),
+                          }}
+                        >
+                          {dato.conceptual
+                            ? `${dato.conceptual}${
+                                dato.nota
+                                  ? ` ${dato.nota}`
+                                  : ""
+                              }`
+                            : "—"}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
-        </>
-      )}
-    </div>
-  );
+        </div>
+
+        <div
+          style={{
+            textAlign: "center",
+            marginTop: "25px",
+          }}
+        >
+          <button
+            type="button"
+            onClick={imprimirFicha}
+            style={{
+              padding: "10px 18px",
+              borderRadius: "10px",
+              border: "1px solid #c8d5e5",
+              background: "#f8f9fc",
+              cursor: "pointer",
+              fontWeight: "600",
+            }}
+          >
+            🖨️ Imprimir ficha
+          </button>
+        </div>
+      </>
+    )}
+  </div>
+);
 }

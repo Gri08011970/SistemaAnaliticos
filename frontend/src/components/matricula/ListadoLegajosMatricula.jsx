@@ -16,7 +16,7 @@ export default function ListadoLegajosMatricula({
         Cantidad de legajos {anioLegajoFiltro}:{" "}
         {alumnosPorLegajo.length}
       </p>
-
+    <div className="tabla-scroll-mobile">
       <table style={estilos.tabla}>
         <thead>
           <tr>
@@ -56,6 +56,7 @@ export default function ListadoLegajosMatricula({
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

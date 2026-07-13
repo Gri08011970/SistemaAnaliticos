@@ -13,7 +13,7 @@ export default function FiltrosLegajoMatrizMatricula({
         🧾 Legajos y matriz por año / libro
       </h3>
 
-      <select
+      <select  className="select-responsive"
         style={estilos.inputAlumno}
         value={anioLegajoFiltro}
         onChange={(e) => setAnioLegajoFiltro(e.target.value)}
@@ -30,7 +30,7 @@ export default function FiltrosLegajoMatrizMatricula({
       <br />
       <br />
 
-      <select
+      <select  className="select-responsive"
         style={estilos.inputAlumno}
         value={libroMatrizFiltro}
         onChange={(e) => setLibroMatrizFiltro(e.target.value)}

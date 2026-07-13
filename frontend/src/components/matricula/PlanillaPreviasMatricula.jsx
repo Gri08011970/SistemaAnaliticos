@@ -20,8 +20,9 @@ export default function PlanillaPreviasMatricula({
     <div style={estilos.detalleCurso}>
       <h3 style={{ color: "#1e3a5f" }}>📋 Planilla de examen: PREVIAS</h3>
 
-      <div style={{ display: "flex", gap: "10px", marginBottom: "15px" }}>
+      <div  className="filtros-previas-responsive" style={{ display: "flex", gap: "10px", marginBottom: "15px" }}>
         <select
+          className="select-previas-responsive"
           style={estilos.inputAlumno}
           value={materiaExamen}
           onChange={(e) => setMateriaExamen(e.target.value)}
@@ -35,6 +36,7 @@ export default function PlanillaPreviasMatricula({
         </select>
 
         <select
+          className="select-previas-responsive"
           style={estilos.inputAlumno}
           value={anioExamen}
           onChange={(e) => setAnioExamen(e.target.value)}
@@ -48,6 +50,7 @@ export default function PlanillaPreviasMatricula({
         </select>
 
         <select
+          className="select-previas-responsive"
           style={estilos.inputAlumno}
           value={turnoExamen}
           onChange={(e) => setTurnoExamen(e.target.value)}

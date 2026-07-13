@@ -96,10 +96,10 @@ export default function SeguimientoPedagogico({ alumnos }) {
   const asignaturasDisponibles = obtenerAsignaturasPorCurso(cursoSeleccionado);
 
   return (
-    <div className="seguimiento-container">
+    <div className="seguimiento-encabezado-responsive" className="seguimiento-container">
       <h2>🚦 Seguimiento Pedagógico</h2> 
 
-      <div
+      <div className="seguimiento-botones-responsive"
         style={{
           display: "flex",
           justifyContent: "center",
@@ -122,10 +122,11 @@ export default function SeguimientoPedagogico({ alumnos }) {
         </button>
       </div>
 
-      <div style={{ marginBottom: "20px" }}>
+      <div  className="filtros-seguimiento-responsive" style={{ marginBottom: "20px" }}>
         <label>Curso:&nbsp;</label>
 
         <select
+          className="select-seguimiento-responsive"
           value={cursoSeleccionado}
           onChange={(e) => {
             setCursoSeleccionado(e.target.value);
@@ -157,7 +158,7 @@ export default function SeguimientoPedagogico({ alumnos }) {
                 <option key={asignatura} value={asignatura}>
                   {asignatura}
                 </option>
-              ))}
+              ))} 
             </select>
           </div>
 

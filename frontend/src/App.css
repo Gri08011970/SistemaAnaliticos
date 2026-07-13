@@ -399,3 +399,250 @@ body {
   background-color: #5bb8ac;
   color: white;
 }
+
+@media (max-width: 600px) {
+  .tarjeta-usuario {
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+
+    width: calc(100% - 24px) !important;
+    max-width: 360px !important;
+    min-width: 0 !important;
+
+    margin: 12px auto 28px !important; 
+    box-sizing: border-box;
+  }
+}
+@media (max-width: 600px) {
+  .contenedor-seccion {
+    width: calc(100% - 12px) !important;
+    max-width: none !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+
+    padding: 16px 10px !important;
+    border-radius: 12px !important;
+  }
+
+  .contenedor-inicio {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+    margin-top: 28px !important;
+  }
+
+  .tarjeta-inicio {
+    width: 100% !important;
+    padding: 20px 14px !important;
+  }
+}
+@media (max-width: 600px) {
+  .hero-institucional {
+    min-height: 360px !important;
+    background-position: center top !important;
+    border-radius: 20px !important;
+  }
+
+  .hero-texto {
+    top: 16px !important;
+    left: 14px !important;
+    right: 14px !important;
+
+    width: auto !important;
+    max-width: none !important;
+
+    padding: 14px 16px !important;
+    border-radius: 14px !important;
+
+    background: rgba(255, 255, 255, 0.88) !important;
+    backdrop-filter: blur(4px);
+  }
+
+  .hero-texto h1{
+    font-size:20px;
+}
+  .hero-texto h2 {
+    font-size: 16px !important;
+    line-height: 1.18 !important;
+    margin-bottom: 8px !important;
+  }
+
+  .hero-texto p {
+    font-size: 12px !important;
+    margin: 4px 0 !important;
+  }
+}
+@media (max-width: 600px) {
+  .login-contenedor {
+    min-height: 100dvh !important;
+
+    align-items: flex-start !important;
+    justify-content: center !important;
+
+    padding: 34px 14px 18px !important;
+
+    background-position: center !important;
+    box-sizing: border-box;
+  }
+
+  .login-tarjeta {
+    width: 100% !important;
+    max-width: 360px !important;
+    min-width: 0 !important;
+
+    margin: 0 auto !important;
+    padding: 26px 20px !important;
+
+    gap: 12px !important;
+    box-sizing: border-box;
+  }
+
+  .login-tarjeta input,
+  .login-tarjeta button {
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  .login-tarjeta h1 {
+    font-size: 24px !important;
+    margin-top: 0 !important;
+  }
+
+  .login-tarjeta h2 {
+    font-size: 18px !important;
+  }
+}
+@media (max-width: 600px) {
+  .select-responsive {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+
+    padding: 12px 10px !important;
+    font-size: 14px !important;
+
+    box-sizing: border-box;
+  }
+}
+@media (max-width: 600px) {
+  .formulario-analitico {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+
+  .formulario-analitico input,
+  .formulario-analitico select,
+  .formulario-analitico button {
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+}
+.tabla-scroll-mobile {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 600px) {
+  .tabla-scroll-mobile table {
+    min-width: 850px;
+  }
+}
+@media (max-width: 600px) {
+  .formulario-alumno-matricula {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+
+    width: 100% !important;
+    max-width: 100% !important;
+
+    gap: 12px !important;
+    padding: 0 !important;
+
+    box-sizing: border-box !important;
+  }
+
+  .formulario-alumno-matricula > input,
+  .formulario-alumno-matricula > select,
+  .formulario-alumno-matricula > button {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    grid-column: 1 / -1 !important;
+    box-sizing: border-box !important;
+  }
+
+  .bloque-previas-responsive {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+
+    width: 100% !important;
+    max-width: 100% !important;
+
+    gap: 10px !important;
+    grid-column: 1 / -1 !important;
+
+    box-sizing: border-box !important;
+  }
+
+  .bloque-previas-responsive input,
+  .bloque-previas-responsive select,
+  .bloque-previas-responsive button {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    grid-column: 1 / -1 !important;
+    box-sizing: border-box !important;
+  }
+
+  .lista-previas-responsive {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .lista-previas-responsive > * {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+}
+@media (max-width: 600px) {
+  .filtros-previas-responsive {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .select-previas-responsive {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    padding: 12px 10px !important;
+    box-sizing: border-box !important;
+  }
+}
+@media (min-width: 601px) and (max-width: 900px) {
+  .filtros-previas-responsive {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  .select-previas-responsive {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+}

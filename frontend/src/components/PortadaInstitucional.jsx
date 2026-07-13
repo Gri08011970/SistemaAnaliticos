@@ -176,9 +176,9 @@ export default function PortadaInstitucional({ entrar }) {
   }
 
   return (
-    <div style={contenedorPortada}>
+    <div className="hero-institucional" style={contenedorPortada}>
       <section style={hero}>
-        <div style={capa}>
+        <div className="hero-texto" style={capa}>
           <h1 style={tituloPrincipal}>Escuela de Educación Secundaria N° 140</h1>
 
           <h2 style={subtitulo}>"Florencio Molina Campos"</h2>

@@ -57,3 +57,182 @@
 .seguimiento-gris {
   background: #eeeeee;
 }
+@media (max-width: 600px) {
+  .seguimiento-encabezado-responsive {
+    width: 100% !important;
+    max-width: 100% !important;
+
+    padding: 18px 10px !important;
+    box-sizing: border-box !important;
+  }
+
+  .seguimiento-encabezado-responsive h2 {
+    font-size: 21px !important;
+    line-height: 1.2 !important;
+    text-align: center !important;
+  }
+
+  .seguimiento-botones-responsive {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+
+    width: 100% !important;
+    gap: 10px !important;
+  }
+
+  .seguimiento-botones-responsive button {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    padding: 11px 10px !important;
+    box-sizing: border-box !important;
+  }
+
+  .seguimiento-selectores-responsive {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+
+    width: 100% !important;
+    gap: 12px !important;
+
+    margin-top: 18px !important;
+  }
+
+  .seguimiento-selectores-responsive label,
+  .seguimiento-selectores-responsive select {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    box-sizing: border-box !important;
+  }
+
+  .seguimiento-selectores-responsive select {
+    padding: 11px 10px !important;
+    font-size: 14px !important;
+  }
+}
+@media (min-width: 601px) and (max-width: 900px) {
+  .seguimiento-botones-responsive {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  .seguimiento-selectores-responsive {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+  }
+}
+.ficha-seguimiento-mobile {
+  display: none;
+}
+
+@media (max-width: 600px) {
+  .ficha-seguimiento-contenedor {
+    width: 100% !important;
+    max-width: 100% !important;
+
+    margin: 16px auto !important;
+    padding: 14px 10px !important;
+
+    box-sizing: border-box !important;
+  }
+
+  .buscador-ficha-seguimiento {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    box-sizing: border-box !important;
+  }
+
+  .ficha-seguimiento-imprimir {
+    width: 100% !important;
+    max-width: 100% !important;
+
+    padding: 14px 10px !important;
+    box-sizing: border-box !important;
+  }
+
+  .ficha-seguimiento-imprimir h2 {
+    font-size: 20px !important;
+    line-height: 1.25 !important;
+    overflow-wrap: anywhere;
+  }
+
+  .ficha-seguimiento-desktop {
+    display: none !important;
+  }
+
+  .ficha-seguimiento-mobile {
+    display: block !important;
+  }
+
+  .tarjeta-materia-seguimiento {
+    width: 100%;
+    margin-bottom: 18px;
+    padding: 14px;
+
+    border: 2px solid #cfe3ea;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 4px 12px rgba(22, 58, 95, 0.09);
+
+    box-sizing: border-box;
+  }
+
+  .materia-mobile {
+    margin: 0 0 12px !important;
+    text-align: center;
+    color: #43506f;
+    font-size: 17px !important;
+  }
+
+  .periodos-mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .fila-periodo-mobile {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 90px;
+    align-items: center;
+    gap: 10px;
+
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e4e7ec;
+  }
+
+  .fila-periodo-mobile:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
+  .nombre-periodo-mobile {
+    color: #43506f;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .valor-periodo-mobile {
+    min-height: 34px;
+    padding: 7px 8px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid #cfd8dc;
+    border-radius: 8px;
+
+    color: #43506f;
+    font-size: 12px;
+    font-weight: 800;
+
+    box-sizing: border-box;
+  }
+}

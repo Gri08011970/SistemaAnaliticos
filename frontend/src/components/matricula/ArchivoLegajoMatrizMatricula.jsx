@@ -63,7 +63,7 @@ export default function ArchivoLegajoMatrizMatricula({
                 Cantidad de registros del libro {libroMatrizFiltro}:{" "}
                 {alumnosPorMatriz.length}
               </p>
-
+            <div className="tabla-scroll-mobile">
               <table style={estilos.tabla}>
                 <thead>
                   <tr>
@@ -100,6 +100,7 @@ export default function ArchivoLegajoMatrizMatricula({
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           )}
 

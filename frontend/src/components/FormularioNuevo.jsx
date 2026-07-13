@@ -70,12 +70,12 @@ export default function FormularioNuevo({
   }
 
   return (
-    <div className="tarjeta-inicio" style={contenedorFormulario}>
+    <div className="tarjeta-inicio"  style={contenedorFormulario}>
       <h2 style={tituloFormulario}>
         {alumnoEditando ? "Editar analítico" : "📄 Nuevo pedido de analítico"}
       </h2>
 
-      <div style={grillaFormulario}>
+      <div className="formulario-analitico" style={grillaFormulario}>
         <input type="text" placeholder="Apellido y Nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} style={estiloInput} />
         <input type="text" placeholder="DNI" value={dni} onChange={(e) => setDni(e.target.value)} style={estiloInput} />
         <input type="text" placeholder="Libro" value={libro} onChange={(e) => setLibro(e.target.value)} style={estiloInput} />
