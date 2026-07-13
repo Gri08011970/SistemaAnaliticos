@@ -4,13 +4,7 @@ import {
   obtenerIndicePedagogico,
   obtenerEstadoPorIndice,
   obtenerEstadoAsignatura,
-  obtenerColorEstado,
-} from "./seguimientoResumenUtils";
-import DiagnosticoCurso from "./DiagnosticoCurso";
-import AnalisisAutomatico from "./AnalisisAutomatico";
-import TarjetasEstadisticas from "./TarjetasEstadisticas";
-import ResumenAsignaturas from "./ResumenAsignaturas";
-import ResumenEstudiantes from "./ResumenEstudiantes";
+ } from "./seguimientoResumenUtils";
 
 function obtenerAsignaturasPorCurso(curso) {
   if (curso.startsWith("1°")) {
@@ -105,40 +99,51 @@ export default function ResumenCurso({ curso, alumnos }) {
   };
 
   const calcularEstadisticas = () => {
-    let tea = 0;
-    let tep = 0;
-    let ted = 0;
-    let totalCargados = 0;
-    let puntos = 0;
+  let tea = 0;
+  let tep = 0;
+  let ted = 0;
+  let totalCargados = 0;
 
-    alumnosCurso.forEach((alumno) => {
-      asignaturasResumen.forEach((asignatura) => {
-        const dato = obtenerDato(alumno._id, asignatura);
+  alumnosCurso.forEach((alumno) => {
+    asignaturasResumen.forEach((asignatura) => {
+      const dato = obtenerDato(alumno._id, asignatura);
 
-        if (dato.conceptual === "TEA") {
-          tea++;
-          puntos += 3;
-        }
+      if (dato.conceptual === "TEA") {
+        tea++;
+      }
 
-        if (dato.conceptual === "TEP") {
-          tep++;
-          puntos += 2;
-        }
+      if (dato.conceptual === "TEP") {
+        tep++;
+      }
 
-        if (dato.conceptual === "TED") {
-          ted++;
-          puntos += 1;
-        }
+      if (dato.conceptual === "TED") {
+        ted++;
+      }
 
-        if (dato.conceptual) totalCargados++;
-      });
+      if (dato.conceptual) {
+        totalCargados++;
+      }
     });
+  });
 
-    const indice = obtenerIndicePedagogico({ tea, tep, ted });
-    const estadoCurso = obtenerEstadoPorIndice(indice);
+  const indice = obtenerIndicePedagogico({
+    tea,
+    tep,
+    ted,
+  });
 
-    return { tea, tep, ted, totalCargados, indice, estadoCurso };
+  const estadoCurso =
+    obtenerEstadoPorIndice(indice);
+
+  return {
+    tea,
+    tep,
+    ted,
+    totalCargados,
+    indice,
+    estadoCurso,
   };
+};
 
   const estadisticas = calcularEstadisticas();
 

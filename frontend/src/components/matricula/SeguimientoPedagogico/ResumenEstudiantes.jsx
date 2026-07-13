@@ -152,8 +152,7 @@ export default function ResumenEstudiantes({
     titulo,
     items,
     fondo,
-    color,
-    borde,
+    color,  
   }) => {
     const abierto = gruposAbiertos[clave];
 

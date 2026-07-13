@@ -678,24 +678,6 @@ const tarjetaInicio = {
   boxShadow: "0 10px 24px rgba(22,58,95,0.18)",
   textAlign: "center",
 };
-const bloquePeriodo = {
-  marginTop: "20px",
-  padding: "18px",
-  border: "1px solid #c7d2fe",
-  borderRadius: "16px",
-  backgroundColor: "#f8fbff",
-  display: "flex",
-  flexDirection: "column",
-  gap: "10px",
-  alignItems: "center",
-};
-
-const inputPeriodo = {
-  padding: "10px",
-  borderRadius: "8px",
-  border: "1px solid #ccc",
-  width: "220px",
-};
 
 const fondoModal = {
   position: "fixed",
@@ -820,9 +802,6 @@ const celdaParteTotal = {
   fontSize: "15px",
 };
 
-const parteDiarioRef = {
-  backgroundColor: "white",
-};
 const tarjetaUsuario = {
   position: "absolute",
   top: "22px",

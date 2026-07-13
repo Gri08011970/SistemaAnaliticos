@@ -62,12 +62,6 @@ export default function AutorizadosRetirar({ volverInicio, esAdmin }) {
     return alumnosActivos.filter((alumno) => alumno.curso === cursoSeleccionado)
   }, [alumnosActivos, cursoSeleccionado])
 
-  const registrosDelCurso = useMemo(() => {
-    if (!cursoSeleccionado) return registros
-
-    return registros.filter((registro) => registro.curso === cursoSeleccionado)
-  }, [registros, cursoSeleccionado])
-
   const registrosPorAlumno = useMemo(() => {
     const mapa = {}
 

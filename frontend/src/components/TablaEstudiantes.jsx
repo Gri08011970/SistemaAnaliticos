@@ -11,7 +11,6 @@ export default function TablaEstudiantes({
   eliminarEstudiante,
   editarEstudiante,
   modoImprimirLista,
-  setModoImprimirLista,
   seleccionarAlumno,
   fechaDesde,
   setFechaDesde,
