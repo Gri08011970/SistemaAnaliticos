@@ -93,10 +93,31 @@ export default function SeguimientoPedagogico({ alumnos }) {
   const [cursoSeleccionado, setCursoSeleccionado] = useState("");
   const [asignaturaSeleccionada, setAsignaturaSeleccionada] = useState("");
 
-  const asignaturasDisponibles = obtenerAsignaturasPorCurso(cursoSeleccionado);
+  const asignaturasDisponibles =
+    obtenerAsignaturasPorCurso(cursoSeleccionado);
+
+  const alumnosOrdenados = [...alumnos].sort((a, b) => {
+    const comparacionApellido = (a.apellido || "").localeCompare(
+      b.apellido || "",
+      "es",
+      { sensitivity: "base" },
+    );
+
+    if (comparacionApellido !== 0) {
+      return comparacionApellido;
+    }
+
+    return (a.nombre || "").localeCompare(
+      b.nombre || "",
+      "es",
+      { sensitivity: "base" },
+    );
+  });
 
   return (
-    <div className="seguimiento-encabezado-responsive" className="seguimiento-container">
+
+  
+    <div className="seguimiento-container seguimiento-encabezado-responsive">
       <h2>🚦 Seguimiento Pedagógico</h2> 
 
       <div className="seguimiento-botones-responsive"
@@ -166,7 +187,7 @@ export default function SeguimientoPedagogico({ alumnos }) {
             <TablaSeguimiento
               curso={cursoSeleccionado}
               asignatura={asignaturaSeleccionada}
-              alumnos={alumnos}
+              alumnos={alumnosOrdenados}
             />
           ) : (
             <p style={{ color: "#666", marginTop: "20px" }}>

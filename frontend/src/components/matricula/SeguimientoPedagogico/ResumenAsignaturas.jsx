@@ -62,7 +62,7 @@ export default function ResumenAsignaturas({ estadisticasPorAsignatura }) {
         boxShadow:  "0 5px 14px rgba(44, 84, 116, 0.10)",
         borderRadius: "14px",
         background: "#f9fcff",
-      }}
+      }} 
     >
       <button
         type="button"

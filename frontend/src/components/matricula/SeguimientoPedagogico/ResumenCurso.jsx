@@ -86,7 +86,26 @@ export default function ResumenCurso({ curso, alumnos }) {
   const [periodoSeleccionado, setPeriodoSeleccionado] = useState("mayo");
   const [mostrarPanelAnalisis, setMostrarPanelAnalisis] = useState(false);
 
-  const alumnosCurso = alumnos.filter((a) => a.curso === curso);
+  const alumnosCurso = alumnos
+    .filter((alumno) => alumno.curso === curso)
+    .sort((a, b) => {
+      const comparacionApellido = (a.apellido || "").localeCompare(
+        b.apellido || "",
+        "es",
+        { sensitivity: "base" },
+      );
+
+      if (comparacionApellido !== 0) {
+        return comparacionApellido;
+      }
+
+      return (a.nombre || "").localeCompare(
+        b.nombre || "",
+        "es",
+        { sensitivity: "base" },
+      );
+    });
+
   const asignaturasResumen = obtenerAsignaturasPorCurso(curso);
 
   const seguimiento = JSON.parse(
