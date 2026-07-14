@@ -1,4 +1,8 @@
 import { useState } from "react";
+import {
+  obtenerAsignaturasPorCurso,
+  COLORES_SEGUIMIENTO,
+} from "./seguimientoConstants";
 
 const periodos = [
   { clave: "mayo", etiqueta: "Mayo" },
@@ -11,88 +15,12 @@ const periodos = [
   { clave: "final", etiqueta: "Final" },
 ];
 
-function obtenerAsignaturasPorCurso(curso) {
-  if (curso?.startsWith("1°")) {
-    return [
-      "Prácticas del Lenguaje",
-      "Matemática",
-      "Ciencias Sociales",
-      "Ciencias Naturales",
-      "Inglés",
-      "Educación Artística",
-      "Educación Física",
-      "Construcción de Ciudadanía",
-    ];
-  }
-
-  if (curso?.startsWith("2°") || curso?.startsWith("3°")) {
-    return [
-      "Prácticas del Lenguaje",
-      "Matemática",
-      "Historia",
-      "Geografía",
-      "Biología",
-      "Fisicoquímica",
-      "Inglés",
-      "Educación Artística",
-      "Educación Física",
-      "Construcción de Ciudadanía",
-    ];
-  }
-
-  if (curso?.startsWith("4°")) {
-    return [
-      "Literatura",
-      "Matemática Ciclo Superior",
-      "Historia",
-      "Geografía",
-      "Biología",
-      "Introducción a la Física",
-      "Introducción a la Química",
-      "NTICX",
-      "Salud y Adolescencia",
-      "Inglés",
-      "Educación Física",
-      "Producción y Análisis de Imágenes",
-    ];
-  }
-
-  if (curso?.startsWith("5°")) {
-    return [
-      "Literatura",
-      "Matemática Ciclo Superior",
-      "Historia",
-      "Geografía",
-      "Política y Ciudadanía",
-      "Inglés",
-      "Educación Física",
-      "Imagen y Nuevos Medios",
-      "Art. Leng. Danza",
-    ];
-  }
-
-  if (curso?.startsWith("6°")) {
-    return [
-      "Literatura",
-      "Matemática Ciclo Superior",
-      "Historia",
-      "Geografía",
-      "Inglés",
-      "Educación Física",
-      "Imagen y Procedimientos Constructivos",
-      "Art. Leng. Danza",
-    ];
-  }
-
-  return [];
-}
-
-function colorConceptual(conceptual) {
-  if (conceptual === "TEA") return "#d9f5d6";
-  if (conceptual === "TEP") return "#fff1b8";
-  if (conceptual === "TED") return "#ffd1d1";
-  return "#ffffff";
-}
+const colorConceptual = (conceptual) => {
+  return (
+    COLORES_SEGUIMIENTO[conceptual]?.fondoClaro ||
+    COLORES_SEGUIMIENTO["-"].fondoClaro
+  );
+};
 
 export default function FichaSeguimientoAlumno({ alumnos = [] }) {
   const [busqueda, setBusqueda] = useState("");

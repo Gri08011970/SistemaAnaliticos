@@ -5,85 +5,12 @@ import {
   obtenerEstadoPorIndice,
   obtenerEstadoAsignatura,
  } from "./seguimientoResumenUtils";
+ import {
+  obtenerAsignaturasPorCurso,
+  COLORES_SEGUIMIENTO,
+} from "./seguimientoConstants";
 
-function obtenerAsignaturasPorCurso(curso) {
-  if (curso.startsWith("1°")) {
-    return [
-      "Prácticas del Lenguaje",
-      "Matemática",
-      "Ciencias Sociales",
-      "Ciencias Naturales",
-      "Inglés",
-      "Educación Artística",
-      "Educación Física",
-      "Construcción de Ciudadanía",
-    ];
-  }
-
-  if (curso.startsWith("2°") || curso.startsWith("3°")) {
-    return [
-      "Prácticas del Lenguaje",
-      "Matemática",
-      "Historia",
-      "Geografía",
-      "Biología",
-      "Fisicoquímica",
-      "Inglés",
-      "Educación Artística",
-      "Educación Física",
-      "Construcción de Ciudadanía",
-    ];
-  }
-
-  if (curso.startsWith("4°")) {
-    return [
-      "Literatura",
-      "Matemática Ciclo Superior",
-      "Historia",
-      "Geografía",
-      "Biología",
-      "Introducción a la Física",
-      
-      "NTICX",
-      "Salud y Adolescencia",
-      "Inglés",
-      "Educación Física",
-      "Producción y Análisis de Imágenes",
-    ];
-  }
-
-  if (curso.startsWith("5°")) {
-    return [
-      "Literatura",
-      "Matemática Ciclo Superior",
-      "Historia",
-      "Geografía",
-      "Introducción a la Química",
-      "Política y Ciudadanía",
-      "Inglés",
-      "Educación Física",
-      "Imagen y Nuevos Medios",
-      "Art. Leng. Danza",
-    ];
-  }
-
-  if (curso.startsWith("6°")) {
-    return [
-      "Literatura",
-      "Matemática Ciclo Superior",
-      "Historia",
-      "Geografía",
-      "Inglés",
-      "Educación Física",
-      "Imagen y Procedimientos Constructivos",
-      "Art. Leng. Danza",
-    ];
-  }
-
-  return [];
-}
-
-export default function ResumenCurso({ curso, alumnos }) {
+ export default function ResumenCurso({ curso, alumnos }) {
   const [periodoSeleccionado, setPeriodoSeleccionado] = useState("mayo");
   const [mostrarPanelAnalisis, setMostrarPanelAnalisis] = useState(false);
 
@@ -255,11 +182,11 @@ export default function ResumenCurso({ curso, alumnos }) {
   const fechaAnalisis = new Date().toLocaleString("es-AR");
 
   const colorCelda = (conceptual) => {
-    if (conceptual === "TEA") return "#d9f5d6";
-    if (conceptual === "TEP") return "#fff1b8";
-    if (conceptual === "TED") return "#ffd1d1";
-    return "#ffffff";
-  };
+  return (
+    COLORES_SEGUIMIENTO[conceptual]?.fondoClaro ||
+    COLORES_SEGUIMIENTO["-"].fondoClaro
+  );
+};
 
   if (mostrarPanelAnalisis) {
     return (

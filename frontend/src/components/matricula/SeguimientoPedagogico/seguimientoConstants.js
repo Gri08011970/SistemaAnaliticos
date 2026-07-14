@@ -3,13 +3,13 @@ export const ESTADOS_CONCEPTUALES = [
     valor: "TEA",
     etiqueta: "TEA",
     descripcion: "Trayectoria Educativa Avanzada",
-    color: "verde",
+    color: "azul",
   },
   {
     valor: "TEP",
     etiqueta: "TEP",
     descripcion: "Trayectoria Educativa en Proceso",
-    color: "amarillo",
+    color: "verde",
   },
   {
     valor: "TED",
@@ -25,6 +25,32 @@ export const ESTADOS_CONCEPTUALES = [
   },
 ];
 
+export const COLORES_SEGUIMIENTO = {
+  "-": {
+    fondo: "#ececec",
+    fondoClaro: "#f3f4f6",
+    texto: "#666666",
+  },
+
+  TEA: {
+    fondo: "#4DA3FF",
+    fondoClaro: "#B9DCFF",
+    texto: "#0B3D91",
+  },
+
+  TEP: {
+    fondo: "#6DDC6D",
+    fondoClaro: "#C9F3C9",
+    texto: "#1B5E20",
+  },
+
+  TED: {
+    fondo: "#FF6B6B",
+    fondoClaro: "#FFD0D0",
+    texto: "#8B0000",
+  },
+};
+
 export const PERIODOS_SEGUIMIENTO = [
   "Mayo",
   "1° cuatrimestre",
@@ -35,16 +61,6 @@ export const PERIODOS_SEGUIMIENTO = [
   "Marzo",
 ];
 
-export const ASIGNATURAS_1ER_ANIO = [
-  "Prácticas del Lenguaje",
-  "Matemática",
-  "Ciencias Sociales",
-  "Ciencias Naturales",
-  "Inglés",
-  "Educación Artística",
-  "Educación Física",
-  "Construcción de Ciudadanía",
-];
 export const ASIGNATURAS_1 = [
   "Prácticas del Lenguaje",
   "Matemática",
@@ -70,49 +86,65 @@ export const ASIGNATURAS_2_3 = [
 ];
 
 export const ASIGNATURAS_4 = [
-  "Literatura",
   "Matemática Ciclo Superior",
+  "Literatura",
+  "Educación Física",
+  "Inglés",
+  "Salud y Adolescencia",
+  "Introducción a la Física",
   "Historia",
   "Geografía",
   "Biología",
-  "Introducción a la Física",
-  "Introducción a la Química",
   "NTICX",
-  "Salud y Adolescencia",
-  "Inglés",
-  "Educación Física",
-  "Producción y Análisis de Imágenes",
+  "Producción y análisis de la imagen",
 ];
 
 export const ASIGNATURAS_5 = [
-  "Literatura",
   "Matemática Ciclo Superior",
+  "Literatura",
+  "Educación Física",
+  "Inglés",
+  "Política y Ciudadanía",
+  "Introducción a la Química",
   "Historia",
   "Geografía",
-  "Política y Ciudadanía",
-  "Inglés",
-  "Educación Física",
-  "Imagen y Nuevos Medios",
-  "Art. Leng. Danza",
+  "Imagen y nuevos medios",
+  "Imagen y procedimientos constructivos",
+  "Lenguaje Complementario",
 ];
 
 export const ASIGNATURAS_6 = [
-  "Literatura",
   "Matemática Ciclo Superior",
-  "Historia",
-  "Geografía",
-  "Inglés",
+  "Literatura",
   "Educación Física",
-  "Imagen y Procedimientos Constructivos",
-  "Art. Leng. Danza",
+  "Inglés",
+  "Trabajo y Ciudadanía",
+  "Historia",
+  "Filosofía",
+  "Proyecto de producción en artes visuales",
+  "Arte-Leng. Danza",
 ];
 
-export function obtenerAsignaturasPorCurso(curso) {
-  if (curso.startsWith("1°")) return ASIGNATURAS_1;
-  if (curso.startsWith("2°") || curso.startsWith("3°")) return ASIGNATURAS_2_3;
-  if (curso.startsWith("4°")) return ASIGNATURAS_4;
-  if (curso.startsWith("5°")) return ASIGNATURAS_5;
-  if (curso.startsWith("6°")) return ASIGNATURAS_6;
+export function obtenerAsignaturasPorCurso(curso = "") {
+  if (curso.startsWith("1°")) {
+    return ASIGNATURAS_1;
+  }
+
+  if (curso.startsWith("2°") || curso.startsWith("3°")) {
+    return ASIGNATURAS_2_3;
+  }
+
+  if (curso.startsWith("4°")) {
+    return ASIGNATURAS_4;
+  }
+
+  if (curso.startsWith("5°")) {
+    return ASIGNATURAS_5;
+  }
+
+  if (curso.startsWith("6°")) {
+    return ASIGNATURAS_6;
+  }
 
   return [];
 }

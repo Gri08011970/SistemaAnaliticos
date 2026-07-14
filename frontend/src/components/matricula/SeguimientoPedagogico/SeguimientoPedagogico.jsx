@@ -2,6 +2,7 @@ import { useState } from "react";
 import TablaSeguimiento from "./TablaSeguimiento";
 import ResumenCurso from "./ResumenCurso";
 import FichaSeguimientoAlumno from "./FichaSeguimientoAlumno";
+import { obtenerAsignaturasPorCurso } from "./seguimientoConstants";
 
 const cursos = [
   "1°1°", "1°2°", "1°3°", "1°4°",
@@ -11,82 +12,6 @@ const cursos = [
   "5°1°", "5°2°", "5°3°", "5°4°",
   "6°1°", "6°2°", "6°3°", "6°4°",
 ];
-
-function obtenerAsignaturasPorCurso(curso) {
-  if (curso.startsWith("1°")) {
-    return [
-      "Prácticas del Lenguaje",
-      "Matemática",
-      "Ciencias Sociales",
-      "Ciencias Naturales",
-      "Inglés",
-      "Educación Artística",
-      "Educación Física",
-      "Construcción de Ciudadanía",
-    ];
-  }
-
-  if (curso.startsWith("2°") || curso.startsWith("3°")) {
-    return [
-      "Prácticas del Lenguaje",
-      "Matemática",
-      "Historia",
-      "Geografía",
-      "Biología",
-      "Fisicoquímica",
-      "Inglés",
-      "Educación Artística",
-      "Educación Física",
-      "Construcción de Ciudadanía",
-    ];
-  }
-
-  if (curso.startsWith("4°")) {
-    return [
-      "Literatura",
-      "Matemática Ciclo Superior",
-      "Historia",
-      "Geografía",
-      "Biología",
-      "Introducción a la Física",
-      "Introducción a la Química",
-      "NTICX",
-      "Salud y Adolescencia",
-      "Inglés",
-      "Educación Física",
-      "Producción y Análisis de Imágenes",
-    ];
-  }
-
-  if (curso.startsWith("5°")) {
-    return [
-      "Literatura",
-      "Matemática Ciclo Superior",
-      "Historia",
-      "Geografía",
-      "Política y Ciudadanía",
-      "Inglés",
-      "Educación Física",
-      "Imagen y Nuevos Medios",
-      "Art. Leng. Danza",
-    ];
-  }
-
-  if (curso.startsWith("6°")) {
-    return [
-      "Literatura",
-      "Matemática Ciclo Superior",
-      "Historia",
-      "Geografía",
-      "Inglés",
-      "Educación Física",
-      "Imagen y Procedimientos Constructivos",
-      "Art. Leng. Danza",
-    ];
-  }
-
-  return [];
-}
 
 export default function SeguimientoPedagogico({ alumnos }) {
   const [vistaActiva, setVistaActiva] = useState("carga");

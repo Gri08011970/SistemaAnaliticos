@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { COLORES_SEGUIMIENTO } from "./seguimientoConstants";
 
 export default function ResumenAsignaturas({ estadisticasPorAsignatura }) {
   const [mostrarResumen, setMostrarResumen] = useState(false);
@@ -59,10 +60,10 @@ export default function ResumenAsignaturas({ estadisticasPorAsignatura }) {
         margin: "16px 0",
         padding: "12px",
         border: "2px solid  #bcd7e3",
-        boxShadow:  "0 5px 14px rgba(44, 84, 116, 0.10)",
+        boxShadow: "0 5px 14px rgba(44, 84, 116, 0.10)",
         borderRadius: "14px",
         background: "#f9fcff",
-      }} 
+      }}
     >
       <button
         type="button"
@@ -109,7 +110,6 @@ export default function ResumenAsignaturas({ estadisticasPorAsignatura }) {
                   background: "white",
                   boxShadow: "0 2px 6px rgba(0,0,0,.05)",
                   minHeight: "118px",
-                  
                 }}
               >
                 <div
@@ -119,7 +119,6 @@ export default function ResumenAsignaturas({ estadisticasPorAsignatura }) {
                     marginBottom: "6px",
                     lineHeight: "1.15",
                     color: "#43506f",
-                   
                   }}
                 >
                   {item.asignatura}
@@ -132,11 +131,10 @@ export default function ResumenAsignaturas({ estadisticasPorAsignatura }) {
                     gap: "4px",
                     fontSize: "12px",
                     fontWeight: 600,
-                     
                   }}
                 >
-                  <span>🟢 {item.tea}</span>
-                  <span>🟡 {item.tep}</span>
+                  <span>🔵 {item.tea}</span>
+                  <span>🟢 {item.tep}</span>
                   <span>🔴 {item.ted}</span>
                 </div>
 
@@ -203,17 +201,17 @@ export default function ResumenAsignaturas({ estadisticasPorAsignatura }) {
                         fontWeight: 600,
                         fontSize: "11px",
                         background:
-                          item.estado === "🟢 Excelente"
-                            ? "#eef8ee"
+                          item.estado === "🔵 Excelente"
+                            ? COLORES_SEGUIMIENTO.TEA.fondoClaro
                             : item.estado === "🟡 Observar"
-                              ? "#fff8df"
-                              : "#ffeaea",
+                              ? COLORES_SEGUIMIENTO.TEP.fondoClaro
+                              : COLORES_SEGUIMIENTO.TED.fondoClaro,
                         color:
-                          item.estado === "🟢 Excelente"
-                            ? "#2f7d32"
+                          item.estado === "🔵 Excelente"
+                            ? COLORES_SEGUIMIENTO.TEA.texto
                             : item.estado === "🟡 Observar"
-                              ? "#8a6d00"
-                              : "#b42318",
+                              ? COLORES_SEGUIMIENTO.TEP.texto
+                              : COLORES_SEGUIMIENTO.TED.texto,
                       }}
                     >
                       {item.estado}

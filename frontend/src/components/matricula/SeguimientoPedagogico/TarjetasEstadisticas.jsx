@@ -1,3 +1,4 @@
+import { COLORES_SEGUIMIENTO } from "./seguimientoConstants";
 export default function TarjetasEstadisticas({ estadisticas }) {
   return (
     <div
@@ -7,18 +8,17 @@ export default function TarjetasEstadisticas({ estadisticas }) {
         gap: "14px",
         margin: "20px 0",
         flexWrap: "wrap",
-       
       }}
     >
-      <div style={tarjetaEstadistica("#d9f5d6")}>
+      <div style={tarjetaEstadistica(COLORES_SEGUIMIENTO.TEA.fondoClaro)}>
         🟢 TEA: <strong>{estadisticas.tea}</strong>
       </div>
 
-      <div style={tarjetaEstadistica("#fff1b8")}>
+      <div style={tarjetaEstadistica(COLORES_SEGUIMIENTO.TEP.fondoClaro)}>
         🟡 TEP: <strong>{estadisticas.tep}</strong>
       </div>
 
-      <div style={tarjetaEstadistica("#ffd1d1")}>
+      <div style={tarjetaEstadistica(COLORES_SEGUIMIENTO.TED.fondoClaro)}>
         🔴 TED: <strong>{estadisticas.ted}</strong>
       </div>
 
@@ -38,9 +38,9 @@ function tarjetaEstadistica(color) {
     padding: "10px 16px",
     borderRadius: "10px",
     background: color,
-    
+
     fontWeight: "600",
     border: "2px solid  #bcd7e3",
-    boxShadow:  "0 5px 14px rgba(44, 84, 116, 0.10)",
+    boxShadow: "0 5px 14px rgba(44, 84, 116, 0.10)",
   };
 }

@@ -1,22 +1,11 @@
+import { COLORES_SEGUIMIENTO } from "./seguimientoConstants";
+
 export default function CeldaSemaforo({
   valor,
   nota,
   onChangeEstado,
   onChangeNota,
 }) {
-  const colores = {
-    "-": "#ececec",
-    TEA: "#7ED957",
-    TEP: "#FFD966",
-    TED: "#FF6B6B",
-  };
-
-  const texto = {
-    "-": "#666",
-    TEA: "#1b5e20",
-    TEP: "#8a6d00",
-    TED: "#8b0000",
-  };
 
   return (
     <div
@@ -33,8 +22,8 @@ export default function CeldaSemaforo({
           height: "30px",
           borderRadius: "6px",
           border: "1px solid #cfcfcf",
-          background: colores[valor],
-          color: texto[valor],
+          background: COLORES_SEGUIMIENTO[valor]?.fondo,
+          color: COLORES_SEGUIMIENTO[valor]?.texto,
           fontWeight: "bold",
           fontSize: "12px",
           cursor: "pointer",

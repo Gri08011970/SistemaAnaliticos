@@ -309,7 +309,7 @@ export default function ResumenEstudiantes({
             </div>
 
             <div style={tarjetaResumen("#eef8ee", "#2f7d32")}>
-              🟢 Favorables
+              🔵 Favorables
               <strong>{favorables.length}</strong>
             </div>
 
@@ -339,7 +339,7 @@ export default function ResumenEstudiantes({
 
           {renderGrupo({
             clave: "favorables",
-            titulo: "🟢 Evolución favorable",
+            titulo: "🔵 Evolución favorable",
             items: favorables,
             fondo: "#eef8ee",
             color: "#2f7d32",
