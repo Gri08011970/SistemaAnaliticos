@@ -9,6 +9,7 @@ import MatriculaAlumno from "./models/MatriculaAlumno.js"
 import Usuario from "./models/Usuario.js"
 import DomicilioTelefono from "./models/DomicilioTelefono.js"
 import AutorizadoRetiro from "./models/AutorizadoRetiro.js";
+import SeguimientoPedagogico from "./models/SeguimientoPedagogico.js";
 
 dotenv.config()
 
@@ -360,7 +361,7 @@ app.put("/api/autorizados/:id", async (req, res) => {
   const actualizado = await AutorizadoRetiro.findByIdAndUpdate(
     req.params.id,
     req.body,
-    { new: true }
+    { returnDocument: "after" }
   );
 
   res.json(actualizado);
@@ -370,6 +371,210 @@ app.delete("/api/autorizados/:id", async (req, res) => {
   await AutorizadoRetiro.findByIdAndDelete(req.params.id);
 
   res.json({ ok: true });
+});
+
+// ==================================
+// SEGUIMIENTO PEDAGÓGICO
+// ==================================
+
+// Obtener registros.
+// Permite filtrar por curso, asignatura, alumno y período.
+app.get("/api/seguimiento", async (req, res) => {
+  try {
+    const {
+      curso,
+      asignatura,
+      alumnoId,
+      periodo,
+    } = req.query;
+
+    const filtros = {};
+
+    if (curso) filtros.curso = curso;
+    if (asignatura) filtros.asignatura = asignatura;
+    if (alumnoId) filtros.alumnoId = alumnoId;
+    if (periodo) filtros.periodo = periodo;
+
+    const registros = await SeguimientoPedagogico.find(filtros).sort({
+      curso: 1,
+      asignatura: 1,
+      periodo: 1,
+      alumnoId: 1,
+    });
+
+    res.json(registros);
+  } catch (error) {
+    console.error(
+      "Error al obtener seguimiento pedagógico:",
+      error,
+    );
+
+    res.status(500).json({
+      mensaje:
+        "Error al obtener los registros de seguimiento pedagógico",
+    });
+  }
+});
+
+// Crear o actualizar una celda de seguimiento.
+app.put("/api/seguimiento", async (req, res) => {
+  try {
+    const {
+      alumnoId,
+      curso,
+      asignatura,
+      periodo,
+      conceptual = "-",
+      nota = "",
+    } = req.body;
+
+    if (!alumnoId || !curso || !asignatura || !periodo) {
+      return res.status(400).json({
+        mensaje:
+          "Faltan alumnoId, curso, asignatura o período",
+      });
+    }
+
+    const registroActualizado =
+      await SeguimientoPedagogico.findOneAndUpdate(
+        {
+          alumnoId: String(alumnoId),
+          curso,
+          asignatura,
+          periodo,
+        },
+        {
+          $set: {
+            conceptual,
+            nota: nota === null ? "" : String(nota),
+          },
+        },
+        {
+          returnDocument: "after",
+          upsert: true,
+          runValidators: true,
+          setDefaultsOnInsert: true,
+        },
+      );
+
+    res.json(registroActualizado);
+  } catch (error) {
+    console.error(
+      "Error al guardar seguimiento pedagógico:",
+      error,
+    );
+
+    res.status(500).json({
+      mensaje:
+        "Error al guardar el registro de seguimiento pedagógico",
+    });
+  }
+});
+
+// Importar varios registros.
+// Esta ruta servirá para migrar el localStorage de Render a MongoDB.
+app.post("/api/seguimiento/importar", async (req, res) => {
+  try {
+    const registros = Array.isArray(req.body.registros)
+      ? req.body.registros
+      : [];
+
+    if (registros.length === 0) {
+      return res.status(400).json({
+        mensaje: "No se recibieron registros para importar",
+      });
+    }
+
+    const operaciones = registros
+      .filter(
+        (registro) =>
+          registro.alumnoId &&
+          registro.curso &&
+          registro.asignatura &&
+          registro.periodo,
+      )
+      .map((registro) => ({
+        updateOne: {
+          filter: {
+            alumnoId: String(registro.alumnoId),
+            curso: registro.curso,
+            asignatura: registro.asignatura,
+            periodo: registro.periodo,
+          },
+          update: {
+            $set: {
+              conceptual: registro.conceptual || "-",
+              nota:
+                registro.nota === null ||
+                registro.nota === undefined
+                  ? ""
+                  : String(registro.nota),
+            },
+          },
+          upsert: true,
+        },
+      }));
+
+    if (operaciones.length === 0) {
+      return res.status(400).json({
+        mensaje:
+          "Los registros recibidos no contienen los datos necesarios",
+      });
+    }
+
+    const resultado =
+      await SeguimientoPedagogico.bulkWrite(operaciones);
+
+    res.json({
+      mensaje:
+        "Seguimiento pedagógico importado correctamente",
+      recibidos: registros.length,
+      procesados: operaciones.length,
+      insertados: resultado.upsertedCount,
+      modificados: resultado.modifiedCount,
+    });
+  } catch (error) {
+    console.error(
+      "Error al importar seguimiento pedagógico:",
+      error,
+    );
+
+    res.status(500).json({
+      mensaje:
+        "Error al importar los registros de seguimiento pedagógico",
+    });
+  }
+});
+
+// Eliminar una celda completa de seguimiento.
+app.delete("/api/seguimiento/:id", async (req, res) => {
+  try {
+    const registro =
+      await SeguimientoPedagogico.findByIdAndDelete(
+        req.params.id,
+      );
+
+    if (!registro) {
+      return res.status(404).json({
+        mensaje: "Registro de seguimiento no encontrado",
+      });
+    }
+
+    res.json({
+      mensaje:
+        "Registro de seguimiento eliminado correctamente",
+    });
+  } catch (error) {
+    console.error(
+      "Error al eliminar seguimiento pedagógico:",
+      error,
+    );
+
+    res.status(500).json({
+      mensaje:
+        "Error al eliminar el registro de seguimiento pedagógico",
+    });
+  }
 });
 
 // ======================

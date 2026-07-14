@@ -635,7 +635,7 @@ export default function App() {
   );
 }
 
-const botonMenu = {
+const botonMenu = { 
   backgroundColor: "#19766f",
   color: "white",
   border: "none",

@@ -1,48 +1,308 @@
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import CeldaSemaforo from "./CeldaSemaforo";
 
 export default function TablaSeguimiento({ curso, asignatura, alumnos }) {
   const [seguimiento, setSeguimiento] = useState(() => {
     const datosGuardados = localStorage.getItem("seguimientoPedagogico");
+
     return datosGuardados ? JSON.parse(datosGuardados) : {};
   });
 
+  const [cargando, setCargando] = useState(false);
+  const [errorGuardado, setErrorGuardado] = useState("");
+
+  const seguimientoRef = useRef(seguimiento);
+
   useEffect(() => {
+    seguimientoRef.current = seguimiento;
+
     localStorage.setItem("seguimientoPedagogico", JSON.stringify(seguimiento));
   }, [seguimiento]);
 
-  const alumnosCurso = alumnos.filter((a) => a.curso === curso); 
+  const alumnosCurso = alumnos.filter((alumno) => alumno.curso === curso);
 
   const obtenerClave = (alumnoId, periodo) =>
     `${curso}-${asignatura}-${alumnoId}-${periodo}`;
 
+  // =====================================
+  // LEER REGISTROS DESDE MONGODB
+  // =====================================
+
+  useEffect(() => {
+    async function obtenerSeguimientoDesdeMongo() {
+      if (!curso || !asignatura) return;
+
+      try {
+        setCargando(true);
+        setErrorGuardado("");
+
+        const parametros = new URLSearchParams({
+          curso,
+          asignatura,
+        });
+
+        const respuesta = await fetch(
+          `/api/seguimiento?${parametros.toString()}`,
+        );
+
+        if (!respuesta.ok) {
+          throw new Error("No se pudo obtener el seguimiento pedagógico");
+        }
+
+        const registros = await respuesta.json();
+
+        const registrosConvertidos = {};
+
+        registros.forEach((registro) => {
+          const clave = obtenerClave(registro.alumnoId, registro.periodo);
+
+          registrosConvertidos[clave] = {
+            conceptual: registro.conceptual || "-",
+            nota: registro.nota || "",
+            mongoId: registro._id,
+          };
+        });
+
+        /*
+          Conservamos temporalmente los registros del localStorage
+          y MongoDB tiene prioridad cuando existe la misma clave.
+        */
+        setSeguimiento((datosAnteriores) => ({
+          ...datosAnteriores,
+          ...registrosConvertidos,
+        }));
+      } catch (error) {
+        console.error("Error al obtener seguimiento desde MongoDB:", error);
+
+        setErrorGuardado(
+          "No se pudo conectar con la base. Se está usando el respaldo local.",
+        );
+      } finally {
+        setCargando(false);
+      }
+    }
+
+    obtenerSeguimientoDesdeMongo();
+  }, [curso, asignatura]);
+
+  // =====================================
+  // GUARDAR UNA CELDA EN MONGODB
+  // =====================================
+  const guardarRegistroEnMongo = async ({
+    alumnoId,
+    periodo,
+    conceptual,
+    nota,
+  }) => {
+    try {
+      setErrorGuardado("");
+
+      const respuesta = await fetch("/api/seguimiento", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          alumnoId: String(alumnoId),
+          curso,
+          asignatura,
+          periodo,
+          conceptual: conceptual || "-",
+          nota: nota ?? "",
+        }),
+      });
+
+      const datos = await respuesta.json();
+
+      if (!respuesta.ok) {
+        throw new Error(datos.mensaje || "No se pudo guardar el seguimiento");
+      }
+
+      const clave = obtenerClave(alumnoId, periodo);
+
+      setSeguimiento((datosAnteriores) => ({
+        ...datosAnteriores,
+        [clave]: {
+          ...datosAnteriores[clave],
+          conceptual: datos.conceptual || "-",
+          nota: datos.nota || "",
+          mongoId: datos._id,
+        },
+      }));
+    } catch (error) {
+      console.error("Error al guardar seguimiento en MongoDB:", error);
+
+      setErrorGuardado(
+        "El cambio quedó respaldado localmente, pero todavía no pudo guardarse en la base.",
+      );
+    }
+  };
+
+  const migrarLocalStorageAMongo = async () => {
+    const confirmar = window.confirm(
+      "¿Querés copiar a MongoDB todas las calificaciones guardadas en este navegador?",
+    );
+
+    if (!confirmar) return;
+
+    try {
+      setCargando(true);
+      setErrorGuardado("");
+
+      const datosLocales = JSON.parse(
+        localStorage.getItem("seguimientoPedagogico") || "{}",
+      );
+
+      const periodosValidos = [
+        "mayo",
+        "primerCuat",
+        "octubre",
+        "segundoCuat",
+        "diciembre",
+        "febrero",
+        "marzo",
+        "final",
+      ];
+
+      const expresionClave = new RegExp(
+        `^([^-]+)-(.+)-([a-fA-F0-9]{24})-(${periodosValidos.join("|")})$`,
+      );
+
+      const registros = Object.entries(datosLocales)
+        .map(([clave, valor]) => {
+          const coincidencia = clave.match(expresionClave);
+
+          if (!coincidencia) {
+            console.warn("No se pudo interpretar esta clave:", clave);
+
+            return null;
+          }
+
+          const [, cursoRegistro, asignaturaRegistro, alumnoId, periodo] =
+            coincidencia;
+
+          return {
+            alumnoId,
+            curso: cursoRegistro,
+            asignatura: asignaturaRegistro,
+            periodo,
+            conceptual: valor?.conceptual || "-",
+            nota:
+              valor?.nota === null || valor?.nota === undefined
+                ? ""
+                : String(valor.nota),
+          };
+        })
+        .filter(Boolean)
+        .filter(
+          (registro) => registro.conceptual !== "-" || registro.nota !== "",
+        );
+
+      if (registros.length === 0) {
+        alert("No se encontraron calificaciones locales para migrar.");
+
+        return;
+      }
+
+      const respuesta = await fetch("/api/seguimiento/importar", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ registros }),
+      });
+
+      const resultado = await respuesta.json();
+
+      if (!respuesta.ok) {
+        throw new Error(
+          resultado.mensaje || "No se pudo realizar la migración",
+        );
+      }
+
+      alert(
+        `Migración terminada.\n\n` +
+          `Registros encontrados: ${registros.length}\n` +
+          `Registros procesados: ${resultado.procesados}\n` +
+          `Registros nuevos: ${resultado.insertados}\n` +
+          `Registros actualizados: ${resultado.modificados}`,
+      );
+    } catch (error) {
+      console.error("Error al migrar Seguimiento Pedagógico:", error);
+
+      setErrorGuardado(
+        "No se pudo completar la migración. El respaldo local permanece intacto.",
+      );
+
+      alert(
+        "La migración no pudo completarse. No se borró ninguna calificación local.",
+      );
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  // =====================================
+  // CAMBIAR ESTADO CONCEPTUAL
+  // =====================================
+
   const cambiarEstado = (alumnoId, periodo) => {
     const clave = obtenerClave(alumnoId, periodo);
-    const valorActual = seguimiento[clave]?.conceptual || "-";
+
+    const registroActual = seguimientoRef.current[clave] || {};
+
+    const valorActual = registroActual.conceptual || "-";
 
     let nuevoValor = "-";
+
     if (valorActual === "-") nuevoValor = "TEA";
     else if (valorActual === "TEA") nuevoValor = "TEP";
     else if (valorActual === "TEP") nuevoValor = "TED";
 
-    setSeguimiento({
-      ...seguimiento,
-      [clave]: {
-        ...seguimiento[clave],
-        conceptual: nuevoValor,
-      },
+    const registroNuevo = {
+      ...registroActual,
+      conceptual: nuevoValor,
+      nota: registroActual.nota || "",
+    };
+
+    setSeguimiento((datosAnteriores) => ({
+      ...datosAnteriores,
+      [clave]: registroNuevo,
+    }));
+
+    guardarRegistroEnMongo({
+      alumnoId,
+      periodo,
+      conceptual: registroNuevo.conceptual,
+      nota: registroNuevo.nota,
     });
   };
+
+  // =====================================
+  // CAMBIAR NOTA
+  // =====================================
 
   const cambiarNota = (alumnoId, periodo, nota) => {
     const clave = obtenerClave(alumnoId, periodo);
 
-    setSeguimiento({
-      ...seguimiento,
-      [clave]: {
-        ...seguimiento[clave],
-        nota,
-      },
+    const registroActual = seguimientoRef.current[clave] || {};
+
+    const registroNuevo = {
+      ...registroActual,
+      conceptual: registroActual.conceptual || "-",
+      nota,
+    };
+
+    setSeguimiento((datosAnteriores) => ({
+      ...datosAnteriores,
+      [clave]: registroNuevo,
+    }));
+
+    guardarRegistroEnMongo({
+      alumnoId,
+      periodo,
+      conceptual: registroNuevo.conceptual,
+      nota: registroNuevo.nota,
     });
   };
 
@@ -72,7 +332,7 @@ export default function TablaSeguimiento({ curso, asignatura, alumnos }) {
   return (
     <div
       style={{
-        border:  "2px solid #bdd9e4",
+        border: "2px solid #bdd9e4",
         borderRadius: "16px",
         padding: "24px",
         background: "white",
@@ -81,13 +341,66 @@ export default function TablaSeguimiento({ curso, asignatura, alumnos }) {
         overflowX: "auto",
         overflowY: "auto",
         maxHeight: "650px",
-        boxShadow:  "0 8px 24px rgba(44, 84, 116, 0.14)",
+        boxShadow: "0 8px 24px rgba(44, 84, 116, 0.14)",
         borderTop: "6px solid #5d86b0",
       }}
     >
       <h3>
         {curso} - {asignatura}
       </h3>
+      
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          marginBottom: "14px",
+        }}
+      >
+        <button
+          type="button"
+          onClick={migrarLocalStorageAMongo}
+          disabled={cargando}
+          style={{
+            padding: "9px 14px",
+            borderRadius: "9px",
+            border: "1px solid #9bbad0",
+            background: "#eef6fb",
+            color: "#1e3a5f",
+            cursor: cargando ? "wait" : "pointer",
+            fontWeight: "700",
+          }}
+        >
+          ☁️ Migrar calificaciones locales a MongoDB
+        </button>
+      </div>
+
+      {cargando && (
+        <p
+          style={{
+            color: "#5d6d7e",
+            fontSize: "13px",
+            textAlign: "center",
+          }}
+        >
+          Cargando registros compartidos...
+        </p>
+      )}
+
+      {errorGuardado && (
+        <p
+          style={{
+            background: "#fff3cd",
+            border: "1px solid #f0d98c",
+            borderRadius: "8px",
+            color: "#856404",
+            padding: "9px 12px",
+            fontSize: "13px",
+            textAlign: "center",
+          }}
+        >
+          {errorGuardado}
+        </p>
+      )}
 
       <table
         style={{
@@ -122,7 +435,6 @@ export default function TablaSeguimiento({ curso, asignatura, alumnos }) {
                   top: 0,
                   zIndex: 6,
                   background: "#f5f7fa",
-
                   borderTop: "1px solid #cfd8dc",
                   borderLeft: "1px solid #cfd8dc",
                   borderBottom: "2px solid #9fb8c9",
@@ -137,7 +449,7 @@ export default function TablaSeguimiento({ curso, asignatura, alumnos }) {
 
         <tbody>
           {alumnosCurso.map((alumno) => (
-            <tr key={alumno.dni}>
+            <tr key={alumno._id || alumno.dni}>
               <td
                 style={{
                   textAlign: "left",
