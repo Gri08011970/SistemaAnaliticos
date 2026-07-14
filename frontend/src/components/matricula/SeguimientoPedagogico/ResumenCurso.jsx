@@ -43,7 +43,7 @@ function obtenerAsignaturasPorCurso(curso) {
       "Geografía",
       "Biología",
       "Introducción a la Física",
-      "Introducción a la Química",
+      
       "NTICX",
       "Salud y Adolescencia",
       "Inglés",
@@ -58,6 +58,7 @@ function obtenerAsignaturasPorCurso(curso) {
       "Matemática Ciclo Superior",
       "Historia",
       "Geografía",
+      "Introducción a la Química",
       "Política y Ciudadanía",
       "Inglés",
       "Educación Física",
@@ -487,7 +488,7 @@ export default function ResumenCurso({ curso, alumnos }) {
                     position: "sticky",
                     top: 0,
                     zIndex: 40,
-                  }}
+                  }} 
                 >
                   {asignatura}
                 </th>

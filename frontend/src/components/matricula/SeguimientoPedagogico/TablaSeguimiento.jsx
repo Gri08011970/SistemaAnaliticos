@@ -11,7 +11,7 @@ export default function TablaSeguimiento({ curso, asignatura, alumnos }) {
     localStorage.setItem("seguimientoPedagogico", JSON.stringify(seguimiento));
   }, [seguimiento]);
 
-  const alumnosCurso = alumnos.filter((a) => a.curso === curso);
+  const alumnosCurso = alumnos.filter((a) => a.curso === curso); 
 
   const obtenerClave = (alumnoId, periodo) =>
     `${curso}-${asignatura}-${alumnoId}-${periodo}`;
