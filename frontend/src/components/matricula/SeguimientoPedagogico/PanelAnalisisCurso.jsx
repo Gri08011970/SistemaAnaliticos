@@ -14,6 +14,7 @@ export default function PanelAnalisisCurso({
   observacionesSistema,
   estadisticasPorAsignatura,
   obtenerDato,
+  seguimiento,
   onVolver,
 }) {
   return (
@@ -101,9 +102,7 @@ export default function PanelAnalisisCurso({
         curso={alumnosCurso[0]?.curso || ""}
         alumnosCurso={alumnosCurso}
         asignaturasResumen={asignaturasResumen}
-        seguimiento={JSON.parse(
-          localStorage.getItem("seguimientoPedagogico") || "{}",
-        )}
+        seguimiento={seguimiento}
       />
 
       <ResumenEstudiantes

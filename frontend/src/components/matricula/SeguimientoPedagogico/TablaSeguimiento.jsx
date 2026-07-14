@@ -2,11 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import CeldaSemaforo from "./CeldaSemaforo";
 
 export default function TablaSeguimiento({ curso, asignatura, alumnos }) {
-  const [seguimiento, setSeguimiento] = useState(() => {
-    const datosGuardados = localStorage.getItem("seguimientoPedagogico");
-
-    return datosGuardados ? JSON.parse(datosGuardados) : {};
-  });
+  const [seguimiento, setSeguimiento] = useState({});
 
   const [cargando, setCargando] = useState(false);
   const [errorGuardado, setErrorGuardado] = useState("");
@@ -14,10 +10,8 @@ export default function TablaSeguimiento({ curso, asignatura, alumnos }) {
   const seguimientoRef = useRef(seguimiento);
 
   useEffect(() => {
-    seguimientoRef.current = seguimiento;
-
-    localStorage.setItem("seguimientoPedagogico", JSON.stringify(seguimiento));
-  }, [seguimiento]);
+  seguimientoRef.current = seguimiento;
+}, [seguimiento]);
 
   const alumnosCurso = alumnos.filter((alumno) => alumno.curso === curso);
 
@@ -138,109 +132,7 @@ export default function TablaSeguimiento({ curso, asignatura, alumnos }) {
     }
   };
 
-  const migrarLocalStorageAMongo = async () => {
-    const confirmar = window.confirm(
-      "¿Querés copiar a MongoDB todas las calificaciones guardadas en este navegador?",
-    );
-
-    if (!confirmar) return;
-
-    try {
-      setCargando(true);
-      setErrorGuardado("");
-
-      const datosLocales = JSON.parse(
-        localStorage.getItem("seguimientoPedagogico") || "{}",
-      );
-
-      const periodosValidos = [
-        "mayo",
-        "primerCuat",
-        "octubre",
-        "segundoCuat",
-        "diciembre",
-        "febrero",
-        "marzo",
-        "final",
-      ];
-
-      const expresionClave = new RegExp(
-        `^([^-]+)-(.+)-([a-fA-F0-9]{24})-(${periodosValidos.join("|")})$`,
-      );
-
-      const registros = Object.entries(datosLocales)
-        .map(([clave, valor]) => {
-          const coincidencia = clave.match(expresionClave);
-
-          if (!coincidencia) {
-            console.warn("No se pudo interpretar esta clave:", clave);
-
-            return null;
-          }
-
-          const [, cursoRegistro, asignaturaRegistro, alumnoId, periodo] =
-            coincidencia;
-
-          return {
-            alumnoId,
-            curso: cursoRegistro,
-            asignatura: asignaturaRegistro,
-            periodo,
-            conceptual: valor?.conceptual || "-",
-            nota:
-              valor?.nota === null || valor?.nota === undefined
-                ? ""
-                : String(valor.nota),
-          };
-        })
-        .filter(Boolean)
-        .filter(
-          (registro) => registro.conceptual !== "-" || registro.nota !== "",
-        );
-
-      if (registros.length === 0) {
-        alert("No se encontraron calificaciones locales para migrar.");
-
-        return;
-      }
-
-      const respuesta = await fetch("/api/seguimiento/importar", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ registros }),
-      });
-
-      const resultado = await respuesta.json();
-
-      if (!respuesta.ok) {
-        throw new Error(
-          resultado.mensaje || "No se pudo realizar la migración",
-        );
-      }
-
-      alert(
-        `Migración terminada.\n\n` +
-          `Registros encontrados: ${registros.length}\n` +
-          `Registros procesados: ${resultado.procesados}\n` +
-          `Registros nuevos: ${resultado.insertados}\n` +
-          `Registros actualizados: ${resultado.modificados}`,
-      );
-    } catch (error) {
-      console.error("Error al migrar Seguimiento Pedagógico:", error);
-
-      setErrorGuardado(
-        "No se pudo completar la migración. El respaldo local permanece intacto.",
-      );
-
-      alert(
-        "La migración no pudo completarse. No se borró ninguna calificación local.",
-      );
-    } finally {
-      setCargando(false);
-    }
-  };
+  
 
   // =====================================
   // CAMBIAR ESTADO CONCEPTUAL
@@ -348,32 +240,7 @@ export default function TablaSeguimiento({ curso, asignatura, alumnos }) {
       <h3>
         {curso} - {asignatura}
       </h3>
-      
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          marginBottom: "14px",
-        }}
-      >
-        <button
-          type="button"
-          onClick={migrarLocalStorageAMongo}
-          disabled={cargando}
-          style={{
-            padding: "9px 14px",
-            borderRadius: "9px",
-            border: "1px solid #9bbad0",
-            background: "#eef6fb",
-            color: "#1e3a5f",
-            cursor: cargando ? "wait" : "pointer",
-            fontWeight: "700",
-          }}
-        >
-          ☁️ Migrar calificaciones locales a MongoDB
-        </button>
-      </div>
-
+    
       {cargando && (
         <p
           style={{
@@ -504,6 +371,6 @@ export default function TablaSeguimiento({ curso, asignatura, alumnos }) {
           ))}
         </tbody>
       </table>
-    </div>
+    </div> 
   );
 }

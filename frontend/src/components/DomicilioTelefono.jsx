@@ -24,7 +24,7 @@ export default function DomicilioTelefono({ volverInicio, esAdmin }) {
       console.log(error);
       alert("Error al obtener domicilios");
     }
-  }
+  } 
 
   async function obtenerMatricula() {
     try {
@@ -466,7 +466,7 @@ h3{
     const filas = lista
       .map(
         (registro, index) => `
-          <tr>
+          <tr> 
             <td>${index + 1}</td>
             <td>${registro.curso || ""}</td>
             <td>${registro.apellidoNombre || ""}</td>
@@ -620,108 +620,188 @@ h3{
     });
   }
 
-  async function importarExcel(evento) {
-    if (!esAdmin) {
-      alert("Solo el administrador puede importar.");
-      return;
-    }
+ async function importarExcel(evento) {
+  if (!esAdmin) {
+    alert("Solo el administrador puede importar.");
+    return;
+  }
 
-    const archivo = evento.target.files[0];
-    if (!archivo) return;
+  const archivo = evento.target.files[0];
+  if (!archivo) return;
 
-    try {
-      const datos = await archivo.arrayBuffer();
-      const libro = XLSX.read(datos);
-      const hoja = libro.Sheets[libro.SheetNames[0]];
-      const filas = XLSX.utils.sheet_to_json(hoja, { defval: "" });
+  try {
+    const datos = await archivo.arrayBuffer();
+    const libro = XLSX.read(datos);
+    const hoja = libro.Sheets[libro.SheetNames[0]];
+    const filas = XLSX.utils.sheet_to_json(hoja, { defval: "" });
 
-      for (const fila of filas) {
-        const nombreFila = normalizarTexto(
-          fila.Estudiante || fila["Apellido y Nombre"] || fila["Alumno"] || "",
-        );
+    for (const fila of filas) {
+      const nombreFila = normalizarTexto(
+        fila.Estudiante ||
+          fila["Apellido y Nombre"] ||
+          fila.Alumno ||
+          "",
+      );
 
-        const dniFila = String(
-          fila["DNI estudiante"] || fila.DNI || "",
+      const dniFila = String(
+        fila["DNI estudiante"] ||
+          fila.DNI ||
+          "",
+      ).replace(/\D/g, "");
+
+      const alumno = alumnosActivos.find((item) => {
+        const dniAlumno = String(
+          item.dni || "",
         ).replace(/\D/g, "");
 
-        const alumno = alumnosActivos.find((item) => {
-          const dniAlumno = String(item.dni || "").replace(/\D/g, "");
-
-          if (dniFila && dniAlumno && dniAlumno === dniFila) {
-            return true;
-          }
-
-          return coincideNombre(nombreAlumnoParaComparar(item), nombreFila);
-        });
-
-        if (!alumno) {
-          console.log(
-            "No encontrado:",
-            nombreFila,
-            "Fila Excel:",
-            fila.Estudiante || fila["Apellido y Nombre"] || fila["Alumno"],
-          );
-          continue;
+        if (
+          dniFila &&
+          dniAlumno &&
+          dniAlumno === dniFila
+        ) {
+          return true;
         }
 
-        const registroExistente = registrosPorAlumno[alumno._id];
+        return coincideNombre(
+          nombreAlumnoParaComparar(item),
+          nombreFila,
+        );
+      });
 
-        const datosAGuardar = {
-          alumnoId: alumno._id,
-          curso: alumno.curso || fila.Curso || "",
-          apellidoNombre: nombreCompletoAlumno(alumno),
-          dni: alumno.dni || "",
-          domicilio: fila.Domicilio || "",
-          telefono: fila.Teléfono || "",
-          nombreResponsable:
-            fila["Madre / Responsable"] ||
-            fila["Nombre adulto responsable"] ||
-            "",
-          adultoResponsable: fila["Vínculo responsable"] || "MADRE",
-        };
-        const tieneDatosParaGuardar =
-          datosAGuardar.domicilio ||
-          datosAGuardar.telefono ||
-          datosAGuardar.nombreResponsable;
+      if (!alumno) {
+        console.log(
+          "No encontrado:",
+          nombreFila,
+          "Fila Excel:",
+          fila.Estudiante ||
+            fila["Apellido y Nombre"] ||
+            fila.Alumno,
+        );
 
-        if (!tieneDatosParaGuardar) {
-          console.log("Sin datos para guardar:", datosAGuardar.apellidoNombre);
-          continue;
-        }
-
-        console.log("DATOS A GUARDAR:", datosAGuardar);
-
-        try {
-          if (registroExistente?._id) {
-            await axios.put(
-              `/api/domicilios/${registroExistente._id}`,
-              datosAGuardar,
-            );
-          } else {
-            await axios.post("/api/domicilios", datosAGuardar);
-          }
-        } catch (errorRegistro) {
-          console.error("ERROR EN REGISTRO:", datosAGuardar);
-          console.error(
-            "RESPUESTA BACKEND:",
-            JSON.stringify(errorRegistro.response?.data, null, 2),
-          );
-        }
+        continue;
       }
 
-      await obtenerRegistros();
-      alert("Archivo importado correctamente.");
-    } catch (error) {
-      console.error("ERROR IMPORTANDO:", error);
-      console.error(
-        "RESPUESTA BACKEND:",
-        JSON.stringify(error.response?.data, null, 2),
+      const registroExistente =
+        registrosPorAlumno[alumno._id];
+
+      const domicilioExcel =
+        fila.Domicilio ||
+        fila.domicilio ||
+        "";
+
+      const telefonoExcel =
+        fila["Teléfono"] ||
+        fila.Telefono ||
+        fila["teléfono"] ||
+        fila.telefono ||
+        "";
+
+      const nombreResponsableExcel =
+        fila["Adulto responsable"] ||
+        fila["adulto responsable"] ||
+        fila["Adulto Responsable"] ||
+        fila["Madre / Responsable"] ||
+        fila["Nombre adulto responsable"] ||
+        "";
+
+      const vinculoExcel =
+        fila["Vínculo"] ||
+        fila.Vinculo ||
+        fila["vínculo"] ||
+        fila.vinculo ||
+        fila["Vínculo responsable"] ||
+        fila["Vinculo responsable"] ||
+        "MADRE";
+
+      const datosAGuardar = {
+        alumnoId: alumno._id,
+        curso: alumno.curso || fila.Curso || "",
+        apellidoNombre:
+          nombreCompletoAlumno(alumno),
+        dni: alumno.dni || "",
+
+        domicilio: domicilioExcel,
+        telefono: telefonoExcel,
+
+        nombreResponsable:
+          nombreResponsableExcel,
+
+        adultoResponsable:
+          vinculoExcel,
+      };
+
+      const tieneDatosParaGuardar =
+        datosAGuardar.domicilio ||
+        datosAGuardar.telefono ||
+        datosAGuardar.nombreResponsable ||
+        datosAGuardar.adultoResponsable;
+
+      if (!tieneDatosParaGuardar) {
+        console.log(
+          "Sin datos para guardar:",
+          datosAGuardar.apellidoNombre,
+        );
+
+        continue;
+      }
+
+      console.log(
+        "DATOS A GUARDAR:",
+        datosAGuardar,
       );
-      alert("Error al importar el archivo.");
+
+      try {
+        if (registroExistente?._id) {
+          await axios.put(
+            `/api/domicilios/${registroExistente._id}`,
+            datosAGuardar,
+          );
+        } else {
+          await axios.post(
+            "/api/domicilios",
+            datosAGuardar,
+          );
+        }
+      } catch (errorRegistro) {
+        console.error(
+          "ERROR EN REGISTRO:",
+          datosAGuardar,
+        );
+
+        console.error(
+          "RESPUESTA BACKEND:",
+          JSON.stringify(
+            errorRegistro.response?.data,
+            null,
+            2,
+          ),
+        );
+      }
     }
 
-    evento.target.value = "";
+    await obtenerRegistros();
+
+    alert("Archivo importado correctamente.");
+  } catch (error) {
+    console.error(
+      "ERROR IMPORTANDO:",
+      error,
+    );
+
+    console.error(
+      "RESPUESTA BACKEND:",
+      JSON.stringify(
+        error.response?.data,
+        null,
+        2,
+      ),
+    );
+
+    alert("Error al importar el archivo.");
   }
+
+  evento.target.value = "";
+}
 
   const totalCurso = alumnosDelCurso.length;
   const completosCurso = alumnosDelCurso.filter((alumno) => {
@@ -980,7 +1060,7 @@ const titulo = {
   marginTop: 0,
 };
 
-const subtitulo = {
+const subtitulo = { 
   textAlign: "center",
   color: "#5f6f7a",
   marginBottom: "22px",

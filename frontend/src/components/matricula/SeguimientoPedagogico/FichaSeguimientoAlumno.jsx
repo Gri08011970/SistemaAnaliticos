@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   obtenerAsignaturasPorCurso,
   COLORES_SEGUIMIENTO,
@@ -26,10 +26,64 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
   const [busqueda, setBusqueda] = useState("");
   const [alumnoSeleccionado, setAlumnoSeleccionado] = useState(null);
 
-  const seguimiento = JSON.parse(
-    localStorage.getItem("seguimientoPedagogico") || "{}"
-  );
+  const [seguimiento, setSeguimiento] = useState({});
+  const [cargandoSeguimiento, setCargandoSeguimiento] = useState(false);
+  const [errorSeguimiento, setErrorSeguimiento] = useState("");
 
+  useEffect(() => {
+    async function obtenerFichaDesdeMongo() {
+      if (!alumnoSeleccionado?._id) {
+        setSeguimiento({});
+        return;
+      }
+
+      try {
+        setCargandoSeguimiento(true);
+        setErrorSeguimiento("");
+
+        const parametros = new URLSearchParams({
+          alumnoId: String(alumnoSeleccionado._id),
+        });
+
+        const respuesta = await fetch(
+          `/api/seguimiento?${parametros.toString()}`,
+        );
+
+        if (!respuesta.ok) {
+          throw new Error("No se pudo obtener la ficha de seguimiento");
+        }
+
+        const registros = await respuesta.json();
+        const datosConvertidos = {};
+
+        registros.forEach((registro) => {
+          const clave =
+            `${registro.curso}-` +
+            `${registro.asignatura}-` +
+            `${registro.alumnoId}-` +
+            `${registro.periodo}`;
+
+          datosConvertidos[clave] = {
+            conceptual: registro.conceptual || "-",
+            nota: registro.nota || "",
+            mongoId: registro._id,
+          };
+        });
+
+        setSeguimiento(datosConvertidos);
+      } catch (error) {
+        console.error("Error al cargar la ficha desde MongoDB:", error);
+
+        setErrorSeguimiento(
+          "No se pudieron cargar los datos compartidos del estudiante.",
+        );
+      } finally {
+        setCargandoSeguimiento(false);
+      }
+    }
+
+    obtenerFichaDesdeMongo();
+  }, [alumnoSeleccionado]);
   const resultados = alumnos.filter((a) => {
     const texto = `${a.apellido} ${a.nombre} ${a.dni}`.toLowerCase();
     return texto.includes(busqueda.toLowerCase());
@@ -45,7 +99,9 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
   };
 
   const imprimirFicha = () => {
-    const contenido = document.getElementById("ficha-seguimiento-imprimir").innerHTML;
+    const contenido = document.getElementById(
+      "ficha-seguimiento-imprimir",
+    ).innerHTML;
     const ventana = window.open("", "_blank");
 
     ventana.document.write(`
@@ -74,251 +130,244 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
   };
 
   return (
-  <div
-    className="ficha-seguimiento-contenedor"
-    style={{
-      border: "3px solid #cfe3ea",
-      borderRadius: "16px",
-      padding: "24px",
-      background: "white",
-      margin: "24px auto",
-      maxWidth: "1100px",
-      boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
-    }}
-  >
-    <div style={{ textAlign: "center", marginBottom: "25px" }}>
-      <input
-        className="buscador-ficha-seguimiento"
-        type="text"
-        placeholder="Buscar por apellido, nombre o DNI..."
-        value={busqueda}
-        onChange={(e) => {
-          setBusqueda(e.target.value);
-          setAlumnoSeleccionado(null);
-        }}
-        style={{
-          width: "420px",
-          padding: "10px",
-          borderRadius: "8px",
-          border: "3px solid #cfd8dc",
-        }}
-      />
-    </div>
-
-    {busqueda !== "" && !alumnoSeleccionado && (
-      <div
-        style={{
-          maxHeight: "220px",
-          overflowY: "auto",
-          border: "3px solid #d8e3ea",
-          borderRadius: "10px",
-          marginBottom: "25px",
-        }}
-      >
-        {resultados.map((alumno) => (
-          <div
-            key={alumno._id || alumno.dni}
-            onClick={() => setAlumnoSeleccionado(alumno)}
-            style={{
-              padding: "10px 15px",
-              cursor: "pointer",
-              borderBottom: "2px solid #ececec",
-            }}
-          >
-            <strong>
-              {alumno.apellido}, {alumno.nombre}
-            </strong>
-
-            <br />
-
-            DNI: {alumno.dni} | Curso: {alumno.curso}
-          </div>
-        ))}
-      </div>
-    )}
-
-    {alumnoSeleccionado && (
-      <>
-        <div
-          id="ficha-seguimiento-imprimir"
-          className="ficha-seguimiento-imprimir"
+    <div
+      className="ficha-seguimiento-contenedor"
+      style={{
+        border: "3px solid #cfe3ea",
+        borderRadius: "16px",
+        padding: "24px",
+        background: "white",
+        margin: "24px auto",
+        maxWidth: "1100px",
+        boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
+      }}
+    >
+      <div style={{ textAlign: "center", marginBottom: "25px" }}>
+        <input
+          className="buscador-ficha-seguimiento"
+          type="text"
+          placeholder="Buscar por apellido, nombre o DNI..."
+          value={busqueda}
+          onChange={(e) => {
+            setBusqueda(e.target.value);
+            setAlumnoSeleccionado(null);
+          }}
           style={{
-            border: "2px solid #bcd8ea",
-            borderRadius: "12px",
-            padding: "18px",
-            background: "#f9fcff",
+            width: "420px",
+            padding: "10px",
+            borderRadius: "8px",
+            border: "3px solid #cfd8dc",
+          }}
+        />
+      </div>
+
+      {busqueda !== "" && !alumnoSeleccionado && (
+        <div
+          style={{
+            maxHeight: "220px",
+            overflowY: "auto",
+            border: "3px solid #d8e3ea",
+            borderRadius: "10px",
+            marginBottom: "25px",
           }}
         >
-          <h3 style={{ marginTop: 0 }}>
-            E.E.S 140 - Seguimiento Pedagógico
-          </h3>
+          {resultados.map((alumno) => (
+            <div
+              key={alumno._id || alumno.dni}
+              onClick={() => setAlumnoSeleccionado(alumno)}
+              style={{
+                padding: "10px 15px",
+                cursor: "pointer",
+                borderBottom: "2px solid #ececec",
+              }}
+            >
+              <strong>
+                {alumno.apellido}, {alumno.nombre}
+              </strong>
+              <br />
+              DNI: {alumno.dni} | Curso: {alumno.curso}
+            </div>
+          ))}
+        </div>
+      )}
 
-          <h2>
-            {alumnoSeleccionado.apellido},{" "}
-            {alumnoSeleccionado.nombre}
-          </h2>
+      {alumnoSeleccionado && (
+        <>
+          <div
+            id="ficha-seguimiento-imprimir"
+            className="ficha-seguimiento-imprimir"
+            style={{
+              border: "2px solid #bcd8ea",
+              borderRadius: "12px",
+              padding: "18px",
+              background: "#f9fcff",
+            }}
+          >
+            <h3 style={{ marginTop: 0 }}>E.E.S 140 - Seguimiento Pedagógico</h3>
 
-          <p style={{ textAlign: "center" }}>
-            <strong>DNI:</strong> {alumnoSeleccionado.dni}
-            &nbsp; | &nbsp;
-            <strong>Curso:</strong> {alumnoSeleccionado.curso}
-          </p>
+            <h2>
+              {alumnoSeleccionado.apellido}, {alumnoSeleccionado.nombre}
+            </h2>
 
-          <hr style={{ margin: "20px 0" }} />
+            <p style={{ textAlign: "center" }}>
+              <strong>DNI:</strong> {alumnoSeleccionado.dni}
+              &nbsp; | &nbsp;
+              <strong>Curso:</strong> {alumnoSeleccionado.curso}
+            </p>
 
-          <div className="ficha-seguimiento-desktop">
-            {asignaturas.map((asignatura) => (
-              <div key={asignatura}>
-                <h4 className="materia">
-                  {asignatura}
-                </h4>
+            {cargandoSeguimiento && (
+              <p style={{ textAlign: "center", color: "#5d6d7e" }}>
+                Cargando ficha compartida...
+              </p>
+            )}
 
-                <div className="tabla-scroll-mobile">
-                  <table
-                    style={{
-                      width: "100%",
-                      borderCollapse: "collapse",
-                      marginBottom: "18px",
-                      boxShadow:
-                        "0 2px 8px rgba(0,0,0,0.05)",
-                    }}
-                  >
-                    <thead>
-                      <tr>
-                        {periodos.map((periodo) => (
-                          <th
-                            key={periodo.clave}
-                            style={{
-                              border:
-                                "2px solid #cfd8dc",
-                              padding: "6px",
-                              background: "#eef3f7",
-                              fontSize: "12px",
-                            }}
-                          >
-                            {periodo.etiqueta}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
+            {errorSeguimiento && (
+              <p
+                style={{
+                  background: "#fff3cd",
+                  border: "1px solid #f0d98c",
+                  borderRadius: "8px",
+                  color: "#856404",
+                  padding: "9px 12px",
+                  textAlign: "center",
+                }}
+              >
+                {errorSeguimiento}
+              </p>
+            )}
 
-                    <tbody>
-                      <tr>
-                        {periodos.map((periodo) => {
-                          const dato = obtenerDato(
-                            asignatura,
-                            periodo.clave,
-                          );
+            <hr style={{ margin: "20px 0" }} />
 
-                          return (
-                            <td
+            <div className="ficha-seguimiento-desktop">
+              {asignaturas.map((asignatura) => (
+                <div key={asignatura}>
+                  <h4 className="materia">{asignatura}</h4>
+
+                  <div className="tabla-scroll-mobile">
+                    <table
+                      style={{
+                        width: "100%",
+                        borderCollapse: "collapse",
+                        marginBottom: "18px",
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                      }}
+                    >
+                      <thead>
+                        <tr>
+                          {periodos.map((periodo) => (
+                            <th
                               key={periodo.clave}
                               style={{
-                                border:
-                                  "2px solid #cfd8dc",
-                                padding: "7px",
-                                textAlign: "center",
-                                background:
-                                  colorConceptual(
-                                    dato.conceptual,
-                                  ),
-                                fontWeight: "700",
+                                border: "2px solid #cfd8dc",
+                                padding: "6px",
+                                background: "#eef3f7",
                                 fontSize: "12px",
                               }}
                             >
-                              {dato.conceptual
-                                ? `${dato.conceptual}${
-                                    dato.nota
-                                      ? ` ${dato.nota}`
-                                      : ""
-                                  }`
-                                : "—"}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    </tbody>
-                  </table>
+                              {periodo.etiqueta}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+
+                      <tbody>
+                        <tr>
+                          {periodos.map((periodo) => {
+                            const dato = obtenerDato(asignatura, periodo.clave);
+
+                            return (
+                              <td
+                                key={periodo.clave}
+                                style={{
+                                  border: "2px solid #cfd8dc",
+                                  padding: "7px",
+                                  textAlign: "center",
+                                  background: colorConceptual(dato.conceptual),
+                                  fontWeight: "700",
+                                  fontSize: "12px",
+                                }}
+                              >
+                                {dato.conceptual
+                                  ? `${dato.conceptual}${
+                                      dato.nota ? ` ${dato.nota}` : ""
+                                    }`
+                                  : "—"}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
 
-          <div className="ficha-seguimiento-mobile">
-            {asignaturas.map((asignatura) => (
-              <div
-                key={`mobile-${asignatura}`}
-                className="tarjeta-materia-seguimiento"
-              >
-                <h4 className="materia materia-mobile">
-                  {asignatura}
-                </h4>
+            <div className="ficha-seguimiento-mobile">
+              {asignaturas.map((asignatura) => (
+                <div
+                  key={`mobile-${asignatura}`}
+                  className="tarjeta-materia-seguimiento"
+                >
+                  <h4 className="materia materia-mobile">{asignatura}</h4>
 
-                <div className="periodos-mobile">
-                  {periodos.map((periodo) => {
-                    const dato = obtenerDato(
-                      asignatura,
-                      periodo.clave,
-                    );
+                  <div className="periodos-mobile">
+                    {periodos.map((periodo) => {
+                      const dato = obtenerDato(asignatura, periodo.clave);
 
-                    return (
-                      <div
-                        key={`mobile-${asignatura}-${periodo.clave}`}
-                        className="fila-periodo-mobile"
-                      >
-                        <span className="nombre-periodo-mobile">
-                          {periodo.etiqueta}
-                        </span>
-
-                        <span
-                          className="valor-periodo-mobile"
-                          style={{
-                            background:
-                              colorConceptual(
-                                dato.conceptual,
-                              ),
-                          }}
+                      return (
+                        <div
+                          key={`mobile-${asignatura}-${periodo.clave}`}
+                          className="fila-periodo-mobile"
                         >
-                          {dato.conceptual
-                            ? `${dato.conceptual}${
-                                dato.nota
-                                  ? ` ${dato.nota}`
-                                  : ""
-                              }`
-                            : "—"}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+                          <span className="nombre-periodo-mobile">
+                            {periodo.etiqueta}
+                          </span>
 
-        <div
-          style={{
-            textAlign: "center",
-            marginTop: "25px",
-          }}
-        >
-          <button
-            type="button"
-            onClick={imprimirFicha}
+                          <span
+                            className="valor-periodo-mobile"
+                            style={{
+                              background: colorConceptual(dato.conceptual),
+                            }}
+                          >
+                            {dato.conceptual
+                              ? `${dato.conceptual}${
+                                  dato.nota ? ` ${dato.nota}` : ""
+                                }`
+                              : "—"}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div
             style={{
-              padding: "10px 18px",
-              borderRadius: "10px",
-              border: "1px solid #c8d5e5",
-              background: "#f8f9fc",
-              cursor: "pointer",
-              fontWeight: "600",
+              textAlign: "center",
+              marginTop: "25px",
             }}
           >
-            🖨️ Imprimir ficha
-          </button>
-        </div>
-      </>
-    )}
-  </div>
-);
+            <button
+              type="button"
+              onClick={imprimirFicha}
+              style={{
+                padding: "10px 18px",
+                borderRadius: "10px",
+                border: "1px solid #c8d5e5",
+                background: "#f8f9fc",
+                cursor: "pointer",
+                fontWeight: "600",
+              }}
+            >
+              🖨️ Imprimir ficha
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
 }

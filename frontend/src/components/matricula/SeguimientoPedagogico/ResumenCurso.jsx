@@ -1,16 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PanelAnalisisCurso from "./PanelAnalisisCurso";
 import {
   obtenerIndicePedagogico,
   obtenerEstadoPorIndice,
   obtenerEstadoAsignatura,
- } from "./seguimientoResumenUtils";
- import {
+} from "./seguimientoResumenUtils";
+import {
   obtenerAsignaturasPorCurso,
   COLORES_SEGUIMIENTO,
 } from "./seguimientoConstants";
 
- export default function ResumenCurso({ curso, alumnos }) {
+export default function ResumenCurso({ curso, alumnos }) {
   const [periodoSeleccionado, setPeriodoSeleccionado] = useState("mayo");
   const [mostrarPanelAnalisis, setMostrarPanelAnalisis] = useState(false);
 
@@ -27,18 +27,16 @@ import {
         return comparacionApellido;
       }
 
-      return (a.nombre || "").localeCompare(
-        b.nombre || "",
-        "es",
-        { sensitivity: "base" },
-      );
+      return (a.nombre || "").localeCompare(b.nombre || "", "es", {
+        sensitivity: "base",
+      });
     });
 
   const asignaturasResumen = obtenerAsignaturasPorCurso(curso);
 
-  const seguimiento = JSON.parse(
-    localStorage.getItem("seguimientoPedagogico") || "{}",
-  );
+  const [seguimiento, setSeguimiento] = useState({});
+  const [cargandoSeguimiento, setCargandoSeguimiento] = useState(false);
+  const [errorSeguimiento, setErrorSeguimiento] = useState("");
 
   const obtenerDato = (alumnoId, asignatura) => {
     const clave = `${curso}-${asignatura}-${alumnoId}-${periodoSeleccionado}`;
@@ -46,51 +44,103 @@ import {
   };
 
   const calcularEstadisticas = () => {
-  let tea = 0;
-  let tep = 0;
-  let ted = 0;
-  let totalCargados = 0;
+    let tea = 0;
+    let tep = 0;
+    let ted = 0;
+    let totalCargados = 0;
 
-  alumnosCurso.forEach((alumno) => {
-    asignaturasResumen.forEach((asignatura) => {
-      const dato = obtenerDato(alumno._id, asignatura);
+    alumnosCurso.forEach((alumno) => {
+      asignaturasResumen.forEach((asignatura) => {
+        const dato = obtenerDato(alumno._id, asignatura);
 
-      if (dato.conceptual === "TEA") {
-        tea++;
-      }
+        if (dato.conceptual === "TEA") {
+          tea++;
+        }
 
-      if (dato.conceptual === "TEP") {
-        tep++;
-      }
+        if (dato.conceptual === "TEP") {
+          tep++;
+        }
 
-      if (dato.conceptual === "TED") {
-        ted++;
-      }
+        if (dato.conceptual === "TED") {
+          ted++;
+        }
 
-      if (dato.conceptual) {
-        totalCargados++;
-      }
+        if (dato.conceptual) {
+          totalCargados++;
+        }
+      });
     });
-  });
 
-  const indice = obtenerIndicePedagogico({
-    tea,
-    tep,
-    ted,
-  });
+    const indice = obtenerIndicePedagogico({
+      tea,
+      tep,
+      ted,
+    });
 
-  const estadoCurso =
-    obtenerEstadoPorIndice(indice);
+    const estadoCurso = obtenerEstadoPorIndice(indice);
 
-  return {
-    tea,
-    tep,
-    ted,
-    totalCargados,
-    indice,
-    estadoCurso,
+    return {
+      tea,
+      tep,
+      ted,
+      totalCargados,
+      indice,
+      estadoCurso,
+    };
   };
-};
+
+  useEffect(() => {
+    async function obtenerSeguimientoDesdeMongo() {
+      if (!curso) {
+        setSeguimiento({});
+        return;
+      }
+
+      try {
+        setCargandoSeguimiento(true);
+        setErrorSeguimiento("");
+
+        const parametros = new URLSearchParams({
+          curso,
+        });
+
+        const respuesta = await fetch(
+          `/api/seguimiento?${parametros.toString()}`,
+        );
+
+        if (!respuesta.ok) {
+          throw new Error("No se pudo obtener el seguimiento pedagógico");
+        }
+
+        const registros = await respuesta.json();
+        const datosConvertidos = {};
+
+        registros.forEach((registro) => {
+          const clave =
+            `${registro.curso}-` +
+            `${registro.asignatura}-` +
+            `${registro.alumnoId}-` +
+            `${registro.periodo}`;
+
+          datosConvertidos[clave] = {
+            conceptual: registro.conceptual || "-",
+            nota: registro.nota || "",
+            mongoId: registro._id,
+          };
+        });
+
+        setSeguimiento(datosConvertidos);
+      } catch (error) {
+        console.error("Error al cargar el resumen desde MongoDB:", error);
+
+        setErrorSeguimiento("No se pudieron cargar los datos compartidos.");
+      } finally {
+        setCargandoSeguimiento(false);
+      }
+    }
+
+    obtenerSeguimientoDesdeMongo();
+  }, [curso]);
 
   const estadisticas = calcularEstadisticas();
 
@@ -182,11 +232,11 @@ import {
   const fechaAnalisis = new Date().toLocaleString("es-AR");
 
   const colorCelda = (conceptual) => {
-  return (
-    COLORES_SEGUIMIENTO[conceptual]?.fondoClaro ||
-    COLORES_SEGUIMIENTO["-"].fondoClaro
-  );
-};
+    return (
+      COLORES_SEGUIMIENTO[conceptual]?.fondoClaro ||
+      COLORES_SEGUIMIENTO["-"].fondoClaro
+    );
+  };
 
   if (mostrarPanelAnalisis) {
     return (
@@ -199,6 +249,7 @@ import {
         observacionesSistema={observacionesSistema}
         estadisticasPorAsignatura={estadisticasPorAsignatura}
         obtenerDato={obtenerDato}
+        seguimiento={seguimiento}
         onVolver={() => setMostrarPanelAnalisis(false)}
       />
     );
@@ -277,6 +328,34 @@ import {
       >
         📈 Panel de análisis
       </button>
+      
+      {cargandoSeguimiento && (
+        <p
+          style={{
+            color: "#5d6d7e",
+            textAlign: "center",
+            fontSize: "13px",
+          }}
+        >
+          Cargando resumen compartido...
+        </p>
+      )}
+
+      {errorSeguimiento && (
+        <p
+          style={{
+            background: "#fff3cd",
+            border: "1px solid #f0d98c",
+            borderRadius: "8px",
+            color: "#856404",
+            padding: "9px 12px",
+            textAlign: "center",
+            fontSize: "13px",
+          }}
+        >
+          {errorSeguimiento}
+        </p>
+      )}
 
       <button
         onClick={() => {
@@ -415,7 +494,7 @@ import {
                     position: "sticky",
                     top: 0,
                     zIndex: 40,
-                  }} 
+                  }}
                 >
                   {asignatura}
                 </th>
