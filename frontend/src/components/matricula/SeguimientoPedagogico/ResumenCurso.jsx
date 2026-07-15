@@ -328,7 +328,7 @@ export default function ResumenCurso({ curso, alumnos }) {
       >
         📈 Panel de análisis
       </button>
-      
+
       {cargandoSeguimiento && (
         <p
           style={{
@@ -432,6 +432,7 @@ export default function ResumenCurso({ curso, alumnos }) {
       </p>
 
       <div
+        className="contenedor-tabla-resumen"
         style={{
           width: "100%",
           maxWidth: "100%",
