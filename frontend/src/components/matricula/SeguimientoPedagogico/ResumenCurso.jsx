@@ -365,48 +365,92 @@ export default function ResumenCurso({ curso, alumnos }) {
           const ventana = window.open("", "_blank");
 
           ventana.document.write(`
-            <html>
-              <head>
-                <title>Resumen del curso</title>
-                <style>
-                  @page {
-                    size: A4 landscape;
-                    margin: 8mm;
-                  }
+  <html>
+    <head>
+      <title>Resumen del curso</title>
 
-                  body {
-                    font-family: Arial, sans-serif;
-                    color: #222;
-                  }
+      <style>
+        @page {
+          size: A4 landscape;
+          margin: 8mm;
+        }
 
-                  table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    font-size: 9px;
-                  }
+        html,
+        body {
+          height: auto !important;
+          overflow: visible !important;
+        }
 
-                  th, td {
-                    border: 1px solid #999;
-                    padding: 4px;
-                    text-align: center;
-                  }
+        body {
+          font-family: Arial, sans-serif;
+          color: #222;
+          margin: 0;
+        }
 
-                  th {
-                    background: #eef3f7;
-                    font-weight: bold;
-                  }
+        .contenedor-tabla-resumen {
+          width: 100% !important;
+          height: auto !important;
+          min-height: 0 !important;
+          max-height: none !important;
+          overflow: visible !important;
+          position: static !important;
+          border: none !important;
+          border-radius: 0 !important;
+        }
 
-                  button, select {
-                    display: none;
-                  }
-                </style>
-              </head>
-              <body>
-                ${contenido}
-              </body>
-            </html>
-          `);
+        .contenedor-tabla-resumen table {
+          width: 100% !important;
+          height: auto !important;
+          min-width: 100% !important;
+          overflow: visible !important;
+          border-collapse: collapse !important;
+          table-layout: fixed !important;
+        }
 
+        table {
+          width: 100% !important;
+          border-collapse: collapse !important;
+          font-size: 9px;
+        }
+
+        thead {
+          display: table-header-group;
+        }
+
+        tbody {
+          display: table-row-group;
+        }
+
+        tr {
+          break-inside: avoid;
+          page-break-inside: avoid;
+        }
+
+        th,
+        td {
+          border: 1px solid #999 !important;
+          padding: 4px;
+          text-align: center;
+          position: static !important;
+        }
+
+        th {
+          background: #eef3f7 !important;
+          font-weight: bold;
+        }
+
+        button,
+        select {
+          display: none !important;
+        }
+      </style>
+    </head>
+
+    <body>
+      ${contenido}
+    </body>
+  </html>
+`);
           ventana.document.close();
           ventana.focus();
           ventana.print();
