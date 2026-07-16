@@ -11,17 +11,26 @@ export default function BotonesHerramientasMatricula({
   imprimirRecursantes,
   estilos,
 }) {
+  const estiloContenedor = {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "stretch",
+    gap: "14px",
+    flexWrap: "wrap",
+    marginTop: "18px",
+    marginBottom: "18px",
+  };
+
+  const estiloBoton = {
+    ...estilos.botonImprimir,
+    flex: "0 1 210px",
+  };
+
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        gap: "10px",
-        flexWrap: "wrap",
-      }}
-    >
+    <div style={estiloContenedor}>
       <button
-        style={estilos.botonImprimir}
+        type="button"
+        style={estiloBoton}
         onClick={() => {
           setVerPlanillaPrevias(!verPlanillaPrevias);
           setMateriaExamen("");
@@ -29,12 +38,18 @@ export default function BotonesHerramientasMatricula({
           setTurnoExamen("");
         }}
       >
-        📝 Ver Planilla Previas
+        📝{" "}
+        {verPlanillaPrevias
+          ? "Ocultar Planilla Previas"
+          : "Ver Planilla Previas"}
       </button>
 
       <button
-        style={estilos.botonImprimir}
-        onClick={() => setMostrarRelevamiento(!mostrarRelevamiento)}
+        type="button"
+        style={estiloBoton}
+        onClick={() =>
+          setMostrarRelevamiento(!mostrarRelevamiento)
+        }
       >
         {mostrarRelevamiento
           ? "📊 Ocultar relevamiento"
@@ -42,17 +57,32 @@ export default function BotonesHerramientasMatricula({
       </button>
 
       <button
-        style={estilos.botonImprimir}
-        onClick={() => setVerRecursantes(!verRecursantes)}
+        type="button"
+        style={estiloBoton}
+        onClick={() =>
+          setVerRecursantes(!verRecursantes)
+        }
       >
-        🔁 {verRecursantes ? "Ocultar recursantes" : "Ver recursantes"}
+        🔁{" "}
+        {verRecursantes
+          ? "Ocultar recursantes"
+          : "Ver recursantes"}
       </button>
 
       {verRecursantes && (
-        <button style={estilos.botonImprimir} onClick={imprimirRecursantes}>
+        <button
+          type="button"
+          style={{
+            ...estiloBoton,
+            backgroundColor: "#f5f0fb",
+            border: "2px solid #d4c3e7",
+            color: "#5e3f78",
+          }}
+          onClick={imprimirRecursantes}
+        >
           🖨️ Imprimir recursantes
         </button>
       )}
     </div>
   );
-}
+} 

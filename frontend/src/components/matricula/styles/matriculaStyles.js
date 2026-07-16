@@ -163,18 +163,22 @@ export const botonAgregarPrevia = {
   padding: "10px",
 };
 export const botonImprimir = {
-  backgroundColor: "#e9eef5",
+  backgroundColor: "#edf4fb",
   color: "#1e3a5f",
-  border: "1px solid #cfd8e3",
-  padding: "8px 12px",
-  borderRadius: "8px",
+  border: "2px solid #bfd2e3",
+  padding: "12px 20px",
+  minWidth: "190px",
+  minHeight: "46px",
+  borderRadius: "12px",
   cursor: "pointer",
-  fontWeight: "bold",
-  marginLeft: "8px",
-  marginBottom: "15px",
+  fontWeight: "700",
+  fontSize: "15px",
+  margin: 0,
+  boxShadow: "0 4px 10px rgba(30,58,95,0.12)",
+  transition: "transform 0.2s ease, box-shadow 0.2s ease",
 };
 
-export const botonMover = {
+export const botonMover = { 
   backgroundColor: "#eef5ee",
   color: "#2f6b3f",
   border: "none",
@@ -194,20 +198,25 @@ export const bloqueMovimiento = {
 };
 export const bloqueEstadisticas = {
   display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-  gap: "15px",
-  marginTop: "20px",
-  marginBottom: "20px",
+  gridTemplateColumns: "repeat(auto-fit, minmax(155px, 1fr))",
+  gap: "12px",
+  marginTop: "16px",
+  marginBottom: "16px",
 };
 
 export const tarjetaEstadistica = {
   backgroundColor: "#f8fafc",
   border: "2px solid #dbe4ee",
-  borderRadius: "16px",
-  padding: "18px",
+  borderRadius: "14px",
+  padding: "12px 14px",
+  minHeight: "105px",
   textAlign: "center",
-  boxShadow: "0 10px 24px rgba(22,58,95,0.18)",
+  boxShadow: "0 6px 16px rgba(22,58,95,0.14)",
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "center",
 };
+
 export const alertaSobreedad = {
   marginLeft: "6px",
   fontSize: "13px",
@@ -242,23 +251,27 @@ export const mensajeNoEncontrado = {
   textAlign: "center",
 };
 export const bloqueBusquedaGeneral = {
-  backgroundColor: "#e9f4f7",
-  border: "4px solid #cfe3e8",
-  borderRadius: "14px",
-  padding: "4px",
-  marginBottom: "20px",
-  boxShadow: "0 10px 24px rgba(22,58,95,0.18)",
+  backgroundColor: "#eef8fb",
+  border: "3px solid #cfe3ea",
+  borderRadius: "16px",
+  padding: "10px 18px 12px",
+  textAlign: "center",
+  boxShadow: "0 5px 14px rgba(22,58,95,0.10)",
+  marginTop: "14px",
+  marginBottom: "16px",
 };
 
 export const inputBusquedaPrincipal = {
-  width: "90%",
-  maxWidth: "500px",
-  padding: "10px",
-  border: "3px solid #bfd4dc",
+  width: "640px",
+  maxWidth: "92%",
+  minHeight: "44px",
+  padding: "10px 14px",
   borderRadius: "10px",
-  fontSize: "15px",
-};
-
+  border: "3px solid #bfd3dd",
+  fontSize: "16px",
+  outlineColor: "#0f766e",
+  boxSizing: "border-box",
+}; 
 export const listaResultadosBusqueda = {
   display: "flex",
   flexDirection: "column",
@@ -289,37 +302,43 @@ export const bloqueHerramienta = {
   backgroundColor: "#f8fbff",
   border: "2px solid #dbeafe",
   borderRadius: "14px",
-  padding: "12px",
-  boxShadow: "0 10px 24px rgba(22,58,95,0.18)",
+  padding: "14px 18px",
+  boxShadow: "0 5px 14px rgba(22,58,95,0.10)",
   textAlign: "center",
+  marginTop: "12px",
 };
 
 export const panelAlertas = {
-  backgroundColor: "#fff7ed",
-  border: "2px solid #fed7aa",
-  borderRadius: "18px",
-  padding: "18px",
-  marginBottom: "20px",
-  boxShadow: "0 10px 24px rgba(22,58,95,0.18)",
+  backgroundColor: "#fff9f2",
+  border: "2px solid #ffc980",
+  borderRadius: "16px",
+  padding: "14px 18px 16px",
+  marginTop: "12px",
+  marginBottom: "16px",
+  boxShadow: "0 6px 16px rgba(145, 87, 28, 0.10)",
 };
 
 export const grillaAlertas = {
   display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+  gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
   gap: "12px",
 };
 
 export const tarjetaAlerta = {
   backgroundColor: "white",
-  border: "2px solid #fed7aa",
-  borderRadius: "14px",
-  padding: "12px",
+  border: "2px solid #ffc980",
+  borderRadius: "13px",
+  padding: "10px 12px",
+  minHeight: "58px",
   textAlign: "center",
-  boxShadow: "0 10px 24px rgba(22,58,95,0.18)",
   cursor: "pointer",
-  transition: "0.2s",
-  transform: "scale(1)",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  boxShadow: "0 3px 8px rgba(145, 87, 28, 0.06)",
 };
+
 export const grillaFicha = {
   display: "grid",
   gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
@@ -381,7 +400,7 @@ export const tablaResponsive = {
 };
 
 export const contenedorTurnos = {
-  display: "flex",
+  display: "flex", 
   flexDirection: "column",
   gap: "18px",
   marginTop: "25px",
@@ -394,4 +413,20 @@ export const tarjetaResumen = {
   textAlign: "center",
   color: "#1e3a5f",
   fontWeight: "bold",
+};
+
+export const encabezadoBloque = {
+  borderTop: "5px solid #5d86b0",
+  paddingTop: "16px",
+  marginTop: "18px",
+  marginBottom: "14px",
+};
+
+export const tituloBloque = {
+  margin: 0,
+  textAlign: "center",
+  color: "#1e3a5f",
+  fontSize: "22px",
+  fontWeight: "700",
+  lineHeight: "1.2",
 };

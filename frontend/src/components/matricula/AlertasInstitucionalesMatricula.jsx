@@ -20,15 +20,31 @@ export default function AlertasInstitucionalesMatricula({
     celda,
   } = estilos;
 
+  const estiloTituloPanel = {
+    color: "#1e3a5f",
+    textAlign: "center",
+    margin: "0 0 12px",
+    fontSize: "21px",
+    lineHeight: "1.2",
+  };
+
+  const estiloNombreAlerta = {
+    color: "#665d70",
+    fontSize: "17px",
+    lineHeight: "1.15",
+  };
+
+  const estiloCantidadAlerta = {
+    margin: "5px 0 0",
+    color: "#665d70",
+    fontSize: "18px",
+    lineHeight: "1",
+  };
+
   return (
     <>
       <div style={panelAlertas}>
-        <h3
-          style={{
-            color: "#1e3a5f",
-            textAlign: "center",
-          }}
-        >
+        <h3 style={estiloTituloPanel}>
           🚨 Alertas institucionales
         </h3>
 
@@ -37,32 +53,52 @@ export default function AlertasInstitucionalesMatricula({
             style={tarjetaAlerta}
             onClick={() => setAlertaActiva("sinLegajo")}
           >
-            <strong>Sin legajo</strong>
-            <p>{alumnosSinLegajo.length}</p>
+            <strong style={estiloNombreAlerta}>
+              Sin legajo
+            </strong>
+
+            <p style={estiloCantidadAlerta}>
+              {alumnosSinLegajo.length}
+            </p>
           </div>
 
           <div
             style={tarjetaAlerta}
             onClick={() => setAlertaActiva("sinFecha")}
           >
-            <strong>Sin fecha nacimiento</strong>
-            <p>{alumnosSinFechaNacimiento.length}</p>
+            <strong style={estiloNombreAlerta}>
+              Sin fecha nacimiento
+            </strong>
+
+            <p style={estiloCantidadAlerta}>
+              {alumnosSinFechaNacimiento.length}
+            </p>
           </div>
 
           <div
             style={tarjetaAlerta}
             onClick={() => setAlertaActiva("previas")}
           >
-            <strong>Con previas</strong>
-            <p>{alumnosConPrevias.length}</p>
+            <strong style={estiloNombreAlerta}>
+              Con previas
+            </strong>
+
+            <p style={estiloCantidadAlerta}>
+              {alumnosConPrevias.length}
+            </p>
           </div>
 
           <div
             style={tarjetaAlerta}
             onClick={() => setAlertaActiva("sobreedad")}
           >
-            <strong>Sobreedad</strong>
-            <p>{alumnosConSobreedad.length}</p>
+            <strong style={estiloNombreAlerta}>
+              Sobreedad
+            </strong>
+
+            <p style={estiloCantidadAlerta}>
+              {alumnosConSobreedad.length}
+            </p>
           </div>
         </div>
       </div>
@@ -82,7 +118,8 @@ export default function AlertasInstitucionalesMatricula({
           </button>
 
           <p>
-            Cantidad: <strong>{alumnosAlertaActiva.length}</strong>
+            Cantidad:{" "}
+            <strong>{alumnosAlertaActiva.length}</strong>
           </p>
 
           <table style={tabla}>
@@ -116,12 +153,17 @@ export default function AlertasInstitucionalesMatricula({
                       {formatearDNI(alumno.dni)}
                     </td>
 
-                    <td style={celda}>{alumno.curso}</td>
-
-                    <td style={celda}>{alumno.turno}</td>
+                    <td style={celda}>
+                      {alumno.curso}
+                    </td>
 
                     <td style={celda}>
-                      {alumno.legajoNumero && alumno.legajoAnio
+                      {alumno.turno}
+                    </td>
+
+                    <td style={celda}>
+                      {alumno.legajoNumero &&
+                      alumno.legajoAnio
                         ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
                         : "-"}
                     </td>

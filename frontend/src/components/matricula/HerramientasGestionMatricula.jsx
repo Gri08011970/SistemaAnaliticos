@@ -103,42 +103,66 @@ export default function HerramientasGestionMatricula({
     tarjetaCurso,
     textoCantidad,
     botonCurso,
+    encabezadoBloque,
+    tituloBloque,
   } = estilos;
 
   return (
     <>
-      <h3 style={tituloFicha}>
-        🛠 Herramientas de gestión
-      </h3>
+      <div style={encabezadoBloque}>
+        <h3 style={tituloBloque}>🛠 Herramientas de gestión</h3>
+      </div>
 
       <div style={panelHerramientas}>
-        <button
-          type="button"
-          style={botonImprimir}
-          onClick={() =>
-            setVerSeguimientoPedagogico(
-              !verSeguimientoPedagogico,
-            )
-          }
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginBottom: "18px",
+          }}
         >
-          🚦 Seguimiento Pedagógico
-        </button>
+          <button
+            type="button"
+            style={{
+              ...botonImprimir,
+              backgroundColor: verSeguimientoPedagogico ? "#edf2f7" : "#e8f7f3",
+              color: verSeguimientoPedagogico ? "#4b5563" : "#0f5f56",
+              border: verSeguimientoPedagogico
+                ? "2px solid #c5d1df"
+                : "2px solid #8fcfc1",
+              padding: "13px 26px",
+              minWidth: "280px",
+              minHeight: "50px",
+              borderRadius: "14px",
+              fontSize: "16px",
+              fontWeight: "800",
+              margin: 0,
+              boxShadow: "0 5px 14px rgba(15,118,110,0.15)",
+            }}
+            onClick={() =>
+              setVerSeguimientoPedagogico(!verSeguimientoPedagogico)
+            }
+          >
+            {verSeguimientoPedagogico
+              ? "✖️ Cerrar Seguimiento Pedagógico"
+              : "🚦 Seguimiento Pedagógico"}
+          </button>
+        </div>
 
         {verSeguimientoPedagogico && (
           <div
             style={{
-              margin: "24px 0 36px",
+              width: "100%",
+              margin: "0 0 22px",
               padding: "24px",
+              boxSizing: "border-box",
               border: "2px solid #bdd9e4",
               borderRadius: "18px",
               background: "#ffffff",
-              boxShadow:
-                "0 8px 24px rgba(49, 92, 126, 0.12)",
+              boxShadow: "0 8px 24px rgba(49, 92, 126, 0.12)",
             }}
           >
-            <SeguimientoPedagogico
-              alumnos={alumnosMatricula}
-            />
+            <SeguimientoPedagogico alumnos={alumnosMatricula} />
           </div>
         )}
 
@@ -174,12 +198,8 @@ export default function HerramientasGestionMatricula({
           setAnioLegajoFiltro={setAnioLegajoFiltro}
           libroMatrizFiltro={libroMatrizFiltro}
           setLibroMatrizFiltro={setLibroMatrizFiltro}
-          aniosLegajoDisponibles={
-            aniosLegajoDisponibles
-          }
-          librosMatrizDisponibles={
-            librosMatrizDisponibles
-          }
+          aniosLegajoDisponibles={aniosLegajoDisponibles}
+          librosMatrizDisponibles={librosMatrizDisponibles}
           estilos={{
             bloqueHerramienta,
             inputAlumno,
@@ -190,19 +210,11 @@ export default function HerramientasGestionMatricula({
           anioLegajoFiltro={anioLegajoFiltro}
           libroMatrizFiltro={libroMatrizFiltro}
           mostrarLegajosArchivo={mostrarLegajosArchivo}
-          setMostrarLegajosArchivo={
-            setMostrarLegajosArchivo
-          }
+          setMostrarLegajosArchivo={setMostrarLegajosArchivo}
           mostrarMatrizArchivo={mostrarMatrizArchivo}
-          setMostrarMatrizArchivo={
-            setMostrarMatrizArchivo
-          }
-          obtenerLegajosFaltantes={
-            obtenerLegajosFaltantes
-          }
-          obtenerFoliosFaltantes={
-            obtenerFoliosFaltantes
-          }
+          setMostrarMatrizArchivo={setMostrarMatrizArchivo}
+          obtenerLegajosFaltantes={obtenerLegajosFaltantes}
+          obtenerFoliosFaltantes={obtenerFoliosFaltantes}
           alumnosPorMatriz={alumnosPorMatriz}
           formatearDNI={formatearDNI}
           estilos={{
@@ -234,9 +246,7 @@ export default function HerramientasGestionMatricula({
           aniosMateria={aniosMateria}
           alumnosParaExamen={alumnosParaExamen}
           formatearDNI={formatearDNI}
-          imprimirPlanillaPrevias={
-            imprimirPlanillaPrevias
-          }
+          imprimirPlanillaPrevias={imprimirPlanillaPrevias}
           cerrarPlanillaPrevias={cerrarPlanillaPrevias}
           estilos={{
             detalleCurso,
@@ -275,13 +285,9 @@ export default function HerramientasGestionMatricula({
           cursosManana={cursosManana}
           cursosTarde={cursosTarde}
           mostrarTurnoManana={mostrarTurnoManana}
-          setMostrarTurnoManana={
-            setMostrarTurnoManana
-          }
+          setMostrarTurnoManana={setMostrarTurnoManana}
           mostrarTurnoTarde={mostrarTurnoTarde}
-          setMostrarTurnoTarde={
-            setMostrarTurnoTarde
-          }
+          setMostrarTurnoTarde={setMostrarTurnoTarde}
           fotosPreceptores={fotosPreceptores}
           contarAlumnos={contarAlumnos}
           setCursoSeleccionado={setCursoSeleccionado}

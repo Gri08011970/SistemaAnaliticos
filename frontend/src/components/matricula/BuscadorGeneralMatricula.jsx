@@ -13,7 +13,14 @@ export default function BuscadorGeneralMatricula({
 }) {
   return (
     <div style={estilos.bloqueBusquedaGeneral}>
-      <h3 style={{ color: "#1e3a5f", marginBottom: "10px", marginTop: "0px" }}>
+      <h3
+        style={{
+          color: "#1e3a5f",
+          margin: "0 0 8px",
+          fontSize: "21px",
+          lineHeight: "1.2",
+        }}
+      >
         🔎 Buscar estudiante
       </h3>
 
@@ -29,7 +36,7 @@ export default function BuscadorGeneralMatricula({
         <div style={estilos.listaResultadosBusqueda}>
           {alumnosEncontrados.map((alumno) => {
             const pedidoAnalitico = pedidosAnaliticos.find(
-              (pedido) => limpiarDNI(pedido.dni) === limpiarDNI(alumno.dni)
+              (pedido) => limpiarDNI(pedido.dni) === limpiarDNI(alumno.dni),
             );
 
             return (
