@@ -218,7 +218,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
       legajoAnio: "",
       fechaNacimiento: "",
       condicionFinal: "",
-      materiasPendientes: [],
+      materiasPendientes: [], 
       nacionalidad: "",
       sexo: "",
     });
@@ -634,6 +634,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
             }}
           />
           <HerramientasGestionMatricula
+            esAdmin={esAdmin}
             alumnosMatricula={alumnosMatricula}
             verSeguimientoPedagogico={verSeguimientoPedagogico}
             setVerSeguimientoPedagogico={setVerSeguimientoPedagogico}

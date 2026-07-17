@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import CeldaSemaforo from "./CeldaSemaforo";
 
-export default function TablaSeguimiento({ curso, asignatura, alumnos }) {
+export default function TablaSeguimiento({ curso, asignatura, alumnos,esAdmin, }) {
   const [seguimiento, setSeguimiento] = useState({});
 
   const [cargando, setCargando] = useState(false);
   const [errorGuardado, setErrorGuardado] = useState("");
 
-  const seguimientoRef = useRef(seguimiento);
+  const seguimientoRef = useRef(seguimiento); 
 
   useEffect(() => {
   seguimientoRef.current = seguimiento;
@@ -131,51 +131,56 @@ export default function TablaSeguimiento({ curso, asignatura, alumnos }) {
       );
     }
   };
-
-  
-
-  // =====================================
-  // CAMBIAR ESTADO CONCEPTUAL
-  // =====================================
-
+   
   const cambiarEstado = (alumnoId, periodo) => {
-    const clave = obtenerClave(alumnoId, periodo);
+  if (!esAdmin) return;
 
-    const registroActual = seguimientoRef.current[clave] || {};
+  const clave = obtenerClave(alumnoId, periodo);
 
-    const valorActual = registroActual.conceptual || "-";
+  const registroActual =
+    seguimientoRef.current[clave] || {};
 
-    let nuevoValor = "-";
+  const valorActual =
+    registroActual.conceptual || "-";
 
-    if (valorActual === "-") nuevoValor = "TEA";
-    else if (valorActual === "TEA") nuevoValor = "TEP";
-    else if (valorActual === "TEP") nuevoValor = "TED";
+  let nuevoValor = "-";
 
-    const registroNuevo = {
-      ...registroActual,
-      conceptual: nuevoValor,
-      nota: registroActual.nota || "",
-    };
+  if (valorActual === "-") {
+    nuevoValor = "TEA";
+  } else if (valorActual === "TEA") {
+    nuevoValor = "TEP";
+  } else if (valorActual === "TEP") {
+    nuevoValor = "TED";
+  } else if (valorActual === "TED") {
+    nuevoValor = "-";
+  }
 
-    setSeguimiento((datosAnteriores) => ({
-      ...datosAnteriores,
-      [clave]: registroNuevo,
-    }));
-
-    guardarRegistroEnMongo({
-      alumnoId,
-      periodo,
-      conceptual: registroNuevo.conceptual,
-      nota: registroNuevo.nota,
-    });
+  const registroNuevo = {
+    ...registroActual,
+    conceptual: nuevoValor,
+    nota: registroActual.nota || "",
   };
 
+  setSeguimiento((datosAnteriores) => ({
+    ...datosAnteriores,
+    [clave]: registroNuevo,
+  }));
+
+  guardarRegistroEnMongo({
+    alumnoId,
+    periodo,
+    conceptual: registroNuevo.conceptual,
+    nota: registroNuevo.nota,
+  });
+};
   // =====================================
   // CAMBIAR NOTA
   // =====================================
 
   const cambiarNota = (alumnoId, periodo, nota) => {
-    const clave = obtenerClave(alumnoId, periodo);
+  if (!esAdmin) return;
+
+  const clave = obtenerClave(alumnoId, periodo); 
 
     const registroActual = seguimientoRef.current[clave] || {};
 
@@ -357,6 +362,7 @@ export default function TablaSeguimiento({ curso, asignatura, alumnos }) {
                     <CeldaSemaforo
                       valor={seguimiento[clave]?.conceptual || "-"}
                       nota={seguimiento[clave]?.nota || ""}
+                      esAdmin={esAdmin}
                       onChangeEstado={() =>
                         cambiarEstado(alumno._id, periodo.clave)
                       }

@@ -5,21 +5,38 @@ import FichaSeguimientoAlumno from "./FichaSeguimientoAlumno";
 import { obtenerAsignaturasPorCurso } from "./seguimientoConstants";
 
 const cursos = [
-  "1°1°", "1°2°", "1°3°", "1°4°",
-  "2°1°", "2°2°", "2°3°", "2°4°",
-  "3°1°", "3°2°", "3°3°", "3°4°",
-  "4°1°", "4°2°", "4°3°", "4°4°",
-  "5°1°", "5°2°", "5°3°", "5°4°",
-  "6°1°", "6°2°", "6°3°", "6°4°",
+  "1°1°",
+  "1°2°",
+  "1°3°",
+  "1°4°",
+  "2°1°",
+  "2°2°",
+  "2°3°",
+  "2°4°",
+  "3°1°",
+  "3°2°",
+  "3°3°",
+  "3°4°",
+  "4°1°",
+  "4°2°",
+  "4°3°",
+  "4°4°",
+  "5°1°",
+  "5°2°",
+  "5°3°",
+  "5°4°",
+  "6°1°",
+  "6°2°",
+  "6°3°",
+  "6°4°",
 ];
 
-export default function SeguimientoPedagogico({ alumnos }) {
+export default function SeguimientoPedagogico({ alumnos, esAdmin }) {
   const [vistaActiva, setVistaActiva] = useState("carga");
   const [cursoSeleccionado, setCursoSeleccionado] = useState("");
   const [asignaturaSeleccionada, setAsignaturaSeleccionada] = useState("");
 
-  const asignaturasDisponibles =
-    obtenerAsignaturasPorCurso(cursoSeleccionado);
+  const asignaturasDisponibles = obtenerAsignaturasPorCurso(cursoSeleccionado);
 
   const alumnosOrdenados = [...alumnos].sort((a, b) => {
     const comparacionApellido = (a.apellido || "").localeCompare(
@@ -32,27 +49,42 @@ export default function SeguimientoPedagogico({ alumnos }) {
       return comparacionApellido;
     }
 
-    return (a.nombre || "").localeCompare(
-      b.nombre || "",
-      "es",
-      { sensitivity: "base" },
-    );
+    return (a.nombre || "").localeCompare(b.nombre || "", "es", {
+      sensitivity: "base",
+    });
   });
 
   return (
-
-  
     <div className="seguimiento-container seguimiento-encabezado-responsive">
-      <h2>🚦 Seguimiento Pedagógico</h2> 
+      <h2>🚦 Seguimiento Pedagógico</h2>
+      {!esAdmin && (
+        <div
+          style={{
+            maxWidth: "760px",
+            margin: "10px auto 18px",
+            padding: "10px 14px", 
+            border: "1px solid #d8c6ea",
+            borderRadius: "10px",
+            backgroundColor: "#f8f3fc",
+            color: "#684b80",
+            textAlign: "center",
+            fontWeight: "700",
+            fontSize: "14px",
+          }}
+        >
+          🔒 Modo consulta: podés revisar, analizar e imprimir, pero no
+          modificar datos.
+        </div>
+      )}
 
-      <div className="seguimiento-botones-responsive"
+      <div
+        className="seguimiento-botones-responsive"
         style={{
           display: "flex",
           justifyContent: "center",
           gap: "16px",
           margin: "20px 0 30px",
           flexWrap: "wrap",
-          
         }}
       >
         <button type="button" onClick={() => setVistaActiva("carga")}>
@@ -68,7 +100,10 @@ export default function SeguimientoPedagogico({ alumnos }) {
         </button>
       </div>
 
-      <div  className="filtros-seguimiento-responsive" style={{ marginBottom: "20px" }}>
+      <div
+        className="filtros-seguimiento-responsive"
+        style={{ marginBottom: "20px" }}
+      >
         <label>Curso:&nbsp;</label>
 
         <select
@@ -104,7 +139,7 @@ export default function SeguimientoPedagogico({ alumnos }) {
                 <option key={asignatura} value={asignatura}>
                   {asignatura}
                 </option>
-              ))} 
+              ))}
             </select>
           </div>
 
@@ -113,6 +148,7 @@ export default function SeguimientoPedagogico({ alumnos }) {
               curso={cursoSeleccionado}
               asignatura={asignaturaSeleccionada}
               alumnos={alumnosOrdenados}
+              esAdmin={esAdmin}
             />
           ) : (
             <p style={{ color: "#666", marginTop: "20px" }}>

@@ -416,17 +416,21 @@ export const tarjetaResumen = {
 };
 
 export const encabezadoBloque = {
-  borderTop: "5px solid #5d86b0",
-  paddingTop: "16px",
-  marginTop: "18px",
-  marginBottom: "14px",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  margin: "-10px -24px 24px",
+  padding: "16px 24px",
+  borderBottom: "2px solid #d7e7f2",
+  background: "linear-gradient(180deg,#f8fcff,#eef7fb)",
+  borderTopLeftRadius: "18px",
+  borderTopRightRadius: "18px",
 };
 
 export const tituloBloque = {
   margin: 0,
-  textAlign: "center",
   color: "#1e3a5f",
-  fontSize: "22px",
+  fontSize: "2rem",
   fontWeight: "700",
-  lineHeight: "1.2",
+  letterSpacing: "0.3px",
 };
