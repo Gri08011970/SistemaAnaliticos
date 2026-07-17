@@ -52,6 +52,79 @@ export default function ResumenAsignaturas({ estadisticasPorAsignatura }) {
     ventana.print();
     ventana.close();
   };
+  const prioridadEstado = {
+  "🔴 Intervención pedagógica prioritaria": 4,
+  "🟠 Requiere intervención": 3,
+  "🟡 Observar": 2,
+  "🟢 Excelente": 1,
+  "⚪ Pendiente de carga": 0,
+};
+
+const asignaturasOrdenadas = [...estadisticasPorAsignatura].sort(
+  (a, b) => {
+    const diferenciaPrioridad =
+      (prioridadEstado[b.estado] || 0) -
+      (prioridadEstado[a.estado] || 0);
+
+    if (diferenciaPrioridad !== 0) {
+      return diferenciaPrioridad;
+    }
+
+    if ((b.aplazos || 0) !== (a.aplazos || 0)) {
+      return (b.aplazos || 0) - (a.aplazos || 0);
+    }
+
+    if (b.ted !== a.ted) {
+      return b.ted - a.ted;
+    }
+
+    if (b.tep !== a.tep) {
+      return b.tep - a.tep;
+    }
+
+    return a.indice - b.indice;
+  },
+);
+
+const obtenerDatosRiesgo = (estado) => {
+  if (estado.includes("prioritaria")) {
+    return {
+      nivel: "Riesgo crítico",
+      fondo: "#ffd1d1",
+      color: "#b71c1c",
+    };
+  }
+
+  if (estado.includes("Requiere intervención")) {
+    return {
+      nivel: "Riesgo alto",
+      fondo: "#ffe0c2",
+      color: "#a94700",
+    };
+  }
+
+  if (estado.includes("Observar")) {
+    return {
+      nivel: "Riesgo moderado",
+      fondo: "#fff1b8",
+      color: "#856400",
+    };
+  }
+
+  if (estado.includes("Excelente")) {
+    return {
+      nivel: "Riesgo bajo",
+      fondo: "#d9f5d6",
+      color: "#2e7d32",
+    };
+  }
+
+  return {
+    nivel: "Sin evaluación",
+    fondo: "#eef1f4",
+    color: "#667085",
+  };
+};
 
   return (
     <div
@@ -100,7 +173,7 @@ export default function ResumenAsignaturas({ estadisticasPorAsignatura }) {
               borderTop: "6px solid #5d86b0",
             }}
           >
-            {estadisticasPorAsignatura.map((item) => (
+            {asignaturasOrdenadas.map((item) => (
               <div
                 key={item.asignatura}
                 style={{
@@ -136,7 +209,7 @@ export default function ResumenAsignaturas({ estadisticasPorAsignatura }) {
                   <span>🔵 {item.tea}</span>
                   <span>🟢 {item.tep}</span>
                   <span>🔴 {item.ted}</span>
-                </div>
+                </div> 
 
                 {item.totalCargados === 0 ? (
                   <>
@@ -169,53 +242,78 @@ export default function ResumenAsignaturas({ estadisticasPorAsignatura }) {
                   </>
                 ) : (
                   <>
-                    <div
-                      style={{
-                        marginTop: "8px",
-                        textAlign: "center",
-                        fontSize: "11px",
-                        color: "#6b7280",
-                        fontWeight: 600,
-                      }}
-                    >
-                      Índice
-                    </div>
+                    {(() => {
+                      const riesgo = obtenerDatosRiesgo(item.estado);
 
-                    <div
-                      style={{
-                        textAlign: "center",
-                        fontSize: "16px",
-                        fontWeight: 700,
-                        color: "#43506f",
-                      }}
-                    >
-                      {item.indice}%
-                    </div>
+                      return (
+                        <>
+                          <div
+                            style={{
+                              marginTop: "9px",
+                              textAlign: "center",
+                              fontSize: "11px",
+                              color: "#6b7280",
+                              fontWeight: 700,
+                              textTransform: "uppercase",
+                              letterSpacing: "0.3px",
+                            }}
+                          >
+                            Riesgo pedagógico
+                          </div>
 
-                    <div
-                      style={{
-                        marginTop: "6px",
-                        textAlign: "center",
-                        padding: "4px",
-                        borderRadius: "8px",
-                        fontWeight: 600,
-                        fontSize: "11px",
-                        background:
-                          item.estado === "🔵 Excelente"
-                            ? COLORES_SEGUIMIENTO.TEA.fondoClaro
-                            : item.estado === "🟡 Observar"
-                              ? COLORES_SEGUIMIENTO.TEP.fondoClaro
-                              : COLORES_SEGUIMIENTO.TED.fondoClaro,
-                        color:
-                          item.estado === "🔵 Excelente"
-                            ? COLORES_SEGUIMIENTO.TEA.texto
-                            : item.estado === "🟡 Observar"
-                              ? COLORES_SEGUIMIENTO.TEP.texto
-                              : COLORES_SEGUIMIENTO.TED.texto,
-                      }}
-                    >
-                      {item.estado}
-                    </div>
+                          <div
+                            style={{
+                              marginTop: "3px",
+                              textAlign: "center",
+                              padding: "7px 5px",
+                              borderRadius: "8px",
+                              fontWeight: 700,
+                              fontSize: "12px",
+                              background: riesgo.fondo,
+                              color: riesgo.color,
+                            }}
+                          >
+                            {riesgo.nivel}
+                          </div>
+
+                          <div
+                            style={{
+                              marginTop: "7px",
+                              textAlign: "center",
+                              padding: "6px 5px",
+                              borderRadius: "8px",
+                              fontWeight: 700,
+                              fontSize: "11px",
+                              lineHeight: "1.5",
+                              background: riesgo.fondo,
+                              color: riesgo.color,
+                            }}
+                          >
+                            {item.estado}
+                          </div>
+
+                          <div
+                            style={{
+                              marginTop: "7px",
+                              textAlign: "center",
+                              fontSize: "10px",
+                              color: "#6b7280",
+                              lineHeight: "1.4",
+                            }}
+                          >
+                            {item.aplazos > 0
+                              ? `${item.aplazos} aplazo${
+                                  item.aplazos === 1 ? "" : "s"
+                                }`
+                              : "Sin aplazos"}
+
+                            <br />
+
+                            Índice pedagógico: {item.indice}%
+                          </div>
+                        </>
+                      );
+                    })()}
                   </>
                 )}
               </div>

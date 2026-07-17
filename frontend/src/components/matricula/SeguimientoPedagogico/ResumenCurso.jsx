@@ -144,91 +144,162 @@ export default function ResumenCurso({ curso, alumnos }) {
 
   const estadisticas = calcularEstadisticas();
 
-  const calcularEstadisticasPorAsignatura = () => {
-    return asignaturasResumen.map((asignatura) => {
-      let tea = 0;
-      let tep = 0;
-      let ted = 0;
+ const calcularEstadisticasPorAsignatura = () => {
+  return asignaturasResumen.map((asignatura) => {
+    let tea = 0;
+    let tep = 0;
+    let ted = 0;
+    let aplazos = 0;
 
-      alumnosCurso.forEach((alumno) => {
-        const dato = obtenerDato(alumno._id, asignatura);
-
-        if (dato.conceptual === "TEA") tea++;
-        if (dato.conceptual === "TEP") tep++;
-        if (dato.conceptual === "TED") ted++;
-      });
-
-      const totalCargados = tea + tep + ted;
-
-      const indice = obtenerIndicePedagogico({
-        tea,
-        tep,
-        ted,
-      });
-
-      const estado =
-        totalCargados === 0
-          ? "⚪ Pendiente de carga"
-          : obtenerEstadoAsignatura(indice);
-
-      return {
+    alumnosCurso.forEach((alumno) => {
+      const dato = obtenerDato(
+        alumno._id,
         asignatura,
-        tea,
-        tep,
-        ted,
-        totalCargados,
-        indice,
-        estado,
-      };
-    });
-  };
+      );
 
-  const estadisticasPorAsignatura = calcularEstadisticasPorAsignatura();
+      if (dato.conceptual === "TEA") tea++;
+      if (dato.conceptual === "TEP") tep++;
+      if (dato.conceptual === "TED") ted++;
 
-  const generarObservaciones = () => {
-    const fortalezas = [];
-    const pendientes = [];
-    const recomendaciones = [];
+      const notaNumerica = Number(dato.nota);
 
-    estadisticasPorAsignatura.forEach((item) => {
-      const total = item.tea + item.tep + item.ted;
+      const tieneNota =
+        dato.nota !== "" &&
+        dato.nota !== null &&
+        dato.nota !== undefined &&
+        !Number.isNaN(notaNumerica);
 
-      if (total === 0) {
-        pendientes.push(
-          `🟡 ${item.asignatura} aún no posee registros cargados para este período.`,
-        );
-      } else if (item.indice >= 85) {
-        fortalezas.push(
-          `🟢 ${item.asignatura} presenta una evolución favorable.`,
-        );
-      } else if (item.indice >= 60) {
-        pendientes.push(
-          `🟡 ${item.asignatura} requiere seguimiento durante el período.`,
-        );
-      } else {
-        recomendaciones.push(
-          `🔴 ${item.asignatura} requiere intervención pedagógica prioritaria.`,
-        );
+      if (
+        tieneNota &&
+        notaNumerica >= 1 &&
+        notaNumerica <= 3
+      ) {
+        aplazos++;
       }
     });
 
-    const materiasSinCarga = estadisticasPorAsignatura.filter(
-      (item) => item.tea + item.tep + item.ted === 0,
-    ).length;
+    const totalCargados = tea + tep + ted;
 
-    if (materiasSinCarga > 0) {
-      recomendaciones.push(
-        "📌 Se recomienda completar la carga de las asignaturas pendientes antes del cierre del período.",
-      );
-    }
+    const indice = obtenerIndicePedagogico({
+      tea,
+      tep,
+      ted,
+    });
+
+    const estado = obtenerEstadoAsignatura({
+      indice,
+      tea,
+      tep,
+      ted,
+      aplazos,
+      totalCargados,
+    });
 
     return {
-      fortalezas,
-      pendientes,
-      recomendaciones,
+      asignatura,
+      tea,
+      tep,
+      ted,
+      aplazos,
+      totalCargados,
+      indice,
+      estado,
     };
+  });
+};
+
+const estadisticasPorAsignatura =
+  calcularEstadisticasPorAsignatura();
+
+const generarObservaciones = () => {
+  const fortalezas = [];
+  const pendientes = [];
+  const recomendaciones = [];
+
+  estadisticasPorAsignatura.forEach((item) => {
+    if (item.totalCargados === 0) {
+      pendientes.push(
+        `⚪ ${item.asignatura} aún no posee registros cargados para este período.`,
+      );
+
+      return;
+    }
+
+    if (
+      item.estado.includes(
+        "Intervención pedagógica prioritaria",
+      )
+    ) {
+      recomendaciones.push(
+        `🔴 ${item.asignatura} requiere intervención pedagógica prioritaria. ` +
+          `Registra ${item.tep} trayectoria(s) en proceso, ` +
+          `${item.ted} trayectoria(s) discontinua(s)` +
+          `${
+            item.aplazos > 0
+              ? ` y ${item.aplazos} aplazo(s).`
+              : "."
+          }`,
+      );
+
+      return;
+    }
+
+    if (item.estado.includes("Requiere intervención")) {
+      recomendaciones.push(
+        `🟠 ${item.asignatura} requiere acciones de intervención y acompañamiento. ` +
+          `Registra ${item.tep} trayectoria(s) en proceso, ` +
+          `${item.ted} trayectoria(s) discontinua(s)` +
+          `${
+            item.aplazos > 0
+              ? ` y ${item.aplazos} aplazo(s).`
+              : "."
+          }`,
+      );
+
+      return;
+    }
+
+    if (item.estado.includes("Observar")) {
+      pendientes.push(
+        `🟡 ${item.asignatura} requiere seguimiento durante el período. ` +
+          `Registra ${item.tep} trayectoria(s) en proceso, ` +
+          `${item.ted} trayectoria(s) discontinua(s)` +
+          `${
+            item.aplazos > 0
+              ? ` y ${item.aplazos} aplazo(s).`
+              : "."
+          }`,
+      );
+
+      return;
+    }
+
+    fortalezas.push(
+      `🟢 ${item.asignatura} presenta una evolución favorable.`,
+    );
+  });
+
+  const materiasSinCarga =
+    estadisticasPorAsignatura.filter(
+      (item) => item.totalCargados === 0,
+    ).length;
+
+  if (materiasSinCarga > 0) {
+    recomendaciones.push(
+      "📌 Se recomienda completar la carga de las asignaturas pendientes antes del cierre del período.",
+    );
+  }
+
+  return {
+    fortalezas,
+    pendientes,
+    recomendaciones,
   };
-  const observacionesSistema = generarObservaciones();
+};
+
+const observacionesSistema =
+  generarObservaciones();
+  
   const fechaAnalisis = new Date().toLocaleString("es-AR");
 
   const colorCelda = (conceptual) => {
