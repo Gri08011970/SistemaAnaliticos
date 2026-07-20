@@ -3,6 +3,7 @@ import TablaSeguimiento from "./TablaSeguimiento";
 import ResumenCurso from "./ResumenCurso";
 import FichaSeguimientoAlumno from "./FichaSeguimientoAlumno";
 import { obtenerAsignaturasPorCurso } from "./seguimientoConstants";
+import "./pruebasTrayectoria";
 
 const cursos = [
   "1°1°",
