@@ -1,8 +1,5 @@
 import { useState } from "react";
-import {
-  obtenerIndicePedagogico,
-  obtenerEstadoPorIndice,
-} from "./seguimientoResumenUtils";
+import { obtenerIndicePedagogico } from "./seguimientoResumenUtils";
 
 export default function ResumenEstudiantes({
   alumnosCurso,
@@ -34,11 +31,25 @@ export default function ResumenEstudiantes({
     const totalCargados = tea + tep + ted;
     const indice = obtenerIndicePedagogico({ tea, tep, ted });
 
-    const estado =
-      totalCargados === 0
-        ? "⚪ Sin registros para este período"
-        : obtenerEstadoPorIndice(indice);
+    let estado = "⚪ Sin registros para este período";
+    let categoria = "sinRegistros";
 
+    if (totalCargados > 0) {
+      const esPrioritario = ted >= 2 || (ted >= 1 && tep >= 2);
+
+      const requiereSeguimiento = !esPrioritario && (ted === 1 || tep >= 2);
+
+      if (esPrioritario) {
+        estado = "🔴 Intervención pedagógica prioritaria";
+        categoria = "prioritarios";
+      } else if (requiereSeguimiento) {
+        estado = "🟡 Requiere seguimiento";
+        categoria = "seguimiento";
+      } else {
+        estado = "🔵 Evolución favorable";
+        categoria = "favorables";
+      }
+    }
     return {
       alumno,
       tea,
@@ -47,41 +58,50 @@ export default function ResumenEstudiantes({
       totalCargados,
       indice,
       estado,
+       categoria,
     };
   });
 
   const prioritarios = resumenEstudiantes
-    .filter(
-      (item) =>
-        item.totalCargados > 0 &&
-        item.estado.includes("Intervención pedagógica prioritaria"),
-    )
-    .sort((a, b) => a.indice - b.indice);
+  .filter((item) => item.categoria === "prioritarios")
+  .sort((a, b) => {
+    if (b.ted !== a.ted) {
+      return b.ted - a.ted;
+    }
+
+    if (b.tep !== a.tep) {
+      return b.tep - a.tep;
+    }
+
+    return a.indice - b.indice;
+  });
 
   const seguimiento = resumenEstudiantes
-    .filter(
-      (item) =>
-        item.totalCargados > 0 &&
-        item.estado.includes("Requiere seguimiento"),
-    )
-    .sort((a, b) => a.indice - b.indice);
+  .filter((item) => item.categoria === "seguimiento")
+  .sort((a, b) => {
+    if (b.ted !== a.ted) {
+      return b.ted - a.ted;
+    }
+
+    if (b.tep !== a.tep) {
+      return b.tep - a.tep;
+    }
+
+    return a.indice - b.indice;
+  });
 
   const favorables = resumenEstudiantes
-    .filter(
-      (item) =>
-        item.totalCargados > 0 &&
-        item.estado.includes("Evolución favorable"),
-    )
-    .sort((a, b) => b.indice - a.indice);
+  .filter((item) => item.categoria === "favorables")
+  .sort((a, b) => b.indice - a.indice);
 
   const sinRegistros = resumenEstudiantes
-    .filter((item) => item.totalCargados === 0)
-    .sort((a, b) =>
-      `${a.alumno.apellido} ${a.alumno.nombre}`.localeCompare(
-        `${b.alumno.apellido} ${b.alumno.nombre}`,
-        "es",
-      ),
-    );
+  .filter((item) => item.categoria === "sinRegistros")
+  .sort((a, b) =>
+    `${a.alumno.apellido} ${a.alumno.nombre}`.localeCompare(
+      `${b.alumno.apellido} ${b.alumno.nombre}`,
+      "es",
+    ),
+  );
 
   const alternarGrupo = (grupo) => {
     setGruposAbiertos((estadoAnterior) => ({
@@ -147,13 +167,7 @@ export default function ResumenEstudiantes({
     ventana.close();
   };
 
-  const renderGrupo = ({
-    clave,
-    titulo,
-    items,
-    fondo,
-    color,  
-  }) => {
+  const renderGrupo = ({ clave, titulo, items, fondo, color }) => {
     const abierto = gruposAbiertos[clave];
 
     return (
@@ -162,8 +176,8 @@ export default function ResumenEstudiantes({
         style={{
           marginTop: "10px",
           border: "2px solid  #bcd7e3",
-          
-          boxShadow:  "0 5px 14px rgba(44, 84, 116, 0.10)",
+
+          boxShadow: "0 5px 14px rgba(44, 84, 116, 0.10)",
           borderRadius: "10px",
           overflow: "hidden",
           background: "#ffffff",
@@ -260,7 +274,7 @@ export default function ResumenEstudiantes({
         margin: "16px 0",
         padding: "12px",
         border: "2px solid  #bcd7e3",
-        boxShadow:  "0 5px 14px rgba(44, 84, 116, 0.10)",
+        boxShadow: "0 5px 14px rgba(44, 84, 116, 0.10)",
         borderRadius: "14px",
         background: "#f9fcff",
       }}
