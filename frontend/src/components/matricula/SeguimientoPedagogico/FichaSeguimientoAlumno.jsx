@@ -4,6 +4,14 @@ import {
   COLORES_SEGUIMIENTO,
 } from "./seguimientoConstants";
 
+import InformeInstitucional from "./InformeInstitucional.jsx";
+
+import {
+  analizarTrayectoria,
+  PERIODOS_ANALISIS_TRAYECTORIA,
+  ETIQUETAS_PERIODOS_ANALISIS,
+} from "./analizadorTrayectoria";
+
 const periodos = [
   { clave: "mayo", etiqueta: "Mayo" },
   { clave: "primerCuat", etiqueta: "1° Cuat." },
@@ -25,6 +33,7 @@ const colorConceptual = (conceptual) => {
 export default function FichaSeguimientoAlumno({ alumnos = [] }) {
   const [busqueda, setBusqueda] = useState("");
   const [alumnoSeleccionado, setAlumnoSeleccionado] = useState(null);
+  const [periodoInforme, setPeriodoInforme] = useState("1° Cuatrimestre");
 
   const [seguimiento, setSeguimiento] = useState({});
   const [cargandoSeguimiento, setCargandoSeguimiento] = useState(false);
@@ -84,6 +93,7 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
 
     obtenerFichaDesdeMongo();
   }, [alumnoSeleccionado]);
+
   const resultados = alumnos.filter((a) => {
     const texto = `${a.apellido} ${a.nombre} ${a.dni}`.toLowerCase();
     return texto.includes(busqueda.toLowerCase());
@@ -92,6 +102,17 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
   const asignaturas = alumnoSeleccionado
     ? obtenerAsignaturasPorCurso(alumnoSeleccionado.curso)
     : [];
+    
+  const resultadoTrayectoria = alumnoSeleccionado
+    ? analizarTrayectoria({
+        alumno: alumnoSeleccionado,
+        seguimiento,
+        asignaturas,
+        periodo: periodoInforme,
+      })
+    : null;
+
+  const informeInstitucional = resultadoTrayectoria?.informe || null;
 
   const obtenerDato = (asignatura, periodo) => {
     const clave = `${alumnoSeleccionado.curso}-${asignatura}-${alumnoSeleccionado._id}-${periodo}`;
@@ -99,49 +120,199 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
   };
 
   const imprimirFicha = () => {
-    const contenido = document.getElementById(
-      "ficha-seguimiento-imprimir",
-    ).innerHTML;
-    const ventana = window.open("", "_blank");
+  const informe =
+    document.getElementById(
+      "informe-institucional-imprimir",
+    );
 
-    ventana.document.write(`
-      <html>
-        <head>
-          <title>Ficha pedagógica</title>
-          <style>
-            @page { size: A4 portrait; margin: 10mm; }
-            body { font-family: Arial, sans-serif; color: #222; }
-            h2, h3 { text-align: center; }
-            table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 10px; }
-            th, td { border: 2px solid #999; padding: 5px; text-align: center; }
-            th { background: #eef3f7; }
-            .materia { margin-top: 16px; font-weight: bold; color: #1d4f73; }
-            button, input { display: none; }
-          </style>
-        </head>
-        <body>${contenido}</body>
-      </html>
-    `);
+  if (!informe) {
+    console.error(
+      "No se encontró el informe institucional para imprimir.",
+    );
 
-    ventana.document.close();
+    return;
+  }
+
+  const ventana =
+    window.open(
+      "",
+      "_blank",
+    );
+
+  if (!ventana) {
+    console.error(
+      "No se pudo abrir la ventana de impresión.",
+    );
+
+    return;
+  }
+
+  const contenido =
+    informe.outerHTML;
+
+  ventana.document.write(`
+    <!DOCTYPE html>
+    <html lang="es">
+      <head>
+        <meta charset="UTF-8" />
+
+        <title>
+          Informe institucional de seguimiento pedagógico
+        </title>
+
+        <style>
+          @page {
+            size: A4 portrait;
+            margin: 14mm;
+          }
+
+          * {
+            box-sizing: border-box;
+          }
+
+          body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            color: #222;
+            background: #ffffff;
+          }
+
+          .informe-institucional {
+            width: 100%;
+            max-width: none;
+            margin: 0;
+            padding: 0;
+            border: none;
+            box-shadow: none;
+            background: #ffffff;
+          }
+
+          .informe-institucional h1,
+          .informe-institucional h2,
+          .informe-institucional h3 {
+            text-align: center;
+          }
+
+          .informe-institucional__datos {
+            margin: 22px 0;
+          }
+
+          .informe-institucional__dato--principal {
+            margin-bottom: 14px;
+            text-align: center;
+          }
+
+          .informe-institucional__datos-secundarios {
+            display: grid;
+            grid-template-columns:
+              repeat(
+                3,
+                minmax(0, 1fr)
+              );
+            gap: 14px;
+          }
+
+          .informe-institucional__dato {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            text-align: center;
+          }
+
+          .informe-institucional__dato-etiqueta {
+            font-size: 10pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #667085;
+          }
+
+          .informe-institucional__dato-valor {
+            font-size: 11pt;
+            font-weight: 700;
+            color: #25324a;
+          }
+
+          .informe-institucional__valoracion {
+            margin: 22px 0 28px;
+            padding: 16px 18px;
+            border: 1px solid #d9e2e8;
+            border-radius: 12px;
+            background: #f7fafb;
+            text-align: center;
+          }
+
+          .informe-institucional__valoracion-etiqueta {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 10pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #5f6b76;
+          }
+
+          .informe-institucional__valoracion-texto {
+            margin: 0;
+            font-size: 11pt;
+            font-weight: 600;
+            line-height: 1.5;
+            color: #30465a;
+          }
+
+          .informe-institucional__sintesis-final,
+          .informe-institucional__orientacion-final {
+            margin-top: 26px;
+          }
+
+          .informe-institucional__sintesis-final p,
+          .informe-institucional__orientacion-final p {
+            margin: 0;
+            font-size: 11pt;
+            line-height: 1.65;
+            text-align: justify;
+          }
+
+          .informe-institucional__aclaracion {
+            margin-top: 40px;
+            padding-top: 22px;
+            border-top: 1px solid #d8e1e8;
+            text-align: center;
+          }
+
+          .informe-institucional__aclaracion p {
+            margin: 8px 0 0;
+            font-size: 10pt;
+            line-height: 1.6;
+          }
+
+          button,
+          input,
+          select,
+          .informe-institucional__acciones,
+          .informe-institucional__control-catalogo {
+            display: none !important;
+          }
+        </style>
+      </head>
+
+      <body>
+        ${contenido}
+      </body>
+    </html>
+  `);
+
+  ventana.document.close();
+
+  ventana.onload = () => {
     ventana.focus();
     ventana.print();
     ventana.close();
   };
+};
 
   return (
-    <div
-      className="ficha-seguimiento-contenedor"
-      style={{
-        border: "3px solid #cfe3ea",
-        borderRadius: "16px",
-        padding: "24px",
-        background: "white",
-        margin: "24px auto",
-        maxWidth: "1100px",
-        boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
-      }}
-    >
+    <>
       <div style={{ textAlign: "center", marginBottom: "25px" }}>
         <input
           className="buscador-ficha-seguimiento"
@@ -159,40 +330,75 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
             border: "3px solid #cfd8dc",
           }}
         />
-      </div>
 
-      {busqueda !== "" && !alumnoSeleccionado && (
-        <div
-          style={{
-            maxHeight: "220px",
-            overflowY: "auto",
-            border: "3px solid #d8e3ea",
-            borderRadius: "10px",
-            marginBottom: "25px",
-          }}
-        >
-          {resultados.map((alumno) => (
-            <div
-              key={alumno._id || alumno.dni}
-              onClick={() => setAlumnoSeleccionado(alumno)}
-              style={{
-                padding: "10px 15px",
-                cursor: "pointer",
-                borderBottom: "2px solid #ececec",
-              }}
-            >
-              <strong>
-                {alumno.apellido}, {alumno.nombre}
-              </strong>
-              <br />
-              DNI: {alumno.dni} | Curso: {alumno.curso}
-            </div>
-          ))}
-        </div>
-      )}
+        {busqueda !== "" && !alumnoSeleccionado && (
+          <div
+            style={{
+              maxHeight: "220px",
+              overflowY: "auto",
+              border: "3px solid #d8e3ea",
+              borderRadius: "10px",
+              marginBottom: "25px",
+              marginTop: "15px",
+            }}
+          >
+            {resultados.map((alumno) => (
+              <div
+                key={alumno._id || alumno.dni}
+                onClick={() => setAlumnoSeleccionado(alumno)}
+                style={{
+                  padding: "10px 15px",
+                  cursor: "pointer",
+                  borderBottom: "2px solid #ececec",
+                }}
+              >
+                <strong>
+                  {alumno.apellido}, {alumno.nombre}
+                </strong>
+                <br />
+                DNI: {alumno.dni} | Curso: {alumno.curso}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {alumnoSeleccionado && (
         <>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: "10px",
+              marginBottom: "20px",
+              flexWrap: "wrap",
+            }}
+          >
+            <label htmlFor="periodo-informe-institucional">
+              <strong>Período del informe:</strong>
+            </label>
+
+            <select
+              id="periodo-informe-institucional"
+              value={periodoInforme}
+              onChange={(e) => setPeriodoInforme(e.target.value)}
+              style={{
+                padding: "8px 12px",
+                borderRadius: "8px",
+                border: "2px solid #cfd8dc",
+                background: "white",
+                fontWeight: "600",
+              }}
+            >
+              {PERIODOS_ANALISIS_TRAYECTORIA.map((periodo) => (
+                <option key={periodo} value={periodo}>
+                  {ETIQUETAS_PERIODOS_ANALISIS[periodo]}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div
             id="ficha-seguimiento-imprimir"
             className="ficha-seguimiento-imprimir"
@@ -345,6 +551,26 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
             </div>
           </div>
 
+          {!cargandoSeguimiento && informeInstitucional && (
+            <InformeInstitucional informe={informeInstitucional} />
+          )}
+
+          {!cargandoSeguimiento && resultadoTrayectoria?.error && (
+            <p
+              style={{
+                marginTop: "20px",
+                padding: "12px",
+                borderRadius: "8px",
+                background: "#fff3cd",
+                border: "1px solid #f0d98c",
+                color: "#856404",
+                textAlign: "center",
+              }}
+            >
+              {resultadoTrayectoria.error}
+            </p>
+          )}
+
           <div
             style={{
               textAlign: "center",
@@ -368,6 +594,6 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
           </div>
         </>
       )}
-    </div>
+    </>
   );
 }

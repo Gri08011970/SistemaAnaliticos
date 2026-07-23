@@ -55,7 +55,7 @@ export const CATEGORIAS_TRAYECTORIA = {
 };
 
 export const NIVELES_INSTITUCIONALES = {
-  CRITICO: "critico",
+  CRITICO: "critico", 
   ALTO: "alto",
   MEDIO: "medio",
   BAJO: "bajo",
@@ -440,6 +440,9 @@ export function resumirPersistencias(
       heredadas.length,
 
     detalle: detectadas,
+
+    persistenciasDetalladas:
+        detectadas,
   };
 }
 

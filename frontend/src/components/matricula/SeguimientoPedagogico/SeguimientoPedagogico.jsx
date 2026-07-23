@@ -4,6 +4,7 @@ import ResumenCurso from "./ResumenCurso";
 import FichaSeguimientoAlumno from "./FichaSeguimientoAlumno";
 import { obtenerAsignaturasPorCurso } from "./seguimientoConstants";
 import "./pruebasTrayectoria";
+import "./seguimientoPedagogico.css";
 
 const cursos = [
   "1°1°",

@@ -126,9 +126,7 @@
     gap: 14px !important;
   }
 }
-.ficha-seguimiento-mobile {
-  display: none;
-}
+
 
 @media (max-width: 600px) {
   .ficha-seguimiento-contenedor {
@@ -161,14 +159,6 @@
     font-size: 20px !important;
     line-height: 1.25 !important;
     overflow-wrap: anywhere;
-  }
-
-  .ficha-seguimiento-desktop {
-    display: none !important;
-  }
-
-  .ficha-seguimiento-mobile {
-    display: block !important;
   }
 
   .tarjeta-materia-seguimiento {
@@ -243,4 +233,170 @@
     overflow: visible !important;
     border: none !important;
   }
+}
+.ficha-seguimiento-desktop {
+  display: block;
+}
+
+.ficha-seguimiento-mobile { 
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .ficha-seguimiento-desktop {
+    display: none;
+  }
+
+  .ficha-seguimiento-mobile {
+    display: block;
+  }
+} 
+.informe-institucional__datos {
+  margin: 22px 0;
+}
+
+.informe-institucional__dato--principal {
+  margin-bottom: 14px;
+}
+
+.informe-institucional__datos-secundarios {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.informe-institucional__dato {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.informe-institucional__dato-etiqueta {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #667085;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.informe-institucional__dato-valor {
+  font-size: 1rem;
+  color: #25324a;
+}
+
+.informe-institucional__dato--principal
+  .informe-institucional__dato-valor {
+  font-size: 1.15rem;
+}
+.informe-institucional__valoracion {
+  margin: 22px 0 28px;
+  padding: 16px 18px;
+  border: 1px solid #d9e2e8;
+  border-radius: 12px;
+  background: #f7fafb;
+}
+
+.informe-institucional__valoracion-etiqueta {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #5f6b76;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.informe-institucional__valoracion-texto {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: #30465a;
+}
+@media (max-width: 700px) {
+  .informe-institucional__datos-secundarios {
+    grid-template-columns: 1fr;
+  }
+} 
+.informe-institucional__aclaracion {
+  margin-top: 40px;
+  padding-top: 22px;
+  border-top: 1px solid #d8e1e8;
+}
+.informe-institucional__aclaracion p {
+  margin: 8px 0 0;
+  line-height: 1.6;
+}
+/* ============================================================
+   IMPRESIÓN EXCLUSIVA DEL INFORME INSTITUCIONAL
+   ============================================================ */
+
+@media print {
+
+  /* Ocultamos toda la pantalla */
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* Ocultamos expresamente ambas fichas de asignaturas */
+  .ficha-seguimiento-desktop,
+  .ficha-seguimiento-mobile,
+  .tarjeta-materia-seguimiento,
+  .seguimiento-container,
+  .seguimiento-encabezado-responsive,
+  .seguimiento-botones-responsive,
+  .seguimiento-selectores-responsive {
+    display: none !important;
+  }
+
+  /* Dejamos visible solamente el informe */
+  .informe-institucional,
+  .informe-institucional * {
+    visibility: visible !important;
+  }
+
+  .informe-institucional {
+    display: block !important;
+
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+
+    width: 100% !important;
+    max-width: none !important;
+
+    margin: 0 !important;
+    padding: 16mm !important;
+
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+
+    box-sizing: border-box !important;
+  }
+
+  /* El botón no debe salir en papel */
+  .informe-institucional button,
+  .informe-institucional__acciones,
+  .boton-imprimir-ficha {
+    display: none !important;
+  }
+
+  /* Evitamos cortes feos */
+  .informe-institucional__datos,
+  .informe-institucional__valoracion,
+  .informe-institucional__sintesis-final,
+  .informe-institucional__orientacion-final,
+  .informe-institucional__aclaracion {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+}
+.informe-institucional__control-catalogo {
+  display: none !important;
 }
