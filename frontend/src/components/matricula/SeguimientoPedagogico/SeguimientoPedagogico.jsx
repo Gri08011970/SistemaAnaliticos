@@ -32,6 +32,23 @@ const cursos = [
   "6°3°",
   "6°4°",
 ];
+function PanelHerramienta({ icono, titulo, descripcion, children }) {
+  return (
+    <section className="seguimiento-panel-herramienta">
+      <header className="seguimiento-panel-encabezado">
+        <span className="seguimiento-panel-icono">{icono}</span>
+
+        <div>
+          <h3 className="seguimiento-panel-titulo">{titulo}</h3>
+
+          <p className="seguimiento-panel-descripcion">{descripcion}</p>
+        </div>
+      </header>
+
+      <div className="seguimiento-panel-contenido">{children}</div>
+    </section>
+  );
+}
 
 export default function SeguimientoPedagogico({ alumnos, esAdmin }) {
   const [vistaActiva, setVistaActiva] = useState("carga");
@@ -122,11 +139,11 @@ export default function SeguimientoPedagogico({ alumnos, esAdmin }) {
         <button
           type="button"
           className={`seguimiento-opcion-card ${
-            vistaActiva === "ficha" ? "seguimiento-opcion-card--activa" : ""
+            vistaActiva === "detalle" ? "seguimiento-opcion-card--activa" : ""
           }`}
           onClick={() => setVistaActiva("detalle")}
         >
-          <span className="seguimiento-opcion-icono">👤</span> 
+          <span className="seguimiento-opcion-icono">👤</span>
 
           <span className="seguimiento-opcion-titulo">
             Ficha del estudiante
@@ -141,47 +158,54 @@ export default function SeguimientoPedagogico({ alumnos, esAdmin }) {
         </button>
       </div>
 
-      <div
-        className="filtros-seguimiento-responsive"
-        style={{ marginBottom: "20px" }}
-      >
-        <label>Curso:&nbsp;</label>
-
-        <select
-          className="select-seguimiento-responsive"
-          value={cursoSeleccionado}
-          onChange={(e) => {
-            setCursoSeleccionado(e.target.value);
-            setAsignaturaSeleccionada("");
-          }}
-        >
-          <option value="">Seleccionar curso</option>
-
-          {cursos.map((curso) => (
-            <option key={curso} value={curso}>
-              {curso}
-            </option>
-          ))}
-        </select>
-      </div>
-
       {vistaActiva === "carga" && (
-        <>
-          <div style={{ marginBottom: "20px" }}>
-            <label>Asignatura:&nbsp;</label>
+        <PanelHerramienta
+          icono="📋"
+          titulo="Carga por asignatura"
+          descripcion="Seleccioná el curso y la asignatura para registrar el seguimiento pedagógico."
+        >
+          <div className="seguimiento-panel-filtros">
+            <div className="seguimiento-panel-campo">
+              <label htmlFor="curso-carga">Curso</label>
 
-            <select
-              value={asignaturaSeleccionada}
-              onChange={(e) => setAsignaturaSeleccionada(e.target.value)}
-            >
-              <option value="">Seleccionar asignatura</option>
+              <select
+                id="curso-carga"
+                className="select-seguimiento-responsive"
+                value={cursoSeleccionado}
+                onChange={(e) => {
+                  setCursoSeleccionado(e.target.value);
+                  setAsignaturaSeleccionada("");
+                }}
+              >
+                <option value="">Seleccionar curso</option>
 
-              {asignaturasDisponibles.map((asignatura) => (
-                <option key={asignatura} value={asignatura}>
-                  {asignatura}
-                </option>
-              ))}
-            </select>
+                {cursos.map((curso) => (
+                  <option key={curso} value={curso}>
+                    {curso}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="seguimiento-panel-campo">
+              <label htmlFor="asignatura-carga">Asignatura</label>
+
+              <select
+                id="asignatura-carga"
+                className="select-seguimiento-responsive"
+                value={asignaturaSeleccionada}
+                onChange={(e) => setAsignaturaSeleccionada(e.target.value)}
+                disabled={!cursoSeleccionado}
+              >
+                <option value="">Seleccionar asignatura</option>
+
+                {asignaturasDisponibles.map((asignatura) => (
+                  <option key={asignatura} value={asignatura}>
+                    {asignatura}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {cursoSeleccionado && asignaturaSeleccionada ? (
@@ -192,24 +216,61 @@ export default function SeguimientoPedagogico({ alumnos, esAdmin }) {
               esAdmin={esAdmin}
             />
           ) : (
-            <p style={{ color: "#666", marginTop: "20px" }}>
+            <p className="seguimiento-panel-mensaje">
               Seleccioná curso y asignatura para cargar la planilla.
             </p>
           )}
-        </>
+        </PanelHerramienta>
       )}
 
-      {vistaActiva === "resumen" &&
-        (cursoSeleccionado ? (
-          <ResumenCurso curso={cursoSeleccionado} alumnos={alumnos} />
-        ) : (
-          <p style={{ color: "#666", marginTop: "20px" }}>
-            Seleccioná un curso para ver el resumen.
-          </p>
-        ))}
+      {vistaActiva === "resumen" && (
+        <PanelHerramienta
+          icono="📊"
+          titulo="Resumen del curso"
+          descripcion="Seleccioná un curso para consultar sus indicadores y analizar las trayectorias educativas."
+        >
+          <div className="seguimiento-panel-filtros seguimiento-panel-filtros--centrado">
+            <div className="seguimiento-panel-campo">
+              <label htmlFor="curso-resumen">Curso</label>
+
+              <select
+                id="curso-resumen"
+                className="select-seguimiento-responsive"
+                value={cursoSeleccionado}
+                onChange={(e) => {
+                  setCursoSeleccionado(e.target.value);
+                  setAsignaturaSeleccionada("");
+                }}
+              >
+                <option value="">Seleccionar curso</option>
+
+                {cursos.map((curso) => (
+                  <option key={curso} value={curso}>
+                    {curso}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {cursoSeleccionado ? (
+            <ResumenCurso curso={cursoSeleccionado} alumnos={alumnos} />
+          ) : (
+            <p className="seguimiento-panel-mensaje">
+              Seleccioná un curso para ver el resumen.
+            </p>
+          )}
+        </PanelHerramienta>
+      )}
 
       {vistaActiva === "detalle" && (
-        <FichaSeguimientoAlumno alumnos={alumnos} />
+        <PanelHerramienta
+          icono="👤"
+          titulo="Ficha del estudiante"
+          descripcion="Buscá un estudiante para consultar su trayectoria individual y generar el informe institucional."
+        >
+          <FichaSeguimientoAlumno alumnos={alumnos} />
+        </PanelHerramienta>
       )}
     </div>
   );
