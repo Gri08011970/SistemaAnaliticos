@@ -26,6 +26,7 @@
 
 import { enriquecerListaDiagnostico } from "./mensajesDiagnostico";
 import { generarInterpretacionesPedagogicas } from "./interpretacionesPedagogicas";
+import { generarAntecedentesAcademicos } from "./interpretacionesPedagogicas";
 
 /*
  * ============================================================
@@ -58,7 +59,8 @@ export const TITULOS_CATEGORIA_INFORME = {
 
   [CATEGORIAS_INFORME.SEGUIMIENTO]: "Trayectoria que requiere seguimiento",
 
-  [CATEGORIAS_INFORME.PRIORITARIO]: "INFORME INSTITUCIONAL DE SEGUIMIENTO PEDAGÓGICO",
+  [CATEGORIAS_INFORME.PRIORITARIO]:
+    "INFORME INSTITUCIONAL DE SEGUIMIENTO PEDAGÓGICO",
 
   [CATEGORIAS_INFORME.SIN_REGISTROS]: "Trayectoria sin información suficiente",
 };
@@ -507,13 +509,49 @@ export function generarConclusionPersonalizada({
  * SÍNTESIS INSTITUCIONAL FINAL
  * ============================================================
  */
+export function limpiarOrdinalAnio(anio) {
+  if (anio === null || anio === undefined || anio === "") {
+    return "";
+  }
+
+  return String(anio)
+    .trim()
+    .replace(/[.º°]+$/g, "");
+}
+
+export function obtenerNombrePendiente(pendiente) {
+  const asignatura =
+    pendiente?.asignatura || pendiente?.nombre || "Asignatura pendiente";
+
+  const anio = limpiarOrdinalAnio(pendiente?.anio || pendiente?.año);
+
+  return anio ? `${asignatura} (${anio}.º)` : asignatura;
+}
+
+export function obtenerNombreEstudianteInforme(estudiante) {
+  return (
+    estudiante?.apellidoNombre ||
+    estudiante?.nombreCompleto ||
+    estudiante?.nombre ||
+    "El estudiante"
+  );
+}
 
 export function generarSintesisInstitucional({
   diagnostico,
   interpretacionesPedagogicas = [],
+  antecedentesAcademicos = {},
+  estudiante = null,
   periodo,
 }) {
   const categoria = normalizarCategoriaInforme(diagnostico?.categoria);
+
+  if (categoria === CATEGORIAS_INFORME.SIN_REGISTROS) {
+    return (
+      "La información pedagógica disponible no resulta suficiente para construir una valoración institucional completa. " +
+      "Se considera necesario completar los registros y realizar nuevamente el análisis de la trayectoria."
+    );
+  }
 
   const cantidades = diagnostico?.detalleTecnico?.cantidades || {};
 
@@ -528,31 +566,36 @@ export function generarSintesisInstitucional({
   const interpretacionPrincipal =
     obtenerListaSegura(interpretacionesPedagogicas)[0] || null;
 
-  const partes = [];
+  const nombreEstudiante = obtenerNombreEstudianteInforme(estudiante);
 
-  if (categoria === CATEGORIAS_INFORME.SIN_REGISTROS) {
-    return (
-      "La información pedagógica disponible no resulta suficiente para construir una valoración institucional completa. " +
-      "Se considera necesario completar los registros y realizar nuevamente el análisis de la trayectoria."
-    );
-  }
+  const todasLasPendientes = obtenerListaSegura(antecedentesAcademicos.todas);
+
+  const conContinuidad = obtenerListaSegura(
+    antecedentesAcademicos.conContinuidad,
+  );
+
+  const sinContinuidad = obtenerListaSegura(
+    antecedentesAcademicos.sinContinuidad,
+  );
+
+  const partes = [];
 
   if (categoria === CATEGORIAS_INFORME.FAVORABLE) {
     partes.push(
-      `Durante ${
-        periodo || "el período analizado"
+      `Durante el ${
+        periodo || "período analizado"
       }, la trayectoria presenta condiciones generales favorables para la continuidad de los aprendizajes.`,
     );
   } else if (categoria === CATEGORIAS_INFORME.PRIORITARIO) {
     partes.push(
       `Durante el ${
-        periodo || "el período analizado"
+        periodo || "período analizado"
       }, la trayectoria requiere seguimiento e intervención pedagógica prioritaria.`,
     );
   } else {
     partes.push(
-      `Durante ${
-        periodo || "el período analizado"
+      `Durante el ${
+        periodo || "período analizado"
       }, la trayectoria requiere seguimiento institucional planificado.`,
     );
   }
@@ -568,14 +611,10 @@ export function generarSintesisInstitucional({
   if (cantidadTED > 1) {
     situaciones.push("varias Trayectorias Educativas Discontinuas");
   } else if (cantidadTED === 1) {
-    const asignaturaTED =
-      interpretacionPrincipal?.estadoActual === "TED"
-        ? interpretacionPrincipal.asignaturaActual
-        : null;
-
     situaciones.push(
-      asignaturaTED
-        ? `una Trayectoria Educativa Discontinua en ${asignaturaTED}`
+      interpretacionPrincipal?.estadoActual === "TED" &&
+        interpretacionPrincipal?.asignaturaActual
+        ? `una Trayectoria Educativa Discontinua en ${interpretacionPrincipal.asignaturaActual}`
         : "una Trayectoria Educativa Discontinua",
     );
   }
@@ -584,8 +623,59 @@ export function generarSintesisInstitucional({
     partes.push(`Se registran ${unirExpresiones(situaciones)}.`);
   }
 
-  if (interpretacionPrincipal?.descripcion) {
-    partes.push(interpretacionPrincipal.descripcion);
+  if (todasLasPendientes.length > 0) {
+    const nombresPendientes = todasLasPendientes.map(obtenerNombrePendiente);
+
+    partes.push(
+      `${nombreEstudiante} registra ${
+        todasLasPendientes.length === 1
+          ? "una asignatura pendiente de acreditación correspondiente a años anteriores"
+          : `${todasLasPendientes.length} asignaturas pendientes de acreditación correspondientes a años anteriores`
+      }: ${unirExpresiones(nombresPendientes)}.`,
+    );
+  }
+
+  if (conContinuidad.length > 0) {
+    const descripcionesContinuidad = conContinuidad.flatMap((elemento) => {
+      const pendiente = obtenerNombrePendiente(elemento.pendiente);
+
+      return obtenerListaSegura(elemento.coincidencias).map((coincidencia) => {
+        const asignaturaActual =
+          coincidencia.asignaturaActual || "el espacio curricular actual";
+
+        const estadoActual = coincidencia.estadoActual || "";
+
+        const nombreEstado =
+          estadoActual === "TED"
+            ? "una Trayectoria Educativa Discontinua"
+            : estadoActual === "TEP"
+              ? "una Trayectoria Educativa en Proceso"
+              : estadoActual === "TEA"
+                ? "una Trayectoria Educativa Avanzada"
+                : "una situación pedagógica que requiere análisis";
+
+        return (
+          `${pendiente} se vincula con ${asignaturaActual}, ` +
+          `espacio en el que actualmente se registra ${nombreEstado}`
+        );
+      });
+    });
+
+    if (descripcionesContinuidad.length > 0) {
+      partes.push(
+        `El análisis institucional permite reconocer que parte de las dificultades actuales presentan continuidad con asignaturas pendientes de años anteriores. Esta situación pone de manifiesto la necesidad de fortalecer saberes de base aún no consolidados y de articular las estrategias de recuperación con las propuestas pedagógicas del presente ciclo lectivo.`,
+      );
+    }
+  }
+
+  if (sinContinuidad.length > 0) {
+    const nombresSinContinuidad = sinContinuidad.map(obtenerNombrePendiente);
+
+    partes.push(
+      `En relación con las restantes asignaturas pendientes: ${unirExpresiones(
+        nombresSinContinuidad,
+      )}, durante el período analizado no se observan evidencias de continuidad de la dificultad en espacios curriculares relacionados.`,
+    );
   }
 
   if (interpretacionPrincipal?.interpretacion) {
@@ -594,7 +684,7 @@ export function generarSintesisInstitucional({
 
   if (categoria === CATEGORIAS_INFORME.PRIORITARIO) {
     partes.push(
-      "La situación observada aconseja un acompañamiento institucional articulado, sostenido y con metas de corto plazo.",
+      "La situación observada aconseja un acompañamiento institucional articulado, sostenido y con metas de corto plazo. La articulación entre las estrategias de recuperación de las asignaturas pendientes y las propuestas pedagógicas del presente ciclo constituye una oportunidad para favorecer la continuidad de la trayectoria escolar del estudiante.",
     );
   } else if (categoria === CATEGORIAS_INFORME.SEGUIMIENTO) {
     partes.push(
@@ -614,6 +704,7 @@ export function generarSintesisInstitucional({
 export function generarOrientacionIntervencion({
   diagnostico,
   interpretacionesPedagogicas = [],
+  antecedentesAcademicos = {},
 }) {
   const categoria = normalizarCategoriaInforme(diagnostico?.categoria);
 
@@ -624,10 +715,77 @@ export function generarOrientacionIntervencion({
   const interpretacionPrincipal =
     obtenerListaSegura(interpretacionesPedagogicas)[0] || null;
 
+  const conContinuidad = obtenerListaSegura(
+    antecedentesAcademicos.conContinuidad,
+  );
+
+  const sinContinuidad = obtenerListaSegura(
+    antecedentesAcademicos.sinContinuidad,
+  );
+
   const partes = [];
 
-  if (interpretacionPrincipal?.orientacion) {
+  if (conContinuidad.length > 0) {
+    const asignaturasPendientesConContinuidad = conContinuidad
+      .map((elemento) => obtenerNombrePendiente(elemento.pendiente))
+      .filter(Boolean);
+
+    const asignaturasActualesConContinuidad =
+  conContinuidad
+    .flatMap(
+      (elemento) =>
+        obtenerListaSegura(
+          elemento?.coincidencias,
+        )
+          .map(
+            (coincidencia) =>
+              coincidencia?.asignaturaActual,
+          ),
+    )
+    .filter(Boolean);
+
+const pendientesUnicas = [
+  ...new Set(
+    asignaturasPendientesConContinuidad,
+  ),
+];
+
+const actualesUnicas = [
+  ...new Set(
+    asignaturasActualesConContinuidad,
+  ),
+];
+
+const pendientesConAnio =
+  pendientesUnicas.map(
+    (texto) =>
+      texto.replace(
+        /\s*\((.*?)\)/,
+        " de $1 año",
+      ),
+  );
+
+partes.push(
+  `Se recomienda priorizar la recuperación de los saberes correspondientes a las asignaturas pendientes que presentan continuidad disciplinar con la trayectoria actual (${unirExpresiones(
+    pendientesConAnio,
+  )}), articulando dichas acreditaciones con las propuestas de ${unirExpresiones(
+    actualesUnicas,
+  )} del presente ciclo lectivo.`,
+);
+  } else if (interpretacionPrincipal?.orientacion) {
     partes.push(interpretacionPrincipal.orientacion);
+  }
+
+  if (sinContinuidad.length > 0) {
+    const nombresSinContinuidad = sinContinuidad
+      .map((pendiente) => pendiente?.asignatura || pendiente?.nombre)
+      .filter(Boolean);
+
+    partes.push(
+      `Respecto de las restantes asignaturas pendientes (${unirExpresiones(
+        nombresSinContinuidad,
+      )}), se sugiere mantener su seguimiento institucional y promover instancias progresivas de acreditación, aun cuando actualmente no se observen evidencias de continuidad disciplinar.`,
+    );
   }
 
   const cantidades = diagnostico?.detalleTecnico?.cantidades || {};
@@ -638,33 +796,28 @@ export function generarOrientacionIntervencion({
 
   if (cantidadTEP > 0) {
     partes.push(
-      "También se sugiere acordar estrategias comunes para las asignaturas que presentan TEP, establecer responsables de seguimiento, registrar las acciones implementadas y Se propone establecer una instancia de revisión institucional para valorar los avances alcanzados y redefinir, cuando resulte necesario, las estrategias de acompañamiento implementadas.",
+      "Asimismo, resulta conveniente acordar estrategias comunes para las asignaturas que presentan Trayectorias Educativas en Proceso, establecer responsables institucionales de seguimiento, registrar las intervenciones realizadas y definir una instancia de revisión para valorar los avances alcanzados.",
     );
   } else if (categoria === CATEGORIAS_INFORME.PRIORITARIO) {
     partes.push(
-      "Se sugiere acordar responsables, definir metas de corto plazo, registrar las acciones implementadas y establecer una fecha institucional para revisar los avances.",
+      "Se sugiere acordar responsables institucionales, definir metas de corto plazo, registrar las acciones implementadas y establecer una instancia de revisión de los avances.",
     );
   } else {
     partes.push(
-      "Se recomienda sostener el acompañamiento, registrar los avances y revisar periódicamente la evolución de la trayectoria.",
+      "Se recomienda sostener el acompañamiento, documentar los avances y revisar periódicamente la evolución de la trayectoria.",
     );
   }
 
   return partes.join(" ");
 }
-
 /*
  * ============================================================
  * VALORACIÓN INSTITUCIONAL VISIBLE
  * ============================================================
  */
 
-export function obtenerValoracionInstitucional(
-  categoria,
-) {
-
+export function obtenerValoracionInstitucional(categoria) {
   const valoraciones = {
-
     [CATEGORIAS_INFORME.FAVORABLE]:
       "La trayectoria presenta condiciones favorables para la continuidad de los aprendizajes.",
 
@@ -676,16 +829,12 @@ export function obtenerValoracionInstitucional(
 
     [CATEGORIAS_INFORME.SIN_REGISTROS]:
       "La información disponible todavía no permite realizar una valoración institucional completa.",
-
   };
 
   return (
-    valoraciones[
-      categoria
-    ] ||
+    valoraciones[categoria] ||
     "La trayectoria requiere valoración y seguimiento institucional."
   );
-
 }
 
 /*
@@ -710,10 +859,7 @@ export function generarInformeInstitucional(diagnostico, opciones = {}) {
 
   const categoria = obtenerCategoriaInforme(diagnostico);
 
-  const valoracionInstitucional =
-  obtenerValoracionInstitucional(
-    categoria,
-  );
+  const valoracionInstitucional = obtenerValoracionInstitucional(categoria);
 
   const fechaGeneracion = opciones.fecha || new Date();
 
@@ -771,8 +917,10 @@ export function generarInformeInstitucional(diagnostico, opciones = {}) {
   const interpretacionesPedagogicas =
     generarInterpretacionesPedagogicas(diagnostico);
 
+  const antecedentesAcademicos = generarAntecedentesAcademicos(diagnostico);
+
   const nivel = diagnostico.nivel || diagnostico.nivelInstitucional || null;
- 
+
   const puntaje = Number.isFinite(Number(diagnostico.puntaje))
     ? Number(diagnostico.puntaje)
     : 0;
@@ -782,14 +930,15 @@ export function generarInformeInstitucional(diagnostico, opciones = {}) {
   const sintesisInstitucional = generarSintesisInstitucional({
     diagnostico,
     interpretacionesPedagogicas,
-    recomendaciones,
+    antecedentesAcademicos,
+    estudiante: opciones.estudiante || diagnostico.estudiante || null,
     periodo: periodoInforme,
   });
 
   const orientacionIntervencion = generarOrientacionIntervencion({
     diagnostico,
     interpretacionesPedagogicas,
-    recomendaciones,
+    antecedentesAcademicos,
   });
 
   const resumenPersonalizado = generarResumenPersonalizado({
@@ -854,11 +1003,13 @@ export function generarInformeInstitucional(diagnostico, opciones = {}) {
      */
     resumen: resumenPersonalizado,
 
-    valoracionInstitucional, 
+    valoracionInstitucional,
 
     sintesisInstitucional,
 
     orientacionIntervencion,
+
+    antecedentesAcademicos,
 
     /*
      * Secciones enriquecidas.
@@ -929,7 +1080,6 @@ export function generarInformeInstitucional(diagnostico, opciones = {}) {
      * Se conserva para trazabilidad, sin modificarlo.
      */
     diagnosticoOriginal: diagnostico,
-
   };
 }
 
@@ -942,7 +1092,7 @@ export function crearInformeInstitucional(diagnostico, opciones = {}) {
 
 /*
  * ============================================================
- * EXPORTACIÓN PRINCIPAL 
+ * EXPORTACIÓN PRINCIPAL
  * ============================================================
  */
 

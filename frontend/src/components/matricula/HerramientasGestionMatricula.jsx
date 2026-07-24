@@ -14,10 +14,7 @@ import TarjetaModulo from "./TarjetaModulo";
 export default function HerramientasGestionMatricula({
   esAdmin,
   alumnosMatricula,
-
-  verSeguimientoPedagogico,
-  setVerSeguimientoPedagogico,
-
+  
   verPlanillaPrevias,
   setVerPlanillaPrevias,
 
@@ -330,7 +327,7 @@ export default function HerramientasGestionMatricula({
                   backgroundColor: "#f7fafb",
                   marginBottom: "16px",
                 },
-              }}
+              }} 
             />
           </div>
         </div>

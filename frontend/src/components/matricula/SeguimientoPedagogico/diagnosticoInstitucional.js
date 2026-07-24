@@ -1466,6 +1466,9 @@ export function crearDiagnosticoInstitucional(
     puntaje:
       diagnosticoTecnico
         .puntaje,
+     situacionActual,
+
+    antecedentes,    
 
     indicadores,
 

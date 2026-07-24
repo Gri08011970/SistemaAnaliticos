@@ -400,3 +400,137 @@
 .informe-institucional__control-catalogo {
   display: none !important;
 }
+.seguimiento-opciones-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  width: 100%;
+  max-width: 900px;
+  margin: 24px auto 30px;
+}
+
+.seguimiento-opcion-card {
+  position: relative;
+  min-height: 220px;
+  padding: 24px 20px 20px;
+  border: 2px solid #c9dfea;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 6px 18px rgba(31, 71, 96, 0.08);
+  cursor: pointer;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+
+  font-family: inherit;
+  color: #17365f;
+  text-align: center;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.seguimiento-opcion-card::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: 28px;
+  right: 28px;
+  height: 6px;
+  border-radius: 0 0 8px 8px;
+  background: #9edfd7;
+}
+
+.seguimiento-opcion-card:nth-child(2)::before {
+  background: #a9cbee;
+}
+
+.seguimiento-opcion-card:nth-child(3)::before {
+  background: #cbb8e8;
+}
+
+.seguimiento-opcion-card:hover {
+  transform: translateY(-6px);
+  border-color: #82cfc5;
+  background: #fbfefe;
+  box-shadow: 0 12px 26px rgba(31, 71, 96, 0.16);
+}
+
+.seguimiento-opcion-card:nth-child(2):hover {
+  border-color: #91bce8;
+}
+
+.seguimiento-opcion-card:nth-child(3):hover {
+  border-color: #b49cda;
+}
+
+.seguimiento-opcion-card--activa {
+  border-color: #129487;
+  background: #f4fffd;
+  box-shadow: 0 10px 24px rgba(18, 148, 135, 0.18);
+}
+
+.seguimiento-opcion-icono {
+  display: block;
+  margin-top: 8px;
+  font-size: 34px;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+
+.seguimiento-opcion-card:hover .seguimiento-opcion-icono {
+  transform: scale(1.1);
+}
+
+.seguimiento-opcion-titulo {
+  display: block;
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.seguimiento-opcion-descripcion {
+  display: block;
+  max-width: 240px;
+  min-height: 58px;
+  font-size: 15px;
+  line-height: 1.45;
+  color: #526375;
+}
+
+.seguimiento-opcion-accion {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 118px;
+  min-height: 38px;
+  margin-top: auto;
+  padding: 8px 18px;
+  border-radius: 10px;
+  background: #129487;
+  box-shadow: 0 5px 12px rgba(18, 148, 135, 0.2);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.seguimiento-opcion-card:hover .seguimiento-opcion-accion {
+  background: #0e8176;
+}
+
+@media (max-width: 850px) {
+  .seguimiento-opciones-grid {
+    grid-template-columns: 1fr;
+    max-width: 520px;
+  }
+
+  .seguimiento-opcion-card {
+    min-height: 195px;
+  }
+}

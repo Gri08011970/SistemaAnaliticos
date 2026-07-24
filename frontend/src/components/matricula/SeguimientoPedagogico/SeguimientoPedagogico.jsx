@@ -64,7 +64,7 @@ export default function SeguimientoPedagogico({ alumnos, esAdmin }) {
           style={{
             maxWidth: "760px",
             margin: "10px auto 18px",
-            padding: "10px 14px", 
+            padding: "10px 14px",
             border: "1px solid #d8c6ea",
             borderRadius: "10px",
             backgroundColor: "#f8f3fc",
@@ -79,26 +79,65 @@ export default function SeguimientoPedagogico({ alumnos, esAdmin }) {
         </div>
       )}
 
-      <div
-        className="seguimiento-botones-responsive"
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: "16px",
-          margin: "20px 0 30px",
-          flexWrap: "wrap",
-        }}
-      >
-        <button type="button" onClick={() => setVistaActiva("carga")}>
-          📝 Carga por asignatura
+      <div className="seguimiento-opciones-grid">
+        <button
+          type="button"
+          className={`seguimiento-opcion-card ${
+            vistaActiva === "carga" ? "seguimiento-opcion-card--activa" : ""
+          }`}
+          onClick={() => setVistaActiva("carga")}
+        >
+          <span className="seguimiento-opcion-icono">📋</span>
+
+          <span className="seguimiento-opcion-titulo">
+            Carga por asignatura
+          </span>
+
+          <span className="seguimiento-opcion-descripcion">
+            Registrá conceptos e informes por curso, asignatura y período.
+          </span>
+
+          <span className="seguimiento-opcion-accion">Entrar</span>
         </button>
 
-        <button type="button" onClick={() => setVistaActiva("resumen")}>
-          📊 Resumen del curso
+        <button
+          type="button"
+          className={`seguimiento-opcion-card ${
+            vistaActiva === "resumen" ? "seguimiento-opcion-card--activa" : ""
+          }`}
+          onClick={() => setVistaActiva("resumen")}
+        >
+          <span className="seguimiento-opcion-icono">📊</span>
+
+          <span className="seguimiento-opcion-titulo">Resumen del curso</span>
+
+          <span className="seguimiento-opcion-descripcion">
+            Analizá indicadores, trayectorias y situaciones que requieren
+            atención.
+          </span>
+
+          <span className="seguimiento-opcion-accion">Entrar</span>
         </button>
 
-        <button type="button" onClick={() => setVistaActiva("detalle")}>
-          👤 Ficha del estudiante
+        <button
+          type="button"
+          className={`seguimiento-opcion-card ${
+            vistaActiva === "ficha" ? "seguimiento-opcion-card--activa" : ""
+          }`}
+          onClick={() => setVistaActiva("detalle")}
+        >
+          <span className="seguimiento-opcion-icono">👤</span> 
+
+          <span className="seguimiento-opcion-titulo">
+            Ficha del estudiante
+          </span>
+
+          <span className="seguimiento-opcion-descripcion">
+            Consultá la trayectoria individual y generá el informe
+            institucional.
+          </span>
+
+          <span className="seguimiento-opcion-accion">Entrar</span>
         </button>
       </div>
 

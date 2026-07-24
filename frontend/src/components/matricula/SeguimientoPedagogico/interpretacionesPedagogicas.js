@@ -627,7 +627,7 @@ export function crearInterpretacionPersistenciaTED(
     prioridad:
       10,
 
-    evidencias: [
+    evidencias: [ 
 
       {
         tipo:
@@ -1243,23 +1243,9 @@ export function obtenerPersistenciasDiagnostico(
 
 } 
 
-/**
- * Genera todas las interpretaciones pedagógicas disponibles
- * para un diagnóstico institucional.
- */
 export function generarInterpretacionesPedagogicas(
-  diagnostico,
+  diagnostico = {},
 ) {
-
-  if (
-    !esObjetoInterpretacionValido(
-      diagnostico,
-    )
-  ) {
-
-    return [];
-
-  }
 
   const persistencias =
     obtenerPersistenciasDiagnostico(
@@ -1272,7 +1258,203 @@ export function generarInterpretacionesPedagogicas(
 
 }
 
+export function generarAntecedentesAcademicos(
+  diagnostico = {},
+) {
 
+  const antecedentes =
+    diagnostico.antecedentes ||
+    {};
+
+  const pendientes =
+    Array.isArray(
+      antecedentes
+        .asignaturasPendientes,
+    )
+      ? antecedentes
+          .asignaturasPendientes
+      : [];
+
+  const persistencias =
+    obtenerPersistenciasDiagnostico(
+      diagnostico,
+    );
+
+  const continuidades = [];
+
+  persistencias.forEach(
+    (persistencia) => {
+
+      const coincidencias =
+        Array.isArray(
+          persistencia
+            ?.pendientesCoincidentes,
+        )
+          ? persistencia
+              .pendientesCoincidentes
+          : [];
+
+      coincidencias
+        .filter(
+          (coincidencia) =>
+            coincidencia
+              ?.esPersistencia,
+        )
+        .forEach(
+          (coincidencia) => {
+
+            const pendienteOriginal =
+              coincidencia
+                ?.pendienteOriginal ||
+              {};
+
+            continuidades.push({
+              asignaturaPendiente:
+                coincidencia
+                  .asignaturaPendiente ||
+                pendienteOriginal
+                  .asignatura ||
+                coincidencia
+                  .nombrePendiente ||
+                "",
+
+              anioPendiente:
+                pendienteOriginal
+                  .anio ||
+                pendienteOriginal
+                  .año ||
+                null,
+
+              asignaturaActual:
+                coincidencia
+                  .asignaturaActual ||
+                persistencia
+                  .asignatura ||
+                "",
+
+              estadoActual:
+                persistencia
+                  .conceptual ||
+                persistencia
+                  .estadoActual ||
+                "",
+
+              tipoRelacion:
+                coincidencia
+                  .tipo ||
+                null,
+
+              areaActual:
+                coincidencia
+                  .areaActual ||
+                null,
+
+              trayectoriaActual:
+                coincidencia
+                  .trayectoriaActual ||
+                null,
+            });
+
+          },
+        );
+
+    },
+  );
+
+  const normalizarNombre =
+    (valor) =>
+      String(
+        valor || "",
+      )
+        .trim()
+        .toLocaleLowerCase(
+          "es",
+        );
+
+  const conContinuidad =
+    pendientes
+      .map(
+        (pendiente) => {
+
+          const nombrePendiente =
+            pendiente
+              ?.asignatura ||
+            pendiente
+              ?.nombre ||
+            "";
+
+          const coincidencias =
+            continuidades.filter(
+              (continuidad) =>
+                normalizarNombre(
+                  continuidad
+                    .asignaturaPendiente,
+                ) ===
+                normalizarNombre(
+                  nombrePendiente,
+                ),
+            );
+
+          if (
+            coincidencias.length === 0
+          ) {
+
+            return null;
+
+          }
+
+          return {
+            pendiente,
+            coincidencias,
+          };
+
+        },
+      )
+      .filter(Boolean);
+
+  const nombresConContinuidad =
+    new Set(
+      conContinuidad.map(
+        (elemento) =>
+          normalizarNombre(
+            elemento
+              ?.pendiente
+              ?.asignatura ||
+            elemento
+              ?.pendiente
+              ?.nombre,
+          ),
+      ),
+    );
+
+  const sinContinuidad =
+    pendientes.filter(
+      (pendiente) =>
+        !nombresConContinuidad.has(
+          normalizarNombre(
+            pendiente
+              ?.asignatura ||
+            pendiente
+              ?.nombre,
+          ),
+        ),
+    );
+
+  return {
+    todas:
+      pendientes,
+
+    cantidadTotal:
+      pendientes.length,
+
+    conContinuidad,
+
+    sinContinuidad,
+
+    continuidades,
+  };
+
+}
 /*
  * ============================================================
  * RESUMEN DE INTERPRETACIONES
