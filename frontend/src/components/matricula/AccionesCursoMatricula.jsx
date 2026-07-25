@@ -55,7 +55,7 @@ export default function AccionesCursoMatricula({
         style={botonImprimir}
         onClick={exportarExcel}
       >
-        📥 Exportar Excel
+        📥 Descargar Excel
       </button>
 
       {esAdmin && (

@@ -444,7 +444,7 @@ export default function AutorizadosRetirar({ volverInicio, esAdmin }) {
           style={botonSecundario}
           onClick={exportarPlantillaExcel}
         >
-          📤 Exportar Excel
+          📤 Descargar Excel
         </button>
 
         <label className="boton-sistema boton-secundario" style={botonSecundario}>

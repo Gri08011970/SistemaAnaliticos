@@ -862,7 +862,7 @@ h3{
           style={botonSecundario}
           onClick={exportarPlantillaExcel}
         >
-          📤 Exportar Excel
+         📥 Descargar Excel
         </button>
 
         <label
