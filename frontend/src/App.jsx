@@ -482,17 +482,26 @@ export default function App() {
               </div>
             </>
           )}
+
         {(seccionActiva === "matricula" || seccionActiva === "parteDiario") && (
-          <div style={{ marginBottom: "20px" }}>
-            <button
-              className="boton-sistema boton-volver"
-              onClick={() => setSeccionActiva("inicio")}
-              style={botonVolver}
-            >
-              Volver al inicio
-            </button>
-          </div>
-        )}
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "flex-start",
+      marginTop: "-10px",
+      marginBottom: "18px",
+    }}
+  >
+    <button
+      className="boton-sistema boton-volver"
+      onClick={() => setSeccionActiva("inicio")}
+      style={botonVolver}
+    >
+      ← Inicio
+    </button>
+  </div>
+)}
+
         {seccionActiva === "parteDiario" && (
           <ParteDiarioMatricula
             alumnosMatricula={alumnosMatricula}
@@ -656,7 +665,7 @@ const botonVolver = {
   minHeight: "38px",
   padding: "10px 16px",
   borderRadius: "10px",
-  cursor: "pointer",
+  cursor: "pointer", 
   fontWeight: "bold",
   fontSize: "13px",
   transition: "all 0.25s ease",

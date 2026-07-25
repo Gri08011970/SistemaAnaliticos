@@ -198,22 +198,23 @@ export const bloqueMovimiento = {
 };
 export const bloqueEstadisticas = {
   display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(155px, 1fr))",
-  gap: "12px",
-  marginTop: "16px",
-  marginBottom: "16px",
+  gridTemplateColumns: "repeat(5, minmax(0px, 1fr))",
+  gap: "6px",
+  marginTop: "8px",
+  marginBottom: "8px",
 };
 
+
 export const tarjetaEstadistica = {
-  backgroundColor: "#f8fafc",
-  border: "2px solid #dbe4ee",
-  borderRadius: "14px",
-  padding: "12px 14px",
-  minHeight: "105px",
+  backgroundColor: "#fcfdfe",
+  border: "1px solid #edf2f7",
+  borderRadius: "10px",
+  padding: "6px 8px",
+  minHeight: "54px",
   textAlign: "center",
-  boxShadow: "0 6px 16px rgba(22,58,95,0.14)",
   display: "flex",
   flexDirection: "column",
+  alignItems: "center",
   justifyContent: "center",
 };
 

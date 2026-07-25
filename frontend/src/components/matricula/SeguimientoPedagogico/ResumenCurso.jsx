@@ -23,7 +23,7 @@ export default function ResumenCurso({ curso, alumnos }) {
         { sensitivity: "base" },
       );
 
-      if (comparacionApellido !== 0) {
+      if (comparacionApellido !== 0) { 
         return comparacionApellido;
       }
 
@@ -144,162 +144,136 @@ export default function ResumenCurso({ curso, alumnos }) {
 
   const estadisticas = calcularEstadisticas();
 
- const calcularEstadisticasPorAsignatura = () => {
-  return asignaturasResumen.map((asignatura) => {
-    let tea = 0;
-    let tep = 0;
-    let ted = 0;
-    let aplazos = 0;
+  const calcularEstadisticasPorAsignatura = () => {
+    return asignaturasResumen.map((asignatura) => {
+      let tea = 0;
+      let tep = 0;
+      let ted = 0;
+      let aplazos = 0;
 
-    alumnosCurso.forEach((alumno) => {
-      const dato = obtenerDato(
-        alumno._id,
+      alumnosCurso.forEach((alumno) => {
+        const dato = obtenerDato(alumno._id, asignatura);
+
+        if (dato.conceptual === "TEA") tea++;
+        if (dato.conceptual === "TEP") tep++;
+        if (dato.conceptual === "TED") ted++;
+
+        const notaNumerica = Number(dato.nota);
+
+        const tieneNota =
+          dato.nota !== "" &&
+          dato.nota !== null &&
+          dato.nota !== undefined &&
+          !Number.isNaN(notaNumerica);
+
+        if (tieneNota && notaNumerica >= 1 && notaNumerica <= 3) {
+          aplazos++;
+        }
+      });
+
+      const totalCargados = tea + tep + ted;
+
+      const indice = obtenerIndicePedagogico({
+        tea,
+        tep,
+        ted,
+      });
+
+      const estado = obtenerEstadoAsignatura({
+        indice,
+        tea,
+        tep,
+        ted,
+        aplazos,
+        totalCargados,
+      });
+
+      return {
         asignatura,
-      );
+        tea,
+        tep,
+        ted,
+        aplazos,
+        totalCargados,
+        indice,
+        estado,
+      };
+    });
+  };
 
-      if (dato.conceptual === "TEA") tea++;
-      if (dato.conceptual === "TEP") tep++;
-      if (dato.conceptual === "TED") ted++;
+  const estadisticasPorAsignatura = calcularEstadisticasPorAsignatura();
 
-      const notaNumerica = Number(dato.nota);
+  const generarObservaciones = () => {
+    const fortalezas = [];
+    const pendientes = [];
+    const recomendaciones = [];
 
-      const tieneNota =
-        dato.nota !== "" &&
-        dato.nota !== null &&
-        dato.nota !== undefined &&
-        !Number.isNaN(notaNumerica);
+    estadisticasPorAsignatura.forEach((item) => {
+      if (item.totalCargados === 0) {
+        pendientes.push(
+          `⚪ ${item.asignatura} aún no posee registros cargados para este período.`,
+        );
 
-      if (
-        tieneNota &&
-        notaNumerica >= 1 &&
-        notaNumerica <= 3
-      ) {
-        aplazos++;
+        return;
       }
+
+      if (item.estado.includes("Intervención pedagógica prioritaria")) {
+        recomendaciones.push(
+          `🔴 ${item.asignatura} requiere intervención pedagógica prioritaria. ` +
+            `Registra ${item.tep} trayectoria(s) en proceso, ` +
+            `${item.ted} trayectoria(s) discontinua(s)` +
+            `${item.aplazos > 0 ? ` y ${item.aplazos} aplazo(s).` : "."}`,
+        );
+
+        return;
+      }
+
+      if (item.estado.includes("Requiere intervención")) {
+        recomendaciones.push(
+          `🟠 ${item.asignatura} requiere acciones de intervención y acompañamiento. ` +
+            `Registra ${item.tep} trayectoria(s) en proceso, ` +
+            `${item.ted} trayectoria(s) discontinua(s)` +
+            `${item.aplazos > 0 ? ` y ${item.aplazos} aplazo(s).` : "."}`,
+        );
+
+        return;
+      }
+
+      if (item.estado.includes("Observar")) {
+        pendientes.push(
+          `🟡 ${item.asignatura} requiere seguimiento durante el período. ` +
+            `Registra ${item.tep} trayectoria(s) en proceso, ` +
+            `${item.ted} trayectoria(s) discontinua(s)` +
+            `${item.aplazos > 0 ? ` y ${item.aplazos} aplazo(s).` : "."}`,
+        );
+
+        return;
+      }
+
+      fortalezas.push(
+        `🟢 ${item.asignatura} presenta una evolución favorable.`,
+      );
     });
 
-    const totalCargados = tea + tep + ted;
-
-    const indice = obtenerIndicePedagogico({
-      tea,
-      tep,
-      ted,
-    });
-
-    const estado = obtenerEstadoAsignatura({
-      indice,
-      tea,
-      tep,
-      ted,
-      aplazos,
-      totalCargados,
-    });
-
-    return {
-      asignatura,
-      tea,
-      tep,
-      ted,
-      aplazos,
-      totalCargados,
-      indice,
-      estado,
-    };
-  });
-};
-
-const estadisticasPorAsignatura =
-  calcularEstadisticasPorAsignatura();
-
-const generarObservaciones = () => {
-  const fortalezas = [];
-  const pendientes = [];
-  const recomendaciones = [];
-
-  estadisticasPorAsignatura.forEach((item) => {
-    if (item.totalCargados === 0) {
-      pendientes.push(
-        `⚪ ${item.asignatura} aún no posee registros cargados para este período.`,
-      );
-
-      return;
-    }
-
-    if (
-      item.estado.includes(
-        "Intervención pedagógica prioritaria",
-      )
-    ) {
-      recomendaciones.push(
-        `🔴 ${item.asignatura} requiere intervención pedagógica prioritaria. ` +
-          `Registra ${item.tep} trayectoria(s) en proceso, ` +
-          `${item.ted} trayectoria(s) discontinua(s)` +
-          `${
-            item.aplazos > 0
-              ? ` y ${item.aplazos} aplazo(s).`
-              : "."
-          }`,
-      );
-
-      return;
-    }
-
-    if (item.estado.includes("Requiere intervención")) {
-      recomendaciones.push(
-        `🟠 ${item.asignatura} requiere acciones de intervención y acompañamiento. ` +
-          `Registra ${item.tep} trayectoria(s) en proceso, ` +
-          `${item.ted} trayectoria(s) discontinua(s)` +
-          `${
-            item.aplazos > 0
-              ? ` y ${item.aplazos} aplazo(s).`
-              : "."
-          }`,
-      );
-
-      return;
-    }
-
-    if (item.estado.includes("Observar")) {
-      pendientes.push(
-        `🟡 ${item.asignatura} requiere seguimiento durante el período. ` +
-          `Registra ${item.tep} trayectoria(s) en proceso, ` +
-          `${item.ted} trayectoria(s) discontinua(s)` +
-          `${
-            item.aplazos > 0
-              ? ` y ${item.aplazos} aplazo(s).`
-              : "."
-          }`,
-      );
-
-      return;
-    }
-
-    fortalezas.push(
-      `🟢 ${item.asignatura} presenta una evolución favorable.`,
-    );
-  });
-
-  const materiasSinCarga =
-    estadisticasPorAsignatura.filter(
+    const materiasSinCarga = estadisticasPorAsignatura.filter(
       (item) => item.totalCargados === 0,
     ).length;
 
-  if (materiasSinCarga > 0) {
-    recomendaciones.push(
-      "📌 Se recomienda completar la carga de las asignaturas pendientes antes del cierre del período.",
-    );
-  }
+    if (materiasSinCarga > 0) {
+      recomendaciones.push(
+        "📌 Se recomienda completar la carga de las asignaturas pendientes antes del cierre del período.",
+      );
+    }
 
-  return {
-    fortalezas,
-    pendientes,
-    recomendaciones,
+    return {
+      fortalezas,
+      pendientes,
+      recomendaciones,
+    };
   };
-};
 
-const observacionesSistema =
-  generarObservaciones();
-  
+  const observacionesSistema = generarObservaciones();
+
   const fechaAnalisis = new Date().toLocaleString("es-AR");
 
   const colorCelda = (conceptual) => {
@@ -383,22 +357,59 @@ const observacionesSistema =
           </select>
         </div>
       </div>
-      <button
-        type="button"
-        onClick={() => setMostrarPanelAnalisis(true)}
+          <div
         style={{
-          padding: "12px 20px",
-          marginRight: "10px",
-          borderRadius: "12px",
-          border: "1px solid #c8d5e5",
-          background: "#f4f8ff",
-          fontWeight: 700,
-          cursor: "pointer",
-          boxShadow: "0 4px 10px rgba(0,0,0,.10)",
+          maxWidth: "620px",
+          margin: "0 auto 18px",
+          padding: "22px",
+          borderRadius: "18px",
+          border: "2px solid #d7e7f5",
+          background: "#f8fbff",
+          boxShadow: "0 6px 18px rgba(44, 84, 116, 0.10)",
+          textAlign: "center",
         }}
       >
-        📈 Panel de análisis
-      </button>
+        <h3
+          style={{
+            margin: "0 0 12px",
+            color: "#23466d",
+          }}
+        >
+          🧠 Centro de análisis institucional
+        </h3>
+
+        <p
+          style={{
+            margin: "0 auto 20px",
+            maxWidth: "460px",
+            color: "#5f6f82",
+            lineHeight: 1.5,
+          }}
+        >
+          Genera automáticamente un diagnóstico institucional del curso,
+          identifica fortalezas, alertas y propone orientaciones para la
+          intervención pedagógica.
+        </p>
+
+        <button
+          type="button"
+          onClick={() => setMostrarPanelAnalisis(true)}
+          style={{
+            background: "#2d6fa5",
+            color: "white",
+            border: "none",
+            borderRadius: "12px",
+            padding: "13px 30px",
+            marginTop: "8px",
+            fontWeight: "700",
+            fontSize: "15px",
+            cursor: "pointer",
+            boxShadow: "0 5px 14px rgba(45, 111, 165, 0.28)",
+          }}
+        >
+          Abrir Centro de análisis institucional →
+        </button>
+      </div>
 
       {cargandoSeguimiento && (
         <p
@@ -527,14 +538,18 @@ const observacionesSistema =
           ventana.print();
           ventana.close();
         }}
-        style={{
-          padding: "12px 20px",
-          borderRadius: "10px",
+                style={{
+          display: "block",
+          margin: "0 auto 18px",
+          padding: "8px 16px",
+          borderRadius: "9px",
           border: "1px solid #c8d5e5",
-          background: "#f8f9fc",
+          background: "#ffffff",
+          color: "#52677f",
           fontWeight: "600",
+          fontSize: "13px",
           cursor: "pointer",
-          boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+          boxShadow: "0 2px 6px rgba(0, 0, 0, 0.06)",
         }}
       >
         🖨️ Imprimir informe

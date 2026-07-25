@@ -5,13 +5,13 @@ import {
   cursosManana,
   cursosTarde,
   asignaturas,
-  aniosMateria,  
+  aniosMateria,
 } from "./matricula/matriculaConstants";
 import BuscadorGeneralMatricula from "./matricula/BuscadorGeneralMatricula";
 import FichaEstudianteMatricula from "./matricula/FichaEstudianteMatricula";
 import {
   calcularEdadAl30Junio,
-  formatearFecha,
+  formatearFecha, 
   formatearDNI,
   limpiarDNI,
   tieneSobreedad,
@@ -30,8 +30,7 @@ import {
   obtenerLegajosFaltantes,
   obtenerFoliosFaltantes,
 } from "./matricula/legajos/legajoMatrizUtils";
-import AlertasInstitucionalesMatricula from "./matricula/AlertasInstitucionalesMatricula";
-import EstadisticasGeneralesMatricula from "./matricula/EstadisticasGeneralesMatricula";
+
 import {
   obtenerAlumnosDelCurso,
   filtrarAlumnosDelCurso,
@@ -91,9 +90,6 @@ import {
   itemResultadoBusqueda,
   panelHerramientas,
   bloqueHerramienta,
-  panelAlertas,
-  grillaAlertas,
-  tarjetaAlerta,
   grillaFicha,
   campoFicha,
   tituloFicha,
@@ -104,6 +100,7 @@ import {
   contenedorTurnos,
   tarjetaResumen,
 } from "./matricula/styles/matriculaStyles";
+import BarraEstadoInstitucional from "./BarraEstadoInstitucional";
 
 export default function Matricula({ modoDocumentacion = false, volverInicio }) {
   const rolUsuario = localStorage.getItem("rolUsuario") || "consulta";
@@ -115,7 +112,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
   const [nuevoCurso, setNuevoCurso] = useState("");
   const [nuevoTurno, setNuevoTurno] = useState("");
   const [guardando, setGuardando] = useState(false);
-  const [verEstadisticasGeneral] = useState(true);
+  
   const [verEstadisticasCurso, setVerEstadisticasCurso] = useState(false);
   const [mostrarTurnoManana, setMostrarTurnoManana] = useState(false);
   const [mostrarTurnoTarde, setMostrarTurnoTarde] = useState(false);
@@ -142,7 +139,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
   const [anioLegajoFiltro, setAnioLegajoFiltro] = useState("");
   const [verRecursantes, setVerRecursantes] = useState(false);
   const [filtroAvanzado, setFiltroAvanzado] = useState("todos");
-  const [alertaActiva, setAlertaActiva] = useState("");
+  
   const [pedidosAnaliticos, setPedidosAnaliticos] = useState([]);
   const [alumnoSeleccionado, setAlumnoSeleccionado] = useState(null);
   const [anioRelevamiento, setAnioRelevamiento] = useState("1");
@@ -218,7 +215,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
       legajoAnio: "",
       fechaNacimiento: "",
       condicionFinal: "",
-      materiasPendientes: [], 
+      materiasPendientes: [],
       nacionalidad: "",
       sexo: "",
     });
@@ -399,7 +396,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
 
   const alumnosFiltrados = filtrarAlumnosDelCurso({
     alumnosDelCurso,
-    filtroPrevia,
+    filtroPrevia, 
     filtroAnioPrevia,
     filtroAvanzado,
   });
@@ -446,7 +443,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
       ),
     });
   }
-  
+
   const edadesDelCurso = obtenerEdadesCurso(alumnosDelCurso);
 
   function cerrarPlanillaPrevias() {
@@ -487,17 +484,6 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
     alumnosConPrevias,
     alumnosConSobreedad,
   } = obtenerAlertas(alumnosMatricula);
-
-  const alumnosAlertaActiva =
-    alertaActiva === "sinLegajo"
-      ? alumnosSinLegajo
-      : alertaActiva === "sinFecha"
-        ? alumnosSinFechaNacimiento
-        : alertaActiva === "previas"
-          ? alumnosConPrevias
-          : alertaActiva === "sobreedad"
-            ? alumnosConSobreedad
-            : [];
 
   const pedidosAnaliticosEncontrados = buscarPedidosAnaliticos({
     pedidosAnaliticos,
@@ -559,48 +545,24 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
   }
 
   return (
-    <div style={{ marginTop: "40px" }}>
-      <h2 style={{ color: "#1e3a5f" }}>Gestión de Matrícula</h2>
-
-      <p style={{ color: "#666" }}>Organización por turno, año y sección.</p>
-
-      {!cursoSeleccionado && (
+  <div>
+    {!cursoSeleccionado && (
         <>
-          <EstadisticasGeneralesMatricula
-            mostrar={verEstadisticasGeneral}
+          <BarraEstadoInstitucional
             totalGeneral={totalGeneral}
             totalManana={totalManana}
             totalTarde={totalTarde}
             cicloBasico={cicloBasico}
             cicloSuperior={cicloSuperior}
-            estilos={{
-              bloqueEstadisticas,
-              tarjetaEstadistica,
-            }}
+            sinLegajo={alumnosSinLegajo.length}
+            sinFechaNacimiento={alumnosSinFechaNacimiento.length}
+            conPrevias={alumnosConPrevias.length}
+            sobreedad={alumnosConSobreedad.length}
           />
-          <AlertasInstitucionalesMatricula
-            alertaActiva={alertaActiva}
-            setAlertaActiva={setAlertaActiva}
-            alumnosSinLegajo={alumnosSinLegajo}
-            alumnosSinFechaNacimiento={alumnosSinFechaNacimiento}
-            alumnosConPrevias={alumnosConPrevias}
-            alumnosConSobreedad={alumnosConSobreedad}
-            alumnosAlertaActiva={alumnosAlertaActiva}
-            formatearDNI={formatearDNI}
-            calcularEdadAl30Junio={calcularEdadAl30Junio}
-            estilos={{
-              panelAlertas,
-              grillaAlertas,
-              tarjetaAlerta,
-              detalleCurso,
-              botonVolver,
-              tabla,
-              celda,
-            }}
-          />
+          
           <BuscadorGeneralMatricula
             busquedaAlumno={busquedaAlumno}
-            setBusquedaAlumno={setBusquedaAlumno}
+            setBusquedaAlumno={setBusquedaAlumno} 
             alumnosEncontrados={alumnosEncontrados}
             pedidosAnaliticos={pedidosAnaliticos}
             pedidosAnaliticosEncontrados={pedidosAnaliticosEncontrados}
@@ -709,11 +671,12 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
               bloqueTurno,
               tituloTurno,
               grillaCursos,
-              tarjetaCurso, 
+              tarjetaCurso,
               textoCantidad,
               botonCurso,
             }}
           />
+          
         </>
       )}
 
@@ -822,4 +785,3 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
     </div>
   );
 }
-

@@ -11,46 +11,61 @@ export default function EstadisticasGeneralesMatricula({
 
   const { bloqueEstadisticas, tarjetaEstadistica } = estilos;
 
-  const estiloTitulo = {
-    margin: "0 0 8px",
-    fontSize: "18px",
-    lineHeight: "1.15",
-    color: "#665d70",
-  };
-
-  const estiloNumero = {
-    margin: 0,
-    fontSize: "25px",
-    fontWeight: "700",
-    color: "#1e3a5f",
-  };
+  const indicadores = [
+    {
+      titulo: "TOTAL",
+      valor: totalGeneral,
+    },
+    {
+      titulo: "TM",
+      valor: totalManana,
+    },
+    {
+      titulo: "TT",
+      valor: totalTarde,
+    },
+    {
+      titulo: "BÁSICO",
+      valor: cicloBasico,
+    },
+    {
+      titulo: "SUPERIOR",
+      valor: cicloSuperior,
+    },
+  ];
 
   return (
     <div style={bloqueEstadisticas}>
-      <div style={tarjetaEstadistica}>
-        <h3 style={estiloTitulo}>Total general</h3>
-        <p style={estiloNumero}>{totalGeneral}</p>
-      </div>
+      {indicadores.map((item) => (
+        <div key={item.titulo} style={tarjetaEstadistica}>
+          <strong
+            style={{
+              display: "block",
+              margin: 0,
+              fontSize: "20px",
+              lineHeight: 1,
+              fontWeight: 700,
+              color: "#1e3a5f",
+            }}
+          >
+            {item.valor}
+          </strong>
 
-      <div style={tarjetaEstadistica}>
-        <h3 style={estiloTitulo}>Turno mañana</h3>
-        <p style={estiloNumero}>{totalManana}</p>
-      </div>
-
-      <div style={tarjetaEstadistica}>
-        <h3 style={estiloTitulo}>Turno tarde</h3>
-        <p style={estiloNumero}>{totalTarde}</p>
-      </div>
-
-      <div style={tarjetaEstadistica}>
-        <h3 style={estiloTitulo}>Ciclo básico</h3>
-        <p style={estiloNumero}>{cicloBasico}</p>
-      </div>
-
-      <div style={tarjetaEstadistica}>
-        <h3 style={estiloTitulo}>Ciclo superior</h3>
-        <p style={estiloNumero}>{cicloSuperior}</p>
-      </div>
+          <span
+            style={{
+              display: "block",
+              marginTop: "4px",
+              fontSize: "10px",
+              lineHeight: 1,
+              fontWeight: 700,
+              color: "#7a8491",
+              letterSpacing: "0.45px",
+            }}
+          >
+            {item.titulo}
+          </span>
+        </div>
+      ))}
     </div>
   );
 }

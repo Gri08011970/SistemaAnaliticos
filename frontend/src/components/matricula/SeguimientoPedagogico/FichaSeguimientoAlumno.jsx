@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   obtenerAsignaturasPorCurso,
   COLORES_SEGUIMIENTO,
@@ -38,6 +39,7 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
   const [seguimiento, setSeguimiento] = useState({});
   const [cargandoSeguimiento, setCargandoSeguimiento] = useState(false);
   const [errorSeguimiento, setErrorSeguimiento] = useState("");
+  const [mostrarInformeCompleto, setMostrarInformeCompleto] = useState(false);
 
   useEffect(() => {
     async function obtenerFichaDesdeMongo() {
@@ -99,10 +101,47 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
     return texto.includes(busqueda.toLowerCase());
   });
 
+  useEffect(() => {
+    if (!mostrarInformeCompleto) return undefined;
+
+    const posicionAnterior = window.scrollY;
+    const overflowAnterior = document.body.style.overflow;
+
+    document.body.style.overflow = "hidden";
+
+    const cerrarConEscape = (evento) => {
+      if (evento.key === "Escape") {
+        setMostrarInformeCompleto(false);
+      }
+    };
+
+    window.addEventListener("keydown", cerrarConEscape);
+
+    requestAnimationFrame(() => {
+      const modal = document.getElementById(
+        "modal-informe-institucional",
+      );
+
+      if (modal) {
+        modal.scrollTop = 0;
+      }
+    });
+
+    return () => {
+      window.removeEventListener("keydown", cerrarConEscape);
+      document.body.style.overflow = overflowAnterior;
+
+      window.scrollTo({
+        top: posicionAnterior,
+        behavior: "auto",
+      });
+    };
+  }, [mostrarInformeCompleto]);
+
   const asignaturas = alumnoSeleccionado
     ? obtenerAsignaturasPorCurso(alumnoSeleccionado.curso)
     : [];
-    
+
   const resultadoTrayectoria = alumnoSeleccionado
     ? analizarTrayectoria({
         alumno: alumnoSeleccionado,
@@ -120,37 +159,25 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
   };
 
   const imprimirFicha = () => {
-  const informe =
-    document.getElementById(
-      "informe-institucional-imprimir",
-    );
+    const informe = document.getElementById("informe-institucional-imprimir");
 
-  if (!informe) {
-    console.error(
-      "No se encontró el informe institucional para imprimir.",
-    );
+    if (!informe) {
+      console.error("No se encontró el informe institucional para imprimir.");
 
-    return;
-  }
+      return;
+    }
 
-  const ventana =
-    window.open(
-      "",
-      "_blank",
-    );
+    const ventana = window.open("", "_blank");
 
-  if (!ventana) {
-    console.error(
-      "No se pudo abrir la ventana de impresión.",
-    );
+    if (!ventana) {
+      console.error("No se pudo abrir la ventana de impresión.");
 
-    return;
-  }
+      return;
+    }
 
-  const contenido =
-    informe.outerHTML;
+    const contenido = informe.outerHTML;
 
-  ventana.document.write(`
+    ventana.document.write(`
     <!DOCTYPE html>
     <html lang="es">
       <head>
@@ -302,14 +329,14 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
     </html>
   `);
 
-  ventana.document.close();
+    ventana.document.close();
 
-  ventana.onload = () => {
-    ventana.focus();
-    ventana.print();
-    ventana.close();
+    ventana.onload = () => {
+      ventana.focus();
+      ventana.print();
+      ventana.close();
+    };
   };
-};
 
   return (
     <>
@@ -322,6 +349,7 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
           onChange={(e) => {
             setBusqueda(e.target.value);
             setAlumnoSeleccionado(null);
+            setMostrarInformeCompleto(false);
           }}
           style={{
             width: "420px",
@@ -345,7 +373,10 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
             {resultados.map((alumno) => (
               <div
                 key={alumno._id || alumno.dni}
-                onClick={() => setAlumnoSeleccionado(alumno)}
+                onClick={() => {
+                  setAlumnoSeleccionado(alumno);
+                  setMostrarInformeCompleto(false);
+                }}
                 style={{
                   padding: "10px 15px",
                   cursor: "pointer",
@@ -400,176 +431,373 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
           </div>
 
           <div
-            id="ficha-seguimiento-imprimir"
-            className="ficha-seguimiento-imprimir"
             style={{
-              border: "2px solid #bcd8ea",
-              borderRadius: "12px",
-              padding: "18px",
-              background: "#f9fcff",
+              display: "grid",
+              gridTemplateColumns: "minmax(0, 1.25fr) minmax(320px, 0.75fr)",
+              gap: "24px",
+              alignItems: "start",
+              marginTop: "20px",
+              marginBottom: "28px",
             }}
           >
-            <h3 style={{ marginTop: 0 }}>E.E.S 140 - Seguimiento Pedagógico</h3>
+            {/* COLUMNA IZQUIERDA: SEGUIMIENTO PEDAGÓGICO */}
+            <div
+              id="ficha-seguimiento-imprimir"
+              className="ficha-seguimiento-imprimir"
+              style={{
+                border: "2px solid #bcd8ea",
+                borderRadius: "12px",
+                padding: "18px",
+                background: "#f9fcff",
+                minWidth: 0,
+              }}
+            >
+              <h3 style={{ marginTop: 0 }}>
+                E.E.S 140 - Seguimiento Pedagógico
+              </h3>
 
-            <h2>
-              {alumnoSeleccionado.apellido}, {alumnoSeleccionado.nombre}
-            </h2>
+              <h2>
+                {alumnoSeleccionado.apellido}, {alumnoSeleccionado.nombre}
+              </h2>
 
-            <p style={{ textAlign: "center" }}>
-              <strong>DNI:</strong> {alumnoSeleccionado.dni}
-              &nbsp; | &nbsp;
-              <strong>Curso:</strong> {alumnoSeleccionado.curso}
-            </p>
-
-            {cargandoSeguimiento && (
-              <p style={{ textAlign: "center", color: "#5d6d7e" }}>
-                Cargando ficha compartida...
+              <p style={{ textAlign: "center" }}>
+                <strong>DNI:</strong> {alumnoSeleccionado.dni}
+                &nbsp; | &nbsp;
+                <strong>Curso:</strong> {alumnoSeleccionado.curso}
               </p>
-            )}
 
-            {errorSeguimiento && (
-              <p
-                style={{
-                  background: "#fff3cd",
-                  border: "1px solid #f0d98c",
-                  borderRadius: "8px",
-                  color: "#856404",
-                  padding: "9px 12px",
-                  textAlign: "center",
-                }}
-              >
-                {errorSeguimiento}
-              </p>
-            )}
+              {cargandoSeguimiento && (
+                <p
+                  style={{
+                    textAlign: "center",
+                    color: "#5d6d7e",
+                  }}
+                >
+                  Cargando ficha compartida...
+                </p>
+              )}
 
-            <hr style={{ margin: "20px 0" }} />
+              {errorSeguimiento && (
+                <p
+                  style={{
+                    background: "#fff3cd",
+                    border: "1px solid #f0d98c",
+                    borderRadius: "8px",
+                    color: "#856404",
+                    padding: "9px 12px",
+                    textAlign: "center",
+                  }}
+                >
+                  {errorSeguimiento}
+                </p>
+              )}
 
-            <div className="ficha-seguimiento-desktop">
-              {asignaturas.map((asignatura) => (
-                <div key={asignatura}>
-                  <h4 className="materia">{asignatura}</h4>
+              <hr style={{ margin: "20px 0" }} />
 
-                  <div className="tabla-scroll-mobile">
-                    <table
-                      style={{
-                        width: "100%",
-                        borderCollapse: "collapse",
-                        marginBottom: "18px",
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-                      }}
-                    >
-                      <thead>
-                        <tr>
-                          {periodos.map((periodo) => (
-                            <th
-                              key={periodo.clave}
-                              style={{
-                                border: "2px solid #cfd8dc",
-                                padding: "6px",
-                                background: "#eef3f7",
-                                fontSize: "12px",
-                              }}
-                            >
-                              {periodo.etiqueta}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
+              <div className="ficha-seguimiento-desktop">
+                {asignaturas.map((asignatura) => (
+                  <div key={asignatura}>
+                    <h4 className="materia">{asignatura}</h4>
 
-                      <tbody>
-                        <tr>
-                          {periodos.map((periodo) => {
-                            const dato = obtenerDato(asignatura, periodo.clave);
-
-                            return (
-                              <td
+                    <div className="tabla-scroll-mobile">
+                      <table
+                        style={{
+                          width: "100%",
+                          borderCollapse: "collapse",
+                          marginBottom: "18px",
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                        }}
+                      >
+                        <thead>
+                          <tr>
+                            {periodos.map((periodo) => (
+                              <th
                                 key={periodo.clave}
                                 style={{
                                   border: "2px solid #cfd8dc",
-                                  padding: "7px",
-                                  textAlign: "center",
-                                  background: colorConceptual(dato.conceptual),
-                                  fontWeight: "700",
+                                  padding: "6px",
+                                  background: "#eef3f7",
                                   fontSize: "12px",
                                 }}
                               >
-                                {dato.conceptual
-                                  ? `${dato.conceptual}${
-                                      dato.nota ? ` ${dato.nota}` : ""
-                                    }`
-                                  : "—"}
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      </tbody>
-                    </table>
+                                {periodo.etiqueta}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+
+                        <tbody>
+                          <tr>
+                            {periodos.map((periodo) => {
+                              const dato = obtenerDato(
+                                asignatura,
+                                periodo.clave,
+                              );
+
+                              return (
+                                <td
+                                  key={periodo.clave}
+                                  style={{
+                                    border: "2px solid #cfd8dc",
+                                    padding: "7px",
+                                    textAlign: "center",
+                                    background: colorConceptual(
+                                      dato.conceptual,
+                                    ),
+                                    fontWeight: "700",
+                                    fontSize: "12px",
+                                  }}
+                                >
+                                  {dato.conceptual
+                                    ? `${dato.conceptual}${
+                                        dato.nota ? ` ${dato.nota}` : ""
+                                      }`
+                                    : "—"}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+
+              <div className="ficha-seguimiento-mobile">
+                {asignaturas.map((asignatura) => (
+                  <div
+                    key={`mobile-${asignatura}`}
+                    className="tarjeta-materia-seguimiento"
+                  >
+                    <h4 className="materia materia-mobile">{asignatura}</h4>
+
+                    <div className="periodos-mobile">
+                      {periodos.map((periodo) => {
+                        const dato = obtenerDato(asignatura, periodo.clave);
+
+                        return (
+                          <div
+                            key={`mobile-${asignatura}-${periodo.clave}`}
+                            className="fila-periodo-mobile"
+                          >
+                            <span className="nombre-periodo-mobile">
+                              {periodo.etiqueta}
+                            </span>
+
+                            <span
+                              className="valor-periodo-mobile"
+                              style={{
+                                background: colorConceptual(dato.conceptual),
+                              }}
+                            >
+                              {dato.conceptual
+                                ? `${dato.conceptual}${
+                                    dato.nota ? ` ${dato.nota}` : ""
+                                  }`
+                                : "—"}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <div className="ficha-seguimiento-mobile">
-              {asignaturas.map((asignatura) => (
-                <div
-                  key={`mobile-${asignatura}`}
-                  className="tarjeta-materia-seguimiento"
+            {/* COLUMNA DERECHA: ACCESO AL INFORME INSTITUCIONAL */}
+            <div
+              style={{
+                minWidth: 0,
+                position: "sticky",
+                top: "20px",
+              }}
+            >
+              {!cargandoSeguimiento && informeInstitucional && (
+                <section
+                  style={{
+                    border: "2px solid #b9d7d3",
+                    borderRadius: "18px",
+                    padding: "26px",
+                    background:
+                      "linear-gradient(180deg, #f6fbfa 0%, #ffffff 100%)",
+                    boxShadow: "0 8px 24px rgba(40, 82, 78, 0.10)",
+                  }}
                 >
-                  <h4 className="materia materia-mobile">{asignatura}</h4>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      marginBottom: "18px",
+                    }}
+                  >
+                    <div
+                      aria-hidden="true"
+                      style={{
+                        width: "48px",
+                        height: "48px",
+                        borderRadius: "14px",
+                        display: "grid",
+                        placeItems: "center",
+                        flexShrink: 0,
+                        background: "#e5f3f0",
+                        fontSize: "24px",
+                      }}
+                    >
+                      🧠
+                    </div>
 
-                  <div className="periodos-mobile">
-                    {periodos.map((periodo) => {
-                      const dato = obtenerDato(asignatura, periodo.clave);
+                    <div>
+                      <p
+                        style={{
+                          margin: "0 0 3px",
+                          color: "#64748b",
+                          fontSize: "12px",
+                          fontWeight: "700",
+                          letterSpacing: "0.06em",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Análisis pedagógico
+                      </p>
 
-                      return (
-                        <div
-                          key={`mobile-${asignatura}-${periodo.clave}`}
-                          className="fila-periodo-mobile"
-                        >
-                          <span className="nombre-periodo-mobile">
-                            {periodo.etiqueta}
-                          </span>
-
-                          <span
-                            className="valor-periodo-mobile"
-                            style={{
-                              background: colorConceptual(dato.conceptual),
-                            }}
-                          >
-                            {dato.conceptual
-                              ? `${dato.conceptual}${
-                                  dato.nota ? ` ${dato.nota}` : ""
-                                }`
-                              : "—"}
-                          </span>
-                        </div>
-                      );
-                    })}
+                      <h3
+                        style={{
+                          margin: 0,
+                          color: "#173f3b",
+                          fontSize: "21px",
+                          lineHeight: 1.25,
+                        }}
+                      >
+                        Centro de análisis institucional
+                      </h3>
+                    </div>
                   </div>
-                </div>
-              ))}
+
+                  <div
+                    style={{
+                      padding: "16px",
+                      border: "1px solid #d7e6e4",
+                      borderRadius: "12px",
+                      background: "#ffffff",
+                      marginBottom: "18px",
+                    }}
+                  >
+                    <span
+                      style={{
+                        display: "block",
+                        marginBottom: "7px",
+                        color: "#667085",
+                        fontSize: "12px",
+                        fontWeight: "700",
+                        letterSpacing: "0.04em",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Valoración institucional
+                    </span>
+
+                    <strong
+                      style={{
+                        display: "block",
+                        color: "#243b53",
+                        fontSize: "17px",
+                        lineHeight: 1.45,
+                      }}
+                    >
+                      {informeInstitucional.encabezado?.titulo ||
+                        "Informe institucional de seguimiento pedagógico"}
+                    </strong>
+                  </div>
+
+                  <div style={{ marginBottom: "22px" }}>
+                    <h4
+                      style={{
+                        margin: "0 0 9px",
+                        color: "#4b5563",
+                        fontSize: "16px",
+                      }}
+                    >
+                      Síntesis
+                    </h4>
+
+                    <p
+                      style={{
+                        margin: 0,
+                        color: "#4a5568",
+                        fontSize: "15px",
+                        lineHeight: 1.65,
+                        display: "-webkit-box",
+                        WebkitLineClamp: 5,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                      }}
+                    >
+                      {informeInstitucional.resumen ||
+                        "El informe institucional se encuentra disponible para su lectura completa."}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setMostrarInformeCompleto(true)}
+                    style={{
+                      width: "100%",
+                      padding: "13px 18px",
+                      border: "none",
+                      borderRadius: "11px",
+                      background: "#315f5a",
+                      color: "#ffffff",
+                      cursor: "pointer",
+                      fontWeight: "700",
+                      fontSize: "15px",
+                      boxShadow: "0 4px 12px rgba(49, 95, 90, 0.20)",
+                    }}
+                  >
+                    Ver informe institucional completo →
+                  </button>
+
+                  <p
+                    style={{
+                      margin: "13px 0 0",
+                      color: "#718096",
+                      fontSize: "12px",
+                      lineHeight: 1.5,
+                      textAlign: "center",
+                    }}
+                  >
+                    Se abrirá en una vista exclusiva para su lectura.
+                  </p>
+                </section>
+              )}
+
+              {!cargandoSeguimiento && resultadoTrayectoria?.error && (
+                <p
+                  style={{
+                    marginTop: "20px",
+                    padding: "12px",
+                    borderRadius: "8px",
+                    background: "#fff3cd",
+                    border: "1px solid #f0d98c",
+                    color: "#856404",
+                    textAlign: "center",
+                  }}
+                >
+                  {resultadoTrayectoria.error}
+                </p>
+              )}
             </div>
           </div>
 
-          {!cargandoSeguimiento && informeInstitucional && (
-            <InformeInstitucional informe={informeInstitucional} />
-          )}
-
-          {!cargandoSeguimiento && resultadoTrayectoria?.error && (
-            <p
-              style={{
-                marginTop: "20px",
-                padding: "12px",
-                borderRadius: "8px",
-                background: "#fff3cd",
-                border: "1px solid #f0d98c",
-                color: "#856404",
-                textAlign: "center",
-              }}
-            >
-              {resultadoTrayectoria.error}
-            </p>
-          )}
+                  {!mostrarInformeCompleto &&
+            !cargandoSeguimiento &&
+            informeInstitucional && (
+              <div aria-hidden="true" style={{ display: "none" }}>
+                <InformeInstitucional informe={informeInstitucional} />
+              </div>
+            )}
 
           <div
             style={{
@@ -592,6 +820,142 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
               🖨️ Imprimir ficha
             </button>
           </div>
+
+          {mostrarInformeCompleto &&
+            !cargandoSeguimiento &&
+            informeInstitucional &&
+            createPortal(
+              <div
+                id="modal-informe-institucional"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="titulo-modal-informe"
+                onMouseDown={(evento) => {
+                  if (evento.target === evento.currentTarget) {
+                    setMostrarInformeCompleto(false);
+                  }
+                }}
+                style={{
+                  position: "fixed",
+                  inset: 0,
+                  zIndex: 9999,
+                  overflowY: "auto",
+                  padding: "28px 18px",
+                  background: "rgba(24, 41, 49, 0.64)",
+                  backdropFilter: "blur(6px)",
+                }}
+              >
+                <article
+                  style={{
+                    width: "min(980px, 100%)",
+                    minHeight: "calc(100vh - 56px)",
+                    margin: "0 auto",
+                    overflow: "hidden",
+                    border: "1px solid #d6e3e8",
+                    borderRadius: "22px",
+                    background: "#ffffff",
+                    boxShadow: "0 28px 80px rgba(12, 32, 43, 0.34)",
+                  }}
+                >
+                  <header
+                    style={{
+                      position: "sticky",
+                      top: 0,
+                      zIndex: 2,
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      gap: "20px",
+                      padding: "18px 26px",
+                      borderBottom: "1px solid #dbe5eb",
+                      background: "rgba(255, 255, 255, 0.97)",
+                      backdropFilter: "blur(10px)",
+                    }}
+                  >
+                    <div>
+                      <p
+                        style={{
+                          margin: "0 0 4px",
+                          color: "#6b7280",
+                          fontSize: "12px",
+                          fontWeight: "700",
+                          letterSpacing: "0.08em",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Lectura institucional completa
+                      </p>
+
+                      <h2
+                        id="titulo-modal-informe"
+                        style={{
+                          margin: 0,
+                          color: "#296b65",
+                          fontSize: "22px",
+                          lineHeight: 1.25,
+                        }}
+                      >
+                        Informe institucional de seguimiento pedagógico
+                      </h2>
+                    </div>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={imprimirFicha}
+                        style={{
+                          padding: "10px 15px",
+                          border: "1px solid #bfd2d9",
+                          borderRadius: "10px",
+                          background: "#edf6f4",
+                          color: "#315f5a",
+                          cursor: "pointer",
+                          fontWeight: "700",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        🖨️ Imprimir
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setMostrarInformeCompleto(false)}
+                        style={{
+                          padding: "10px 15px",
+                          border: "1px solid #cbd8df",
+                          borderRadius: "10px",
+                          background: "#f8fafc",
+                          color: "#334155",
+                          cursor: "pointer",
+                          fontWeight: "700",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        Cerrar ✕
+                      </button>
+                    </div>
+                  </header>
+
+                  <div
+                    style={{
+                      padding: "38px 44px 50px",
+                      background:
+                        "linear-gradient(180deg, #ffffff 0%, #fbfdfd 100%)",
+                    }}
+                  >
+                    <InformeInstitucional informe={informeInstitucional} />
+                  </div>
+                </article>
+              </div>,
+              document.body,
+            )}
         </>
       )}
     </>

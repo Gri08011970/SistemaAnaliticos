@@ -174,7 +174,7 @@ export default function HerramientasGestionMatricula({
       {seccionActiva === "seguimiento" && (
         <div style={{ width: "100%" }}>
           <button type="button" onClick={volverATablero} style={botonVolver}>
-            ← Volver a herramientas
+            ← Volver 
           </button>
 
           <SeguimientoPedagogico alumnos={alumnosMatricula} esAdmin={esAdmin} />
@@ -184,7 +184,7 @@ export default function HerramientasGestionMatricula({
       {seccionActiva === "complementarias" && (
         <div style={{ width: "100%" }}>
           <button type="button" onClick={volverATablero} style={botonVolver}>
-            ← Volver a herramientas
+            ← Volver 
           </button>
 
           <BotonesHerramientasMatricula
@@ -255,7 +255,7 @@ export default function HerramientasGestionMatricula({
       {seccionActiva === "legajos" && (
         <div style={{ width: "100%" }}>
           <button type="button" onClick={volverATablero} style={botonVolver}>
-            ← Volver a herramientas
+            ← Volver 
           </button>
 
           <div
@@ -336,7 +336,7 @@ export default function HerramientasGestionMatricula({
       {seccionActiva === "cursos" && (
         <div style={{ width: "100%" }}>
           <button type="button" onClick={volverATablero} style={botonVolver}>
-            ← Volver a herramientas
+            ← Volver 
           </button>
 
           <TurnosCursosMatricula
