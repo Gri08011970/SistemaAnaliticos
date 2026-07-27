@@ -10,10 +10,21 @@ import {
   COLORES_SEGUIMIENTO,
 } from "./seguimientoConstants";
 
+const nombresPeriodos = {
+    mayo: "Mayo",
+    primerCuat: "1° Cuatrimestre",
+    octubre: "Octubre",
+    segundoCuat: "2° Cuatrimestre",
+    diciembre: "Diciembre",
+    febrero: "Febrero",
+    marzo: "Marzo",
+    final: "Final",
+  };
+
 export default function ResumenCurso({ curso, alumnos }) {
   const [periodoSeleccionado, setPeriodoSeleccionado] = useState("mayo");
   const [mostrarPanelAnalisis, setMostrarPanelAnalisis] = useState(false);
-
+  
   const alumnosCurso = alumnos
     .filter((alumno) => alumno.curso === curso)
     .sort((a, b) => {
@@ -23,7 +34,7 @@ export default function ResumenCurso({ curso, alumnos }) {
         { sensitivity: "base" },
       );
 
-      if (comparacionApellido !== 0) { 
+      if (comparacionApellido !== 0) {
         return comparacionApellido;
       }
 
@@ -357,7 +368,7 @@ export default function ResumenCurso({ curso, alumnos }) {
           </select>
         </div>
       </div>
-          <div
+      <div
         style={{
           maxWidth: "620px",
           margin: "0 auto 18px",
@@ -538,7 +549,7 @@ export default function ResumenCurso({ curso, alumnos }) {
           ventana.print();
           ventana.close();
         }}
-                style={{
+        style={{
           display: "block",
           margin: "0 auto 18px",
           padding: "8px 16px",
@@ -556,7 +567,10 @@ export default function ResumenCurso({ curso, alumnos }) {
       </button>
 
       <p style={{ marginTop: "20px", color: "#666" }}>
-        Mostrando resumen del período: <strong>{periodoSeleccionado}</strong>
+        Mostrando resumen del período:{" "}
+        <strong>
+          {nombresPeriodos[periodoSeleccionado] || periodoSeleccionado}
+        </strong>
         <br />
         Estudiantes del curso: <strong>{alumnosCurso.length}</strong>
       </p>

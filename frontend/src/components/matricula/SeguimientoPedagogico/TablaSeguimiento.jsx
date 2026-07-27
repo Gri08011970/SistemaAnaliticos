@@ -82,7 +82,7 @@ export default function TablaSeguimiento({ curso, asignatura, alumnos,esAdmin, }
   // =====================================
   // GUARDAR UNA CELDA EN MONGODB
   // =====================================
-  const guardarRegistroEnMongo = async ({
+  const guardarRegistroEnMongo = async ({ 
     alumnoId,
     periodo,
     conceptual,
@@ -177,31 +177,65 @@ export default function TablaSeguimiento({ curso, asignatura, alumnos,esAdmin, }
   // CAMBIAR NOTA
   // =====================================
 
-  const cambiarNota = (alumnoId, periodo, nota) => {
-  if (!esAdmin) return;
+  const cambiarNota = (
+  alumnoId,
+  periodo,
+  nota,
+) => {
+  const clave = obtenerClave(
+    alumnoId,
+    periodo,
+  );
 
-  const clave = obtenerClave(alumnoId, periodo); 
+  const registroActual =
+    seguimientoRef.current[clave] || {};
 
-    const registroActual = seguimientoRef.current[clave] || {};
+  let conceptualAutomatico = "-";
 
-    const registroNuevo = {
-      ...registroActual,
-      conceptual: registroActual.conceptual || "-",
-      nota,
-    };
+  if (nota !== "") {
+    const notaNumerica = Number(nota);
 
-    setSeguimiento((datosAnteriores) => ({
-      ...datosAnteriores,
-      [clave]: registroNuevo,
-    }));
+    if (
+      !Number.isNaN(notaNumerica) &&
+      notaNumerica >= 1 &&
+      notaNumerica <= 10
+    ) {
+      if (notaNumerica >= 7) {
+        conceptualAutomatico = "TEA";
+      } else if (notaNumerica >= 4) {
+        conceptualAutomatico = "TEP";
+      } else {
+        conceptualAutomatico = "TED";
+      }
+    }
+  }
 
-    guardarRegistroEnMongo({
-      alumnoId,
-      periodo,
-      conceptual: registroNuevo.conceptual,
-      nota: registroNuevo.nota,
-    });
+  const registroNuevo = {
+    ...registroActual,
+    conceptual: conceptualAutomatico,
+    nota,
   };
+
+  // Actualizamos también la referencia para evitar
+  // que una escritura rápida utilice datos anteriores.
+  seguimientoRef.current = {
+    ...seguimientoRef.current,
+    [clave]: registroNuevo,
+  };
+
+  setSeguimiento((datosAnteriores) => ({
+    ...datosAnteriores,
+    [clave]: registroNuevo,
+  }));
+
+  guardarRegistroEnMongo({
+    alumnoId,
+    periodo,
+    conceptual:
+      registroNuevo.conceptual,
+    nota: registroNuevo.nota,
+  });
+};
 
   const periodos = [
     { clave: "mayo", etiqueta: "Mayo" },

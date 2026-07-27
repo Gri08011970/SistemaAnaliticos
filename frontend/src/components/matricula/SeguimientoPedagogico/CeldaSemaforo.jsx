@@ -33,13 +33,14 @@ export default function CeldaSemaforo({
       >
         {valor}
       </button>
-
+ 
       <input
         type="number"
         min="1"
         max="10"
         value={nota}
-        onChange={(e) => onChangeNota(e.target.value)}
+         onChange={(e) =>
+          onChangeNota(e.target.value)}
         style={{
           width: "42px",
           marginTop: "4px",
