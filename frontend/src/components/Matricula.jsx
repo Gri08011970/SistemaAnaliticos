@@ -545,7 +545,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
   }
 
   return (
-  <div>
+  <div> 
     {!cursoSeleccionado && (
         <>
           <BarraEstadoInstitucional

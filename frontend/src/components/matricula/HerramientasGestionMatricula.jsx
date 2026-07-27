@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import SeguimientoPedagogico from "./SeguimientoPedagogico/SeguimientoPedagogico";
+import GestionFotia from "./fotia/GestionFotia";
 import BotonesHerramientasMatricula from "./BotonesHerramientasMatricula";
 import RelevamientoInspeccionMatricula from "./RelevamientoInspeccionMatricula";
 import FiltrosLegajoMatrizMatricula from "./FiltrosLegajoMatrizMatricula";
@@ -14,7 +15,7 @@ import TarjetaModulo from "./TarjetaModulo";
 export default function HerramientasGestionMatricula({
   esAdmin,
   alumnosMatricula,
-  
+
   verPlanillaPrevias,
   setVerPlanillaPrevias,
 
@@ -148,6 +149,13 @@ export default function HerramientasGestionMatricula({
             />
 
             <TarjetaModulo
+              titulo="📘 FOTIA"
+              descripcion="Gestión del fortalecimiento, seguimiento de asignaturas pendientes y docentes responsables."
+              onEntrar={() => setSeccionActiva("fotia")}
+              colorBorde="#8fb5d9"
+            />
+
+            <TarjetaModulo
               titulo="📋 Herramientas complementarias"
               descripcion="Planilla de previas, relevamiento y estudiantes recursantes."
               onEntrar={() => setSeccionActiva("complementarias")}
@@ -174,17 +182,31 @@ export default function HerramientasGestionMatricula({
       {seccionActiva === "seguimiento" && (
         <div style={{ width: "100%" }}>
           <button type="button" onClick={volverATablero} style={botonVolver}>
-            ← Volver 
+            ← Volver
           </button>
 
           <SeguimientoPedagogico alumnos={alumnosMatricula} esAdmin={esAdmin} />
         </div>
       )}
 
+      {seccionActiva === "fotia" && (
+        <div style={{ width: "100%" }}>
+          <button type="button" onClick={volverATablero} style={botonVolver}>
+            ← Volver
+          </button>
+
+          <GestionFotia
+            alumnosMatricula={alumnosMatricula}
+            alumnosParaExamen={alumnosParaExamen}
+            esAdmin={esAdmin}
+          />
+        </div>
+      )}
+
       {seccionActiva === "complementarias" && (
         <div style={{ width: "100%" }}>
           <button type="button" onClick={volverATablero} style={botonVolver}>
-            ← Volver 
+            ← Volver
           </button>
 
           <BotonesHerramientasMatricula
@@ -255,7 +277,7 @@ export default function HerramientasGestionMatricula({
       {seccionActiva === "legajos" && (
         <div style={{ width: "100%" }}>
           <button type="button" onClick={volverATablero} style={botonVolver}>
-            ← Volver 
+            ← Volver
           </button>
 
           <div
@@ -327,7 +349,7 @@ export default function HerramientasGestionMatricula({
                   backgroundColor: "#f7fafb",
                   marginBottom: "16px",
                 },
-              }} 
+              }}
             />
           </div>
         </div>
@@ -336,7 +358,7 @@ export default function HerramientasGestionMatricula({
       {seccionActiva === "cursos" && (
         <div style={{ width: "100%" }}>
           <button type="button" onClick={volverATablero} style={botonVolver}>
-            ← Volver 
+            ← Volver
           </button>
 
           <TurnosCursosMatricula

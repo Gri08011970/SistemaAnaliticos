@@ -10,6 +10,7 @@ import Usuario from "./models/Usuario.js"
 import DomicilioTelefono from "./models/DomicilioTelefono.js"
 import AutorizadoRetiro from "./models/AutorizadoRetiro.js";
 import SeguimientoPedagogico from "./models/SeguimientoPedagogico.js";
+import fotiaRoutes from "./routes/fotiaRoutes.js";
 
 dotenv.config()
 
@@ -20,6 +21,7 @@ const __dirname = path.dirname(__filename)
 
 app.use(cors())
 app.use(express.json())
+app.use("/api/fotia", fotiaRoutes);
 
 mongoose.connect(process.env.MONGO_URI)
   .then(async () => {
@@ -176,6 +178,8 @@ app.put("/alumnos/:id", async (req, res) => {
     })
   }
 })
+
+
 
 // OBTENER MATRÍCULA
 app.get("/api/matricula", async (req, res) => {
