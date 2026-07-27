@@ -359,18 +359,21 @@ export const incorporarAsignaturaAFotia = async (datosInscripcion) => {
     );
   }
 
+  const apellidoLimpio = String(alumno.apellido || "").trim();
+
+  const nombreLimpio = String(alumno.nombre || "").trim();
+
+  const nombreValido =
+    nombreLimpio && nombreLimpio.toLowerCase() !== "sin nombre";
+
   const nuevaInscripcion = new FotiaInscripcion({
     periodoId: periodo._id,
 
     alumnoId: alumno._id,
 
-    apellido:
-      alumno.apellido || alumno.apellidoNombre?.split(" ")[0] || "Sin apellido",
+    apellido: apellidoLimpio || "Sin apellido",
 
-    nombre:
-      alumno.nombre ||
-      alumno.apellidoNombre?.split(" ").slice(1).join(" ") ||
-      "Sin nombre",
+    nombre: nombreValido ? nombreLimpio : "",
 
     curso: alumno.curso || "Sin curso",
 
@@ -390,25 +393,25 @@ export const incorporarAsignaturaAFotia = async (datosInscripcion) => {
     activo: true,
   });
 
- try {
-  await nuevaInscripcion.save();
-} catch (error) {
-  if (error?.code === 11000) {
-    throw crearError(
-      "Esta asignatura ya fue incorporada a ese período de FOTIA",
-      409,
-    );
-  }
+  try {
+    await nuevaInscripcion.save();
+  } catch (error) {
+    if (error?.code === 11000) {
+      throw crearError(
+        "Esta asignatura ya fue incorporada a ese período de FOTIA",
+        409,
+      );
+    }
 
-  if (error?.name === "ValidationError") {
-    throw crearError(
-      "No se pudo guardar la inscripción porque faltan datos obligatorios del estudiante.",
-      400,
-    );
-  }
+    if (error?.name === "ValidationError") {
+      throw crearError(
+        "No se pudo guardar la inscripción porque faltan datos obligatorios del estudiante.",
+        400,
+      );
+    }
 
-  throw error;
-}
+    throw error;
+  }
 
   return nuevaInscripcion;
 };

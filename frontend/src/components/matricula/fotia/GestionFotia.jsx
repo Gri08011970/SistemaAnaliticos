@@ -7,6 +7,7 @@ import {
 } from "./fotiaUtils";
 import FormularioPeriodoFotia from "./FormularioPeriodoFotia";
 import IncorporarEstudianteFotia from "./IncorporarEstudianteFotia";
+import ListadoInscripcionesFotia from "./ListadoInscripcionesFotia";
 
 export default function GestionFotia({
   alumnosMatricula = [],
@@ -18,6 +19,7 @@ export default function GestionFotia({
   const [periodoActivo, setPeriodoActivo] = useState(null);
 
   const [inscripcionesFotia, setInscripcionesFotia] = useState([]);
+  
 
   const [docentesFotia, setDocentesFotia] = useState([]);
 
@@ -216,7 +218,7 @@ export default function GestionFotia({
         }
 
         const respuestaInscripciones = await fetch(
-          `/api/fotia/inscripciones?periodoId=${periodoEncontrado._id}`,
+          `/api/fotia/inscripciones?periodoId=${periodoEncontrado._id}&activo=true`,
         );
 
         if (!respuestaInscripciones.ok) {
@@ -245,8 +247,6 @@ export default function GestionFotia({
 
   const [mostrarIncorporacion, setMostrarIncorporacion] = useState(false);
 
-  
-
   const cancelarFormularioPeriodo = () => {
     setMostrarFormularioPeriodo(false);
   };
@@ -262,6 +262,57 @@ export default function GestionFotia({
 
     setErrorFotia("");
   };
+
+  const retirarInscripcionFotia = async (inscripcion) => {
+  console.log("Retirar inscripción:", inscripcion);
+
+  const confirmar = window.confirm(
+    `¿Retirar ${inscripcion.asignatura} de FOTIA?\n\nLa asignatura continuará registrada como previa en Matrícula.`,
+  );
+
+  if (!confirmar) return;
+
+  try {
+    const respuesta = await fetch(
+      `/api/fotia/inscripciones/${inscripcion._id}/retirar`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          observacion:
+            "Retirada desde la gestión del período FOTIA",
+        }),
+      },
+    );
+
+    const datos = await respuesta.json();
+
+    if (!respuesta.ok) {
+      throw new Error(
+        datos.mensaje || 
+          "No se pudo retirar la asignatura de FOTIA.",
+      );
+    }
+
+    setInscripcionesFotia((anteriores) =>
+      anteriores.filter(
+        (item) => String(item._id) !== String(inscripcion._id),
+      ),
+    );
+  } catch (error) {
+    console.error(
+      "Error al retirar inscripción de FOTIA:",
+      error,
+    );
+
+    window.alert(
+      error.message ||
+        "No se pudo retirar la asignatura de FOTIA.",
+    );
+  }
+};
 
   return (
     <div
@@ -531,7 +582,7 @@ export default function GestionFotia({
                   style={{
                     padding: "12px 22px",
                     border: "none",
-                    borderRadius: "10px",
+                    borderRadius: "10px", 
                     background: "#148c84",
                     color: "#ffffff",
                     fontSize: "15px",
@@ -744,9 +795,13 @@ export default function GestionFotia({
                   ]);
 
                   setMostrarIncorporacion(false);
-                }}
+                }} 
               />
             )}
+
+            <ListadoInscripcionesFotia inscripciones={inscripcionesFotia}
+             onRetirar={retirarInscripcionFotia} 
+             />
 
             {/*  <TablaFotia
               filas={filasConEstado}

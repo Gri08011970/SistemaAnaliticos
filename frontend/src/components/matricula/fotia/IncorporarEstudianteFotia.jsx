@@ -1,4 +1,29 @@
 import { useMemo, useState } from "react";
+const obtenerNombreCompletoFotia = (alumno) => {
+  const apellidoOriginal = String(
+    alumno?.apellido || "",
+  ).trim();
+
+  const nombreOriginal = String(
+    alumno?.nombre || "",
+  ).trim();
+
+  const nombreEsValido =
+    nombreOriginal &&
+    nombreOriginal.toLowerCase() !== "sin nombre";
+
+  if (nombreEsValido) {
+    return {
+      apellido: apellidoOriginal,
+      nombre: nombreOriginal,
+    };
+  }
+
+  return {
+    apellido: apellidoOriginal,
+    nombre: "",
+  };
+};
 
 const normalizarTexto = (valor = "") =>
   String(valor)
@@ -738,7 +763,7 @@ export default function IncorporarEstudianteFotia({
             </div>
 
             <div
-              style={{
+              style={{ 
                 display: "grid",
                 gridTemplateColumns:
                   "repeat(auto-fit, minmax(min(100%, 230px), 1fr))",
