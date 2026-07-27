@@ -3,18 +3,18 @@ import TarjetaEstudianteFotia from "./TarjetaEstudianteFotia";
 
 export default function ListadoInscripcionesFotia({
   inscripciones = [],
-   onRetirar,
+  docentesFotia = [],
+  onRetirar,
+  onActualizada,
 }) {
   const estudiantesAgrupados = useMemo(() => {
     const grupos = new Map();
 
     inscripciones.forEach((inscripcion) => {
-     if (inscripcion.activo === false) return;
-     
+      if (inscripcion.activo === false) return;
+
       const alumnoId = String(
-        inscripcion.alumnoId?._id ||
-          inscripcion.alumnoId ||
-          "",
+        inscripcion.alumnoId?._id || inscripcion.alumnoId || "",
       );
 
       if (!alumnoId) return;
@@ -37,25 +37,17 @@ export default function ListadoInscripcionesFotia({
       const apellidoA = a.apellido || "";
       const apellidoB = b.apellido || "";
 
-      const comparacionApellido = apellidoA.localeCompare(
-        apellidoB,
-        "es",
-        {
-          sensitivity: "base",
-        },
-      );
+      const comparacionApellido = apellidoA.localeCompare(apellidoB, "es", {
+        sensitivity: "base",
+      });
 
       if (comparacionApellido !== 0) {
         return comparacionApellido;
       }
 
-      return (a.nombre || "").localeCompare(
-        b.nombre || "",
-        "es",
-        {
-          sensitivity: "base",
-        },
-      );
+      return (a.nombre || "").localeCompare(b.nombre || "", "es", {
+        sensitivity: "base",
+      });
     });
   }, [inscripciones]);
 
@@ -92,8 +84,7 @@ export default function ListadoInscripcionesFotia({
             color: "#607080",
           }}
         >
-          Seguimiento de las áreas incorporadas al
-          fortalecimiento.
+          Seguimiento de las áreas incorporadas al fortalecimiento.
         </p>
       </div>
 
@@ -101,7 +92,9 @@ export default function ListadoInscripcionesFotia({
         <TarjetaEstudianteFotia
           key={estudiante.alumnoId}
           estudiante={estudiante}
+          docentesFotia={docentesFotia}
           onRetirar={onRetirar}
+          onActualizada={onActualizada}
         />
       ))}
     </div>

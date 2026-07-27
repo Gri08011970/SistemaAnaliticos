@@ -1,25 +1,29 @@
 import { useState } from "react";
 import TarjetaAsignaturaFotia from "./TarjetaAsignaturaFotia";
 
-export default function TarjetaEstudianteFotia({ 
-  estudiante, 
-  onRetirar, 
+export default function TarjetaEstudianteFotia({
+  estudiante,
+  docentesFotia = [],
+  onRetirar,
+  onActualizada,
 }) {
   const [expandida, setExpandida] = useState(true);
 
-  const cantidadAsignaturas = estudiante?.asignaturas?.length || 0;
+  const asignaturas = estudiante?.asignaturas || [];
 
-  const cantidadAcreditadas =
-    estudiante?.asignaturas?.filter(
-      (asignatura) => asignatura.estado === "Acreditada",
-    ).length || 0;
+  const cantidadAsignaturas = asignaturas.length;
 
-  const cantidadEnProceso =
-    estudiante?.asignaturas?.filter(
-      (asignatura) =>
-        asignatura.estado === "En proceso" ||
-        asignatura.estado === "Incorporada",
-    ).length || 0;
+  const cantidadIncorporadas = asignaturas.filter(
+    (asignatura) => asignatura.estado === "Incorporada",
+  ).length;
+
+  const cantidadEnProceso = asignaturas.filter(
+    (asignatura) => asignatura.estado === "En proceso",
+  ).length;
+
+  const cantidadAcreditadas = asignaturas.filter(
+    (asignatura) => asignatura.estado === "Acreditada",
+  ).length;
 
   return (
     <article
@@ -94,8 +98,10 @@ export default function TarjetaEstudianteFotia({
 
             <div
               style={{
-                display: "grid",
-                gap: "3px",
+                display: "flex",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: "8px 16px",
                 color: "#607080",
                 fontSize: "14px",
                 lineHeight: 1.4,
@@ -125,17 +131,31 @@ export default function TarjetaEstudianteFotia({
               texto={`${cantidadAsignaturas} ${
                 cantidadAsignaturas === 1 ? "área" : "áreas"
               }`}
+              icono="📚"
               fondo="#eef5fb"
               color="#365f82"
               borde="#c8dceb"
             />
 
-            {cantidadEnProceso > 0 && (
+            {cantidadIncorporadas > 0 && (
               <Indicador
-                texto={`${cantidadEnProceso} en proceso`}
+                texto={`${cantidadIncorporadas} ${
+                  cantidadIncorporadas === 1 ? "incorporada" : "incorporadas"
+                }`}
+                icono="🟡"
                 fondo="#fff8e8"
                 color="#8a5a16"
                 borde="#e6cf9e"
+              />
+            )}
+
+            {cantidadEnProceso > 0 && (
+              <Indicador
+                texto={`${cantidadEnProceso} en proceso`}
+                icono="🔵"
+                fondo="#eef5fb"
+                color="#365f82"
+                borde="#c8dceb"
               />
             )}
 
@@ -144,12 +164,12 @@ export default function TarjetaEstudianteFotia({
                 texto={`${cantidadAcreditadas} ${
                   cantidadAcreditadas === 1 ? "acreditada" : "acreditadas"
                 }`}
+                icono="🟢"
                 fondo="#eef8f5"
                 color="#256b61"
                 borde="#b7ddd3"
               />
             )}
-
             <span
               style={{
                 minWidth: "118px",
@@ -182,11 +202,11 @@ export default function TarjetaEstudianteFotia({
           >
             {estudiante.asignaturas.map((asignatura) => (
               <TarjetaAsignaturaFotia
-                key={asignatura._id ||
-                   asignatura.materiaPendienteId
-                  }
+                key={asignatura._id || asignatura.materiaPendienteId}
                 asignatura={asignatura}
-                 onRetirar={onRetirar}
+                docentesFotia={docentesFotia}
+                onRetirar={onRetirar}
+                onActualizada={onActualizada}
               />
             ))}
           </div>
@@ -196,12 +216,13 @@ export default function TarjetaEstudianteFotia({
   );
 }
 
-function Indicador({ texto, fondo, color, borde }) {
+function Indicador({ texto, icono, fondo, color, borde }) {
   return (
     <span
       style={{
         display: "inline-flex",
         alignItems: "center",
+        gap: "5px",
         padding: "5px 9px",
         border: `1px solid ${borde}`,
         borderRadius: "999px",
@@ -212,7 +233,18 @@ function Indicador({ texto, fondo, color, borde }) {
         whiteSpace: "nowrap",
       }}
     >
-      {texto}
+      {icono && (
+        <span
+          aria-hidden="true"
+          style={{
+            fontSize: "11px",
+          }}
+        >
+          {icono}
+        </span>
+      )}
+
+      <span>{texto}</span>
     </span>
   );
 }

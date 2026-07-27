@@ -19,7 +19,6 @@ export default function GestionFotia({
   const [periodoActivo, setPeriodoActivo] = useState(null);
 
   const [inscripcionesFotia, setInscripcionesFotia] = useState([]);
-  
 
   const [docentesFotia, setDocentesFotia] = useState([]);
 
@@ -264,55 +263,59 @@ export default function GestionFotia({
   };
 
   const retirarInscripcionFotia = async (inscripcion) => {
-  console.log("Retirar inscripción:", inscripcion);
+    console.log("Retirar inscripción:", inscripcion);
 
-  const confirmar = window.confirm(
-    `¿Retirar ${inscripcion.asignatura} de FOTIA?\n\nLa asignatura continuará registrada como previa en Matrícula.`,
-  );
-
-  if (!confirmar) return;
-
-  try {
-    const respuesta = await fetch(
-      `/api/fotia/inscripciones/${inscripcion._id}/retirar`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          observacion:
-            "Retirada desde la gestión del período FOTIA",
-        }),
-      },
+    const confirmar = window.confirm(
+      `¿Retirar ${inscripcion.asignatura} de FOTIA?\n\nLa asignatura continuará registrada como previa en Matrícula.`,
     );
 
-    const datos = await respuesta.json();
+    if (!confirmar) return;
 
-    if (!respuesta.ok) {
-      throw new Error(
-        datos.mensaje || 
-          "No se pudo retirar la asignatura de FOTIA.",
+    try {
+      const respuesta = await fetch(
+        `/api/fotia/inscripciones/${inscripcion._id}/retirar`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            observacion: "Retirada desde la gestión del período FOTIA",
+          }),
+        },
+      );
+
+      const datos = await respuesta.json();
+
+      if (!respuesta.ok) {
+        throw new Error(
+          datos.mensaje || "No se pudo retirar la asignatura de FOTIA.",
+        );
+      }
+
+      setInscripcionesFotia((anteriores) =>
+        anteriores.filter(
+          (item) => String(item._id) !== String(inscripcion._id),
+        ),
+      );
+    } catch (error) {
+      console.error("Error al retirar inscripción de FOTIA:", error);
+
+      window.alert(
+        error.message || "No se pudo retirar la asignatura de FOTIA.",
       );
     }
+  };
 
+  const actualizarInscripcionEnPantalla = (inscripcionActualizada) => {
     setInscripcionesFotia((anteriores) =>
-      anteriores.filter(
-        (item) => String(item._id) !== String(inscripcion._id),
+      anteriores.map((inscripcion) =>
+        String(inscripcion._id) === String(inscripcionActualizada._id)
+          ? inscripcionActualizada
+          : inscripcion,
       ),
     );
-  } catch (error) {
-    console.error(
-      "Error al retirar inscripción de FOTIA:",
-      error,
-    );
-
-    window.alert(
-      error.message ||
-        "No se pudo retirar la asignatura de FOTIA.",
-    );
-  }
-};
+  };
 
   return (
     <div
@@ -582,7 +585,7 @@ export default function GestionFotia({
                   style={{
                     padding: "12px 22px",
                     border: "none",
-                    borderRadius: "10px", 
+                    borderRadius: "10px",
                     background: "#148c84",
                     color: "#ffffff",
                     fontSize: "15px",
@@ -795,13 +798,45 @@ export default function GestionFotia({
                   ]);
 
                   setMostrarIncorporacion(false);
-                }} 
+                }}
               />
             )}
 
-            <ListadoInscripcionesFotia inscripciones={inscripcionesFotia}
-             onRetirar={retirarInscripcionFotia} 
-             />
+            {periodoActivo && !mostrarIncorporacion && (
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  marginTop: "24px",
+                  marginBottom: "18px",
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setMostrarIncorporacion(true)}
+                  style={{
+                    padding: "11px 20px",
+                    border: "none",
+                    borderRadius: "10px",
+                    background: "#148c84",
+                    color: "#ffffff",
+                    fontSize: "15px",
+                    fontWeight: "700",
+                    cursor: "pointer",
+                    boxShadow: "0 4px 10px rgba(20, 140, 132, 0.20)",
+                  }}
+                >
+                  ➕ Incorporar otro estudiante
+                </button>
+              </div>
+            )}
+
+            <ListadoInscripcionesFotia
+              inscripciones={inscripcionesFotia}
+              docentesFotia={docentesFotia}
+              onRetirar={retirarInscripcionFotia}
+              onActualizada={actualizarInscripcionEnPantalla}
+            />
 
             {/*  <TablaFotia
               filas={filasConEstado}

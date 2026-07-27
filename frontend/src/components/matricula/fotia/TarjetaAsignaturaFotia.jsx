@@ -1,3 +1,6 @@
+import { useState } from "react";
+import FormularioEditarInscripcionFotia from "./FormularioEditarInscripcionFotia";
+
 const CONFIGURACION_ESTADOS = {
   Incorporada: {
     icono: "🟡",
@@ -49,10 +52,17 @@ const formatearFecha = (fecha) => {
   return `${dia}/${mes}/${anio}`;
 };
 
-export default function TarjetaAsignaturaFotia({ asignatura, onRetirar }) {
+export default function TarjetaAsignaturaFotia({
+  asignatura,
+  docentesFotia = [],
+  onRetirar,
+  onActualizada,
+}) {
   const configuracionEstado =
     CONFIGURACION_ESTADOS[asignatura.estado] ||
     CONFIGURACION_ESTADOS.Incorporada;
+
+  const [modoEdicion, setModoEdicion] = useState(false);
 
   return (
     <article
@@ -191,17 +201,15 @@ export default function TarjetaAsignaturaFotia({ asignatura, onRetirar }) {
       >
         <button
           type="button"
-          disabled
-          title="Disponible en la próxima etapa"
+          onClick={() => setModoEdicion(true)}
           style={{
             padding: "8px 12px",
-            border: "1px solid #d4dce4",
+            border: "1px solid #f1c3b8",
             borderRadius: "8px",
-            background: "#f5f7f9",
-            color: "#8a96a3",
+            background: "#fff6f4",
+            color: "#d26b56",
             fontWeight: "700",
-            cursor: "not-allowed",
-            opacity: 0.72,
+            cursor: "pointer",
           }}
         >
           ✏️ Editar
@@ -244,6 +252,18 @@ export default function TarjetaAsignaturaFotia({ asignatura, onRetirar }) {
           ✅ Acreditar
         </button>
       </div>
+
+      {modoEdicion && (
+        <FormularioEditarInscripcionFotia
+          inscripcion={asignatura}
+          docentesFotia={docentesFotia}
+          onCancelar={() => setModoEdicion(false)}
+          onGuardado={(inscripcionActualizada) => {
+            onActualizada?.(inscripcionActualizada);
+            setModoEdicion(false);
+          }}
+        />
+      )}
     </article>
   );
 }
