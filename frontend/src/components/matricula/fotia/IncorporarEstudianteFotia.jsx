@@ -1,28 +1,25 @@
 import { useMemo, useState } from "react";
-const obtenerNombreCompletoFotia = (alumno) => {
-  const apellidoOriginal = String(
-    alumno?.apellido || "",
-  ).trim();
 
-  const nombreOriginal = String(
-    alumno?.nombre || "",
-  ).trim();
+const MOTIVO_INICIAL = "Derivación del equipo docente";
+
+const obtenerNombreCompletoParaBusqueda = (alumno) => {
+  const apellido = String(alumno?.apellido || "").trim();
+  const nombre = String(alumno?.nombre || "").trim();
+  const apellidoNombre = String(alumno?.apellidoNombre || "").trim();
 
   const nombreEsValido =
-    nombreOriginal &&
-    nombreOriginal.toLowerCase() !== "sin nombre";
+    nombre &&
+    nombre.toLowerCase() !== "sin nombre";
 
-  if (nombreEsValido) {
-    return {
-      apellido: apellidoOriginal,
-      nombre: nombreOriginal,
-    };
+  if (apellido && nombreEsValido) {
+    return `${apellido} ${nombre}`.trim();
   }
 
-  return {
-    apellido: apellidoOriginal,
-    nombre: "",
-  };
+  if (apellidoNombre) {
+    return apellidoNombre;
+  }
+
+  return apellido;
 };
 
 const normalizarTexto = (valor = "") =>
@@ -32,7 +29,8 @@ const normalizarTexto = (valor = "") =>
     .toLowerCase()
     .trim();
 
-const limpiarDni = (valor = "") => String(valor).replace(/\D/g, "");
+const limpiarDni = (valor = "") =>
+  String(valor).replace(/\D/g, "");
 
 export default function IncorporarEstudianteFotia({
   alumnosMatricula = [],
@@ -42,16 +40,23 @@ export default function IncorporarEstudianteFotia({
   onIncorporacionCompletada,
 }) {
   const [busqueda, setBusqueda] = useState("");
-  const [alumnoSeleccionado, setAlumnoSeleccionado] = useState(null);
-  const [materiasSeleccionadas, setMateriasSeleccionadas] = useState([]);
 
-  const [fechaIncorporacion, setFechaIncorporacion] = useState(
-    new Date().toISOString().slice(0, 10),
-  );
+  const [alumnoSeleccionado, setAlumnoSeleccionado] =
+    useState(null);
 
-  const [motivoIncorporacion, setMotivoIncorporacion] = useState("");
+  const [materiasSeleccionadas, setMateriasSeleccionadas] =
+    useState([]);
 
-  const [otroMotivoIncorporacion, setOtroMotivoIncorporacion] = useState("");
+  const [fechaIncorporacion, setFechaIncorporacion] =
+    useState(new Date().toISOString().slice(0, 10));
+
+  const [motivoIncorporacion, setMotivoIncorporacion] =
+    useState(MOTIVO_INICIAL);
+
+  const [
+    otroMotivoIncorporacion,
+    setOtroMotivoIncorporacion,
+  ] = useState("");
 
   const [docenteId, setDocenteId] = useState("");
 
@@ -83,14 +88,15 @@ export default function IncorporarEstudianteFotia({
     return alumnosDisponibles
       .filter((alumno) => {
         const nombreCompleto = normalizarTexto(
-          `${alumno.apellido || ""} ${alumno.nombre || ""}`,
+          obtenerNombreCompletoParaBusqueda(alumno),
         );
 
-        const dniAlumno = limpiarDni(alumno.dni);
+        const dniAlumno = limpiarDni(alumno?.dni);
 
         return (
           nombreCompleto.includes(termino) ||
-          (dniBuscado && dniAlumno.includes(dniBuscado))
+          (dniBuscado &&
+            dniAlumno.includes(dniBuscado))
         );
       })
       .slice(0, 12);
@@ -99,26 +105,31 @@ export default function IncorporarEstudianteFotia({
   const seleccionarAlumno = (alumno) => {
     setAlumnoSeleccionado(alumno);
     setMateriasSeleccionadas([]);
-    setMotivoIncorporacion("");
+    setMotivoIncorporacion(MOTIVO_INICIAL);
     setOtroMotivoIncorporacion("");
     setDocenteId("");
     setObservaciones("");
+    setErrorGuardado("");
     setBusqueda("");
   };
 
   const quitarSeleccion = () => {
     setAlumnoSeleccionado(null);
     setMateriasSeleccionadas([]);
-    setMotivoIncorporacion("");
+    setMotivoIncorporacion(MOTIVO_INICIAL);
     setOtroMotivoIncorporacion("");
     setDocenteId("");
     setObservaciones("");
+    setErrorGuardado("");
     setBusqueda("");
   };
 
   const obtenerIdMateria = (materia) =>
     String(
-      materia?._id || `${materia?.asignatura || ""}-${materia?.anio || ""}`,
+      materia?._id ||
+        `${materia?.asignatura || ""}-${
+          materia?.anio || ""
+        }`,
     );
 
   const cambiarSeleccionMateria = (materia) => {
@@ -126,15 +137,20 @@ export default function IncorporarEstudianteFotia({
 
     setMateriasSeleccionadas((anteriores) =>
       anteriores.includes(materiaId)
-        ? anteriores.filter((id) => id !== materiaId)
+        ? anteriores.filter(
+            (id) => id !== materiaId,
+          )
         : [...anteriores, materiaId],
     );
   };
 
   const seleccionarTodasLasMaterias = () => {
-    const materias = alumnoSeleccionado?.materiasPendientes || [];
+    const materias =
+      alumnoSeleccionado?.materiasPendientes || [];
 
-    setMateriasSeleccionadas(materias.map(obtenerIdMateria));
+    setMateriasSeleccionadas(
+      materias.map(obtenerIdMateria),
+    );
   };
 
   const limpiarMateriasSeleccionadas = () => {
@@ -146,19 +162,27 @@ export default function IncorporarEstudianteFotia({
       setErrorGuardado("");
 
       if (!alumnoSeleccionado?._id) {
-        throw new Error("Primero tenés que seleccionar un estudiante.");
+        throw new Error(
+          "Primero tenés que seleccionar un estudiante.",
+        );
       }
 
       if (!periodoActivo?._id) {
-        throw new Error("No hay un período activo de FOTIA.");
+        throw new Error(
+          "No hay un período activo de FOTIA.",
+        );
       }
 
       if (materiasSeleccionadas.length === 0) {
-        throw new Error("Seleccioná al menos una asignatura.");
+        throw new Error(
+          "Seleccioná al menos una asignatura.",
+        );
       }
 
       if (!fechaIncorporacion) {
-        throw new Error("La fecha de incorporación es obligatoria.");
+        throw new Error(
+          "La fecha de incorporación es obligatoria.",
+        );
       }
 
       const motivoFinal =
@@ -167,16 +191,28 @@ export default function IncorporarEstudianteFotia({
           : motivoIncorporacion.trim();
 
       if (!motivoFinal) {
-        throw new Error("Seleccioná o escribí el motivo de incorporación.");
+        throw new Error(
+          "Seleccioná o escribí el motivo de incorporación.",
+        );
       }
 
-      const materiasAIncorporar = alumnoSeleccionado.materiasPendientes.filter(
-        (materia) => materiasSeleccionadas.includes(obtenerIdMateria(materia)),
-      );
+      const materiasAIncorporar =
+        alumnoSeleccionado.materiasPendientes.filter(
+          (materia) =>
+            materiasSeleccionadas.includes(
+              obtenerIdMateria(materia),
+            ),
+        );
+
+      if (materiasAIncorporar.length === 0) {
+        throw new Error(
+          "No se encontraron asignaturas válidas para incorporar.",
+        );
+      }
 
       setGuardando(true);
 
-      const resultados = [];
+      const inscripcionesGuardadas = [];
 
       for (const materia of materiasAIncorporar) {
         if (!materia?._id) {
@@ -187,47 +223,63 @@ export default function IncorporarEstudianteFotia({
           );
         }
 
-        const respuesta = await fetch("/api/fotia/inscripciones", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+        const respuesta = await fetch(
+          "/api/fotia/inscripciones",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              periodoId: periodoActivo._id,
+              alumnoId: alumnoSeleccionado._id,
+              materiaPendienteId: materia._id,
+              docenteId: docenteId || null,
+              fechaIncorporacion,
+              motivoIncorporacion: motivoFinal,
+              observaciones: observaciones.trim(),
+            }),
           },
-          body: JSON.stringify({
-            periodoId: periodoActivo._id,
-            alumnoId: alumnoSeleccionado._id,
-            materiaPendienteId: materia._id,
-            docenteId: docenteId || null,
-            fechaIncorporacion,
-            motivoIncorporacion: motivoFinal,
-            observaciones: observaciones.trim(),
-          }),
-        });
+        );
 
         const datos = await respuesta.json();
 
         if (!respuesta.ok) {
           throw new Error(
-            datos.mensaje || `No se pudo incorporar ${materia.asignatura}.`,
+            datos?.mensaje ||
+              datos?.error ||
+              `No se pudo incorporar ${
+                materia?.asignatura || "la asignatura"
+              }.`,
           );
         }
 
-        resultados.push(datos.inscripcion);
+        inscripcionesGuardadas.push(
+          datos.inscripcion || datos,
+        );
       }
 
-      onIncorporacionCompletada?.(resultados);
+      onIncorporacionCompletada?.(
+        inscripcionesGuardadas,
+      );
 
       setAlumnoSeleccionado(null);
       setMateriasSeleccionadas([]);
-      setMotivoIncorporacion("");
+      setMotivoIncorporacion(MOTIVO_INICIAL);
       setOtroMotivoIncorporacion("");
       setDocenteId("");
       setObservaciones("");
       setBusqueda("");
+      setErrorGuardado("");
     } catch (error) {
-      console.error("Error al incorporar estudiante a FOTIA:", error);
+      console.error(
+        "Error al incorporar estudiante a FOTIA:",
+        error,
+      );
 
       setErrorGuardado(
-        error.message || "No se pudo completar la incorporación.",
+        error?.message ||
+          "No se pudo completar la incorporación.",
       );
     } finally {
       setGuardando(false);

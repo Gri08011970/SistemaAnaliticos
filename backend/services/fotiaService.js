@@ -16,6 +16,43 @@ const crearError = (mensaje, status = 500) => {
   return error;
 };
 
+function obtenerNombreCompletoFotia(alumno) {
+        const apellido = String(alumno.apellido || "").trim();
+
+        const nombre = String(alumno.nombre || "").trim();
+
+        if (apellido && nombre) {
+          return {
+            apellido,
+            nombre,
+          };
+        } 
+
+
+        const apellidoNombre = String(alumno.apellidoNombre || "").trim();
+
+        if (!apellidoNombre) {
+          return {
+            apellido: "Sin apellido",
+            nombre: "Sin nombre",
+          };
+        }
+
+        const partes = apellidoNombre.split(",").map((parte) => parte.trim());
+
+        if (partes.length === 2) {
+          return {
+            apellido: partes[0],
+            nombre: partes[1],
+          };
+        }
+
+        return {
+          apellido: apellidoNombre,
+          nombre: "",
+        };
+      }
+
 const obtenerMateriaPendiente = (alumno, materiaPendienteId) =>
   alumno.materiasPendientes.find(
     (materia) => String(materia._id) === String(materiaPendienteId),
@@ -302,7 +339,8 @@ export const incorporarAsignaturaAFotia = async (datosInscripcion) => {
   }
 
   const alumno = await MatriculaAlumno.findById(alumnoId);
-
+  console.log("ALUMNO FOTIA");
+  console.log(alumno);
   if (!alumno) {
     throw crearError("El estudiante de Matrícula no fue encontrado", 404);
   }
@@ -366,14 +404,16 @@ export const incorporarAsignaturaAFotia = async (datosInscripcion) => {
   const nombreValido =
     nombreLimpio && nombreLimpio.toLowerCase() !== "sin nombre";
 
+  const datosNombre = obtenerNombreCompletoFotia(alumno);
+
   const nuevaInscripcion = new FotiaInscripcion({
     periodoId: periodo._id,
 
     alumnoId: alumno._id,
 
-    apellido: apellidoLimpio || "Sin apellido",
+    apellido: datosNombre.apellido,
 
-    nombre: nombreValido ? nombreLimpio : "",
+    nombre: datosNombre.nombre,
 
     curso: alumno.curso || "Sin curso",
 
@@ -563,6 +603,7 @@ export const acreditarInscripcion = async (
         throw crearError("El estudiante de Matrícula no fue encontrado", 404);
       }
 
+      
       const materiaPendiente = obtenerMateriaPendiente(
         alumno,
         inscripcion.materiaPendienteId,
