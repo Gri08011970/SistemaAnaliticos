@@ -8,6 +8,7 @@ import {
 import FormularioPeriodoFotia from "./FormularioPeriodoFotia";
 import IncorporarEstudianteFotia from "./IncorporarEstudianteFotia";
 import ListadoInscripcionesFotia from "./ListadoInscripcionesFotia";
+import GestionDocentesFotia from "./GestionDocentesFotia";
 
 export default function GestionFotia({
   alumnosMatricula = [],
@@ -419,11 +420,62 @@ export default function GestionFotia({
               </button>
             </div>
 
+            <div
+              style={{
+                border: "2px solid #8fb5d9",
+                borderRadius: "14px",
+                padding: "20px",
+                background: "#ffffff",
+                boxShadow: "0 4px 10px rgba(0,0,0,.06)",
+                display: "flex",
+                flexDirection: "column",
+                minHeight: "245px",
+              }}
+            >
+              <h3
+                style={{
+                  margin: "0 0 14px",
+                  color: "#23436d",
+                  textAlign: "center",
+                  fontSize: "21px",
+                }}
+              >
+                👩‍🏫 Docentes responsables
+              </h3>
+
+              <p
+                style={{
+                  color: "#666",
+                  lineHeight: 1.55,
+                  textAlign: "center",
+                  margin: 0,
+                }}
+              >
+                Administración de docentes responsables del fortalecimiento.
+              </p>
+
+              <button
+                type="button"
+                onClick={() => setVistaActiva("docentes")}
+                style={{
+                  marginTop: "auto",
+                  alignSelf: "center",
+                  padding: "10px 18px",
+                  border: "none",
+                  borderRadius: "10px",
+                  background: "#148c84",
+                  color: "#fff",
+                  fontWeight: "700",
+                  cursor: "pointer",
+                  minWidth: "118px",
+                  boxShadow: "0 4px 10px rgba(20,140,132,.18)",
+                }}
+              >
+                Entrar
+              </button>
+            </div>
+
             {[
-              {
-                titulo: "Docentes responsables",
-                descripcion: "Administración de docentes acreditadores.",
-              },
               {
                 titulo: "Historial",
                 descripcion: "Consulta de acreditaciones realizadas.",
@@ -500,9 +552,12 @@ export default function GestionFotia({
               fontWeight: "700",
             }}
           >
+           
             ← Volver al inicio de FOTIA
           </button>
 
+          
+            
           <div
             style={{
               border: "2px solid #b9d4ea",

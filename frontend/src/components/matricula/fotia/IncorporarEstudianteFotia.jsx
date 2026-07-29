@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { obtenerAsignaturasPorCurso } from "../SeguimientoPedagogico/seguimientoConstants";
+import ListadoMateriasFotia from "./ListadoMateriasFotia";
 
 const MOTIVO_INICIAL = "Derivación del equipo docente";
 
@@ -7,9 +9,7 @@ const obtenerNombreCompletoParaBusqueda = (alumno) => {
   const nombre = String(alumno?.nombre || "").trim();
   const apellidoNombre = String(alumno?.apellidoNombre || "").trim();
 
-  const nombreEsValido =
-    nombre &&
-    nombre.toLowerCase() !== "sin nombre";
+  const nombreEsValido = nombre && nombre.toLowerCase() !== "sin nombre";
 
   if (apellido && nombreEsValido) {
     return `${apellido} ${nombre}`.trim();
@@ -29,8 +29,40 @@ const normalizarTexto = (valor = "") =>
     .toLowerCase()
     .trim();
 
-const limpiarDni = (valor = "") =>
-  String(valor).replace(/\D/g, "");
+const limpiarDni = (valor = "") => String(valor).replace(/\D/g, "");
+
+const obtenerAnioDesdeCurso = (curso = "") => {
+  const coincidencia = String(curso).match(/[1-6]/);
+
+  return coincidencia ? coincidencia[0] : "";
+};
+
+const crearMateriaEnCurso = (asignatura, curso) => ({
+  tipoOrigen: "En curso",
+  materiaPendienteId: null,
+  asignatura,
+  anio: obtenerAnioDesdeCurso(curso),
+});
+
+const esMateriaPendienteReal = (materia) => {
+  const asignatura = normalizarTexto(
+    materia?.asignatura || materia?.materia || "",
+  );
+
+  const valoresSinMateria = [
+    "",
+    "-",
+    "----------",
+    "---------",
+    "--------",
+    "ninguna",
+    "sin previas",
+    "sin previa",
+    "no posee",
+  ];
+
+  return !valoresSinMateria.includes(asignatura);
+};
 
 export default function IncorporarEstudianteFotia({
   alumnosMatricula = [],
@@ -41,22 +73,18 @@ export default function IncorporarEstudianteFotia({
 }) {
   const [busqueda, setBusqueda] = useState("");
 
-  const [alumnoSeleccionado, setAlumnoSeleccionado] =
-    useState(null);
+  const [alumnoSeleccionado, setAlumnoSeleccionado] = useState(null);
 
-  const [materiasSeleccionadas, setMateriasSeleccionadas] =
-    useState([]);
+  const [materiasSeleccionadas, setMateriasSeleccionadas] = useState([]);
 
-  const [fechaIncorporacion, setFechaIncorporacion] =
-    useState(new Date().toISOString().slice(0, 10));
+  const [fechaIncorporacion, setFechaIncorporacion] = useState(
+    new Date().toISOString().slice(0, 10),
+  );
 
   const [motivoIncorporacion, setMotivoIncorporacion] =
     useState(MOTIVO_INICIAL);
 
-  const [
-    otroMotivoIncorporacion,
-    setOtroMotivoIncorporacion,
-  ] = useState("");
+  const [otroMotivoIncorporacion, setOtroMotivoIncorporacion] = useState("");
 
   const [docenteId, setDocenteId] = useState("");
 
@@ -66,13 +94,38 @@ export default function IncorporarEstudianteFotia({
 
   const [errorGuardado, setErrorGuardado] = useState("");
 
+  const materiasPreviasDisponibles = useMemo(() => {
+    if (!alumnoSeleccionado) {
+      return [];
+    }
+
+    return (alumnoSeleccionado.materiasPendientes || [])
+      .filter(esMateriaPendienteReal)
+      .map((materia) => ({
+        ...materia,
+        tipoOrigen: "Previa",
+      }));
+  }, [alumnoSeleccionado]);
+
+  const materiasEnCursoDisponibles = useMemo(() => {
+    if (!alumnoSeleccionado?.curso) {
+      return [];
+    }
+
+    return obtenerAsignaturasPorCurso(alumnoSeleccionado.curso).map(
+      (asignatura) => crearMateriaEnCurso(asignatura, alumnoSeleccionado.curso),
+    );
+  }, [alumnoSeleccionado]);
+
+  const todasLasMateriasDisponibles = useMemo(
+    () => [...materiasPreviasDisponibles, ...materiasEnCursoDisponibles],
+    [materiasPreviasDisponibles, materiasEnCursoDisponibles],
+  );
+
   const alumnosDisponibles = useMemo(
     () =>
       alumnosMatricula.filter(
-        (alumno) =>
-          alumno?.estadoMatricula !== "Baja" &&
-          Array.isArray(alumno?.materiasPendientes) &&
-          alumno.materiasPendientes.length > 0,
+        (alumno) => alumno && alumno?.estadoMatricula !== "Baja",
       ),
     [alumnosMatricula],
   );
@@ -95,8 +148,7 @@ export default function IncorporarEstudianteFotia({
 
         return (
           nombreCompleto.includes(termino) ||
-          (dniBuscado &&
-            dniAlumno.includes(dniBuscado))
+          (dniBuscado && dniAlumno.includes(dniBuscado))
         );
       })
       .slice(0, 12);
@@ -123,34 +175,33 @@ export default function IncorporarEstudianteFotia({
     setErrorGuardado("");
     setBusqueda("");
   };
+  const obtenerIdMateria = (materia) => {
+    const tipoOrigen =
+      materia?.tipoOrigen || (materia?._id ? "Previa" : "En curso");
 
-  const obtenerIdMateria = (materia) =>
-    String(
-      materia?._id ||
-        `${materia?.asignatura || ""}-${
-          materia?.anio || ""
-        }`,
-    );
+    if (tipoOrigen === "Previa") {
+      return `previa-${
+        materia?._id || `${materia?.asignatura || ""}-${materia?.anio || ""}`
+      }`;
+    }
+
+    return `en-curso-${normalizarTexto(
+      materia?.asignatura || "",
+    )}-${materia?.anio || ""}`;
+  };
 
   const cambiarSeleccionMateria = (materia) => {
     const materiaId = obtenerIdMateria(materia);
 
     setMateriasSeleccionadas((anteriores) =>
       anteriores.includes(materiaId)
-        ? anteriores.filter(
-            (id) => id !== materiaId,
-          )
+        ? anteriores.filter((id) => id !== materiaId)
         : [...anteriores, materiaId],
     );
   };
 
   const seleccionarTodasLasMaterias = () => {
-    const materias =
-      alumnoSeleccionado?.materiasPendientes || [];
-
-    setMateriasSeleccionadas(
-      materias.map(obtenerIdMateria),
-    );
+    setMateriasSeleccionadas(todasLasMateriasDisponibles.map(obtenerIdMateria));
   };
 
   const limpiarMateriasSeleccionadas = () => {
@@ -162,27 +213,19 @@ export default function IncorporarEstudianteFotia({
       setErrorGuardado("");
 
       if (!alumnoSeleccionado?._id) {
-        throw new Error(
-          "Primero tenés que seleccionar un estudiante.",
-        );
+        throw new Error("Primero tenés que seleccionar un estudiante.");
       }
 
       if (!periodoActivo?._id) {
-        throw new Error(
-          "No hay un período activo de FOTIA.",
-        );
+        throw new Error("No hay un período activo de FOTIA.");
       }
 
       if (materiasSeleccionadas.length === 0) {
-        throw new Error(
-          "Seleccioná al menos una asignatura.",
-        );
+        throw new Error("Seleccioná al menos una asignatura.");
       }
 
       if (!fechaIncorporacion) {
-        throw new Error(
-          "La fecha de incorporación es obligatoria.",
-        );
+        throw new Error("La fecha de incorporación es obligatoria.");
       }
 
       const motivoFinal =
@@ -191,18 +234,12 @@ export default function IncorporarEstudianteFotia({
           : motivoIncorporacion.trim();
 
       if (!motivoFinal) {
-        throw new Error(
-          "Seleccioná o escribí el motivo de incorporación.",
-        );
+        throw new Error("Seleccioná o escribí el motivo de incorporación.");
       }
 
-      const materiasAIncorporar =
-        alumnoSeleccionado.materiasPendientes.filter(
-          (materia) =>
-            materiasSeleccionadas.includes(
-              obtenerIdMateria(materia),
-            ),
-        );
+      const materiasAIncorporar = todasLasMateriasDisponibles.filter(
+        (materia) => materiasSeleccionadas.includes(obtenerIdMateria(materia)),
+      );
 
       if (materiasAIncorporar.length === 0) {
         throw new Error(
@@ -215,32 +252,38 @@ export default function IncorporarEstudianteFotia({
       const inscripcionesGuardadas = [];
 
       for (const materia of materiasAIncorporar) {
-        if (!materia?._id) {
+        if (materia?.tipoOrigen === "Previa" && !materia?._id) {
           throw new Error(
-            `La asignatura "${
+            `La previa "${
               materia?.asignatura || "sin nombre"
             }" no tiene un identificador válido.`,
           );
         }
 
-        const respuesta = await fetch(
-          "/api/fotia/inscripciones",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              periodoId: periodoActivo._id,
-              alumnoId: alumnoSeleccionado._id,
-              materiaPendienteId: materia._id,
-              docenteId: docenteId || null,
-              fechaIncorporacion,
-              motivoIncorporacion: motivoFinal,
-              observaciones: observaciones.trim(),
-            }),
+        const respuesta = await fetch("/api/fotia/inscripciones", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
           },
-        );
+          body: JSON.stringify({
+            periodoId: periodoActivo._id,
+            alumnoId: alumnoSeleccionado._id,
+
+            tipoOrigen: materia?.tipoOrigen || "Previa",
+
+            materiaPendienteId:
+              materia?.tipoOrigen === "Previa" ? materia._id : null,
+
+            asignatura: materia.asignatura,
+
+            anio: materia.anio || "",
+
+            docenteId: docenteId || null,
+            fechaIncorporacion,
+            motivoIncorporacion: motivoFinal,
+            observaciones: observaciones.trim(),
+          }),
+        });
 
         const datos = await respuesta.json();
 
@@ -254,14 +297,10 @@ export default function IncorporarEstudianteFotia({
           );
         }
 
-        inscripcionesGuardadas.push(
-          datos.inscripcion || datos,
-        );
+        inscripcionesGuardadas.push(datos.inscripcion || datos);
       }
 
-      onIncorporacionCompletada?.(
-        inscripcionesGuardadas,
-      );
+      onIncorporacionCompletada?.(inscripcionesGuardadas);
 
       setAlumnoSeleccionado(null);
       setMateriasSeleccionadas([]);
@@ -272,14 +311,10 @@ export default function IncorporarEstudianteFotia({
       setBusqueda("");
       setErrorGuardado("");
     } catch (error) {
-      console.error(
-        "Error al incorporar estudiante a FOTIA:",
-        error,
-      );
+      console.error("Error al incorporar estudiante a FOTIA:", error);
 
       setErrorGuardado(
-        error?.message ||
-          "No se pudo completar la incorporación.",
+        error?.message || "No se pudo completar la incorporación.",
       );
     } finally {
       setGuardando(false);
@@ -415,66 +450,78 @@ export default function IncorporarEstudianteFotia({
                 marginTop: "16px",
               }}
             >
-              {resultados.map((alumno) => (
-                <button
-                  key={alumno._id}
-                  type="button"
-                  onClick={() => seleccionarAlumno(alumno)}
-                  style={{
-                    width: "100%",
-                    padding: "14px 16px",
-                    border: "1px solid #c3d9eb",
-                    borderRadius: "11px",
-                    background: "#ffffff",
-                    cursor: "pointer",
-                    textAlign: "left",
-                    boxShadow: "0 3px 8px rgba(41, 78, 112, 0.05)",
-                  }}
-                >
-                  <strong
-                    style={{
-                      display: "block",
-                      color: "#23436d",
-                      fontSize: "16px",
-                    }}
-                  >
-                    {alumno.apellido} {alumno.nombre}
-                  </strong>
+              {resultados.map((alumno) => {
+                const cantidadPreviasReales = Array.isArray(
+                  alumno?.materiasPendientes,
+                )
+                  ? alumno.materiasPendientes.filter(esMateriaPendienteReal)
+                      .length
+                  : 0;
 
-                  <span
+                return (
+                  <button
+                    key={alumno._id}
+                    type="button"
+                    onClick={() => seleccionarAlumno(alumno)}
                     style={{
-                      display: "block",
-                      marginTop: "5px",
-                      color: "#657585",
-                      fontSize: "14px",
+                      width: "100%",
+                      padding: "14px 16px",
+                      border: "1px solid #c3d9eb",
+                      borderRadius: "11px",
+                      background: "#ffffff",
+                      cursor: "pointer",
+                      textAlign: "left",
+                      boxShadow: "0 3px 8px rgba(41, 78, 112, 0.05)",
                     }}
                   >
-                    {alumno.curso || "Curso sin informar"}
-                    {alumno.turno ? ` · Turno ${alumno.turno}` : ""}
-                    {alumno.dni ? ` · DNI ${alumno.dni}` : ""}
-                  </span>
+                    <strong
+                      style={{
+                        display: "block",
+                        color: "#23436d",
+                        fontSize: "16px",
+                      }}
+                    >
+                      {alumno.apellido} {alumno.nombre}
+                    </strong>
 
-                  <span
-                    style={{
-                      display: "block",
-                      marginTop: "5px",
-                      color: "#148c84",
-                      fontSize: "13px",
-                      fontWeight: "700",
-                    }}
-                  >
-                    {alumno.materiasPendientes.length}{" "}
-                    {alumno.materiasPendientes.length === 1
-                      ? "asignatura pendiente"
-                      : "asignaturas pendientes"}
-                  </span>
-                </button>
-              ))}
+                    <span
+                      style={{
+                        display: "block",
+                        marginTop: "5px",
+                        color: "#657585",
+                        fontSize: "14px",
+                      }}
+                    >
+                      {alumno.curso || "Curso sin informar"}
+                      {alumno.turno ? ` · Turno ${alumno.turno}` : ""}
+                      {alumno.dni ? ` · DNI ${alumno.dni}` : ""}
+                    </span>
+
+                    <span
+                      style={{
+                        display: "block",
+                        marginTop: "5px",
+                        color:
+                          cantidadPreviasReales === 0 ? "#6b7f92" : "#148c84",
+                        fontSize: "13px",
+                        fontWeight: "700",
+                      }}
+                    >
+                      {cantidadPreviasReales === 0
+                        ? "Sin asignaturas previas"
+                        : `${cantidadPreviasReales} ${
+                            cantidadPreviasReales === 1
+                              ? "asignatura pendiente"
+                              : "asignaturas pendientes"
+                          }`}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           )}
         </>
       )}
-
       {alumnoSeleccionado && (
         <div
           style={{
@@ -549,181 +596,15 @@ export default function IncorporarEstudianteFotia({
             </button>
           </div>
 
-          <div
-            style={{
-              marginTop: "20px",
-              padding: "18px",
-              border: "1px solid #c5d9ea",
-              borderRadius: "13px",
-              background: "#ffffff",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                flexWrap: "wrap",
-                gap: "12px",
-                marginBottom: "16px",
-              }}
-            >
-              <div>
-                <h4
-                  style={{
-                    margin: "0 0 5px",
-                    color: "#23436d",
-                    fontSize: "18px",
-                  }}
-                >
-                  📚 Asignaturas para fortalecer
-                </h4>
-
-                <p
-                  style={{
-                    margin: 0,
-                    color: "#607080",
-                    lineHeight: 1.4,
-                  }}
-                >
-                  Seleccioná solamente las asignaturas que formarán parte de
-                  este período de FOTIA.
-                </p>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: "8px",
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={seleccionarTodasLasMaterias}
-                  style={{
-                    padding: "8px 12px",
-                    border: "1px solid #b7ddd3",
-                    borderRadius: "8px",
-                    background: "#eef8f5",
-                    color: "#256b61",
-                    cursor: "pointer",
-                    fontWeight: "700",
-                  }}
-                >
-                  Seleccionar todas
-                </button>
-
-                <button
-                  type="button"
-                  onClick={limpiarMateriasSeleccionadas}
-                  style={{
-                    padding: "8px 12px",
-                    border: "1px solid #d4dce4",
-                    borderRadius: "8px",
-                    background: "#f6f8fa",
-                    color: "#56697a",
-                    cursor: "pointer",
-                    fontWeight: "700",
-                  }}
-                >
-                  Limpiar selección
-                </button>
-              </div>
-            </div>
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns:
-                  "repeat(auto-fit, minmax(min(100%, 230px), 1fr))",
-                gap: "12px",
-              }}
-            >
-              {alumnoSeleccionado.materiasPendientes.map((materia) => {
-                const materiaId = obtenerIdMateria(materia);
-
-                const seleccionada = materiasSeleccionadas.includes(materiaId);
-
-                return (
-                  <label
-                    key={materiaId}
-                    style={{
-                      display: "flex",
-                      alignItems: "flex-start",
-                      gap: "11px",
-                      padding: "14px",
-                      border: seleccionada
-                        ? "2px solid #74b9aa"
-                        : "2px solid #d7e3ed",
-                      borderRadius: "11px",
-                      background: seleccionada ? "#eef8f5" : "#ffffff",
-                      cursor: "pointer",
-                      transition: "all 0.15s ease",
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={seleccionada}
-                      onChange={() => cambiarSeleccionMateria(materia)}
-                      style={{
-                        marginTop: "3px",
-                        width: "18px",
-                        height: "18px",
-                        cursor: "pointer",
-                      }}
-                    />
-
-                    <span>
-                      <strong
-                        style={{
-                          display: "block",
-                          color: "#23436d",
-                          fontSize: "16px",
-                        }}
-                      >
-                        {materia.asignatura}
-                      </strong>
-
-                      <span
-                        style={{
-                          display: "block",
-                          marginTop: "4px",
-                          color: "#68798a",
-                          fontSize: "14px",
-                        }}
-                      >
-                        {materia.anio
-                          ? `${materia.anio} año`
-                          : "Año sin informar"}
-                      </span>
-                    </span>
-                  </label>
-                );
-              })}
-            </div>
-
-            <div
-              style={{
-                marginTop: "16px",
-                padding: "11px 14px",
-                borderRadius: "9px",
-                background:
-                  materiasSeleccionadas.length > 0 ? "#eef8f5" : "#fff8e8",
-                color: materiasSeleccionadas.length > 0 ? "#256b61" : "#8a5a16",
-                textAlign: "center",
-                fontWeight: "700",
-              }}
-            >
-              {materiasSeleccionadas.length === 0
-                ? "Todavía no seleccionaste ninguna asignatura." 
-                : `${materiasSeleccionadas.length} ${
-                    materiasSeleccionadas.length === 1
-                      ? "asignatura seleccionada"
-                      : "asignaturas seleccionadas"
-                  } para el fortalecimiento.`}
-            </div>
-          </div>
+          <ListadoMateriasFotia
+            materiasPreviasDisponibles={materiasPreviasDisponibles}
+            materiasEnCursoDisponibles={materiasEnCursoDisponibles}
+            materiasSeleccionadas={materiasSeleccionadas}
+            obtenerIdMateria={obtenerIdMateria}
+            onCambiarSeleccion={cambiarSeleccionMateria}
+            onSeleccionarTodas={seleccionarTodasLasMaterias}
+            onLimpiarSeleccion={limpiarMateriasSeleccionadas}
+          />
           <div
             style={{
               marginTop: "20px",
@@ -773,11 +654,10 @@ export default function IncorporarEstudianteFotia({
                   {errorGuardado}
                 </p>
               )}
-
             </div>
 
             <div
-              style={{ 
+              style={{
                 display: "grid",
                 gridTemplateColumns:
                   "repeat(auto-fit, minmax(min(100%, 230px), 1fr))",
@@ -940,8 +820,8 @@ export default function IncorporarEstudianteFotia({
                     fontSize: "14px",
                   }}
                 >
-                  Todavía no hay docentes registrados en FOTIA. Podrás incorporar
-                  al estudiante y asignar el docente posteriormente.
+                  Todavía no hay docentes registrados en FOTIA. Podrás
+                  incorporar al estudiante y asignar el docente posteriormente.
                 </p>
                 <div
                   style={{
@@ -955,10 +835,7 @@ export default function IncorporarEstudianteFotia({
                   <button
                     type="button"
                     onClick={incorporarAFotia}
-                    disabled={
-                      guardando ||
-                      materiasSeleccionadas.length === 0
-                    }
+                    disabled={guardando || materiasSeleccionadas.length === 0}
                     style={{
                       padding: "12px 24px",
                       border: "none",
@@ -971,8 +848,7 @@ export default function IncorporarEstudianteFotia({
                       fontSize: "15px",
                       fontWeight: "700",
                       cursor:
-                        guardando ||
-                        materiasSeleccionadas.length === 0
+                        guardando || materiasSeleccionadas.length === 0
                           ? "not-allowed"
                           : "pointer",
                       opacity: guardando ? 0.72 : 1,

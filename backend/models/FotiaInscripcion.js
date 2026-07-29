@@ -42,10 +42,20 @@ const fotiaInscripcionSchema = new mongoose.Schema(
       trim: true,
     },
 
-    // Materia seleccionada para trabajar
+    // Origen de la asignatura incorporada a FOTIA:
+    // puede ser una previa institucional o una materia del año en curso.
+    tipoOrigen: {
+      type: String,
+      enum: ["Previa", "En curso"],
+      required: true,
+      default: "Previa",
+    },
+
+    // Sólo se completa cuando la intervención corresponde a una previa.
+    // Para materias del año en curso queda en null.
     materiaPendienteId: {
       type: mongoose.Schema.Types.ObjectId,
-      required: true,
+      default: null,
     },
 
     asignatura: {
@@ -107,7 +117,7 @@ const fotiaInscripcionSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
-    
+
     activo: {
       type: Boolean,
       default: true,
@@ -124,7 +134,9 @@ fotiaInscripcionSchema.index(
   {
     periodoId: 1,
     alumnoId: 1,
-    materiaPendienteId: 1,
+    tipoOrigen: 1,
+    asignatura: 1,
+    anio: 1,
   },
   {
     unique: true,
