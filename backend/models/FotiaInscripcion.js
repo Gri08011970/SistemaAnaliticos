@@ -26,7 +26,7 @@ const fotiaInscripcionSchema = new mongoose.Schema(
 
     nombre: {
       type: String,
-      required: true,
+       default: "",
       trim: true,
     },
 
@@ -133,7 +133,7 @@ const fotiaInscripcionSchema = new mongoose.Schema(
 fotiaInscripcionSchema.index(
   {
     periodoId: 1,
-    alumnoId: 1,
+    alumnoId: 1, 
     tipoOrigen: 1,
     asignatura: 1,
     anio: 1,

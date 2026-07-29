@@ -17,42 +17,51 @@ const crearError = (mensaje, status = 500) => {
 };
 
 function obtenerNombreCompletoFotia(alumno) {
-        const apellido = String(alumno.apellido || "").trim();
+  const apellido = String(alumno.apellido || "").trim();
+  const nombre = String(alumno.nombre || "").trim();
 
-        const nombre = String(alumno.nombre || "").trim();
+  // Caso normal
+  if (apellido && nombre) {
+    return {
+      apellido,
+      nombre,
+    };
+  }
 
-        if (apellido && nombre) {
-          return {
-            apellido,
-            nombre,
-          };
-        } 
+  // Caso de Matrícula:
+  // todo el nombre quedó guardado en "apellido"
+  if (apellido && !nombre) {
+    return {
+      apellido,
+      nombre: "",
+    };
+  }
 
+  const apellidoNombre = String(alumno.apellidoNombre || "").trim();
 
-        const apellidoNombre = String(alumno.apellidoNombre || "").trim();
+  if (!apellidoNombre) {
+    return {
+      apellido: "Sin apellido",
+      nombre: "Sin nombre",
+    };
+  }
 
-        if (!apellidoNombre) {
-          return {
-            apellido: "Sin apellido",
-            nombre: "Sin nombre",
-          };
-        }
+  const partes = apellidoNombre
+    .split(",")
+    .map((parte) => parte.trim());
 
-        const partes = apellidoNombre.split(",").map((parte) => parte.trim());
+  if (partes.length === 2) {
+    return {
+      apellido: partes[0],
+      nombre: partes[1],
+    };
+  }
 
-        if (partes.length === 2) {
-          return {
-            apellido: partes[0],
-            nombre: partes[1],
-          };
-        }
-
-        return {
-          apellido: apellidoNombre,
-          nombre: "",
-        };
-      }
-
+  return {
+    apellido: apellidoNombre,
+    nombre: "",
+  };
+}
 const obtenerMateriaPendiente = (alumno, materiaPendienteId) =>
   alumno.materiasPendientes.find(
     (materia) => String(materia._id) === String(materiaPendienteId),
@@ -555,7 +564,7 @@ try {
     "Esta asignatura ya fue incorporada a ese período de FOTIA",
     409,
   );
-}
+} 
 
   if (error?.name === "ValidationError") {
     console.error(
