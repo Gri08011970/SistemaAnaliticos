@@ -14,7 +14,7 @@ import {
   incorporarAsignaturaAFotia,
   actualizarInscripcion,
   retirarAsignaturaDeFotia,
-
+  listarAcreditaciones,
   acreditarInscripcion,
 } from "../services/fotiaService.js";
 
@@ -277,6 +277,28 @@ export const retirarAsignaturaController = async (
   }
 };
 
+// =====================================================
+// ACREDITACIONES
+// =====================================================
+
+export const obtenerAcreditacionesController = async (
+  req,
+  res,
+) => {
+  try {
+    const acreditaciones = await listarAcreditaciones({
+      periodoId: req.query.periodoId,
+      alumnoId: req.query.alumnoId,
+      docenteId: req.query.docenteId,
+      tipoOrigen: req.query.tipoOrigen,
+      asignatura: req.query.asignatura,
+    });
+
+    res.json(acreditaciones);
+  } catch (error) {
+    responderError(res, error);
+  }
+};
 // =====================================================
 // ACREDITACIÓN
 // =====================================================

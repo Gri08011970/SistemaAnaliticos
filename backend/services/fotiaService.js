@@ -46,9 +46,7 @@ function obtenerNombreCompletoFotia(alumno) {
     };
   }
 
-  const partes = apellidoNombre
-    .split(",")
-    .map((parte) => parte.trim());
+  const partes = apellidoNombre.split(",").map((parte) => parte.trim());
 
   if (partes.length === 2) {
     return {
@@ -75,7 +73,7 @@ const esAsignaturaFotiaValida = (valor = "") => {
 
   const valoresInvalidos = [
     "",
-    "-", 
+    "-",
     "----------",
     "---------",
     "--------",
@@ -100,7 +98,7 @@ export const listarPeriodos = async () => {
   });
 };
 
-export const obtenerPeriodoPorId = async (periodoId) => { 
+export const obtenerPeriodoPorId = async (periodoId) => {
   const periodo = await FotiaPeriodo.findById(periodoId);
 
   if (!periodo) {
@@ -322,6 +320,52 @@ export const listarInscripciones = async ({
     });
 };
 
+// =====================================================
+// LISTADO DE ACREDITACIONES
+// =====================================================
+
+export const listarAcreditaciones = async ({
+  periodoId,
+  alumnoId,
+  docenteId,
+  tipoOrigen,
+  asignatura,
+} = {}) => {
+  const filtro = {
+    estado: "Acreditada",
+    activo: true,
+  };
+
+  if (periodoId) {
+    filtro.periodoId = periodoId;
+  }
+
+  if (alumnoId) {
+    filtro.alumnoId = alumnoId;
+  }
+
+  if (docenteId) {
+    filtro.docenteId = docenteId;
+  }
+
+  if (tipoOrigen) {
+    filtro.tipoOrigen = tipoOrigen;
+  }
+
+  if (asignatura) {
+    filtro.asignatura = {
+      $regex: asignatura,
+      $options: "i",
+    };
+  }
+
+  return FotiaInscripcion.find(filtro).populate("periodoId").sort({
+    fechaAcreditacion: -1,
+    apellido: 1,
+    nombre: 1,
+  });
+};
+
 export const obtenerInscripcionPorId = async (inscripcionId) => {
   const inscripcion = await FotiaInscripcion.findById(inscripcionId)
     .populate("periodoId")
@@ -339,7 +383,6 @@ export const obtenerInscripcionPorId = async (inscripcionId) => {
 
 export const incorporarAsignaturaAFotia = async (datosInscripcion) => {
   const {
-    
     periodoId,
     alumnoId,
     tipoOrigen = "Previa",
@@ -352,29 +395,20 @@ export const incorporarAsignaturaAFotia = async (datosInscripcion) => {
     observaciones,
   } = datosInscripcion;
 
- if (!periodoId || !alumnoId || !fechaIncorporacion) {
-  throw crearError(
-    "Período, estudiante y fecha de incorporación son obligatorios",
-    400,
-  );
-}
+  if (!periodoId || !alumnoId || !fechaIncorporacion) {
+    throw crearError(
+      "Período, estudiante y fecha de incorporación son obligatorios",
+      400,
+    );
+  }
 
-if (tipoOrigen === "Previa" && !materiaPendienteId) {
-  throw crearError(
-    "La asignatura previa seleccionada es obligatoria",
-    400,
-  );
-}
+  if (tipoOrigen === "Previa" && !materiaPendienteId) {
+    throw crearError("La asignatura previa seleccionada es obligatoria", 400);
+  }
 
-if (
-  tipoOrigen === "En curso" &&
-  !String(asignatura || "").trim()
-) {
-  throw crearError(
-    "La asignatura del año en curso es obligatoria",
-    400,
-  );
-}
+  if (tipoOrigen === "En curso" && !String(asignatura || "").trim()) {
+    throw crearError("La asignatura del año en curso es obligatoria", 400);
+  }
 
   const periodo = await FotiaPeriodo.findById(periodoId);
 
@@ -396,30 +430,25 @@ if (
     throw crearError("El estudiante de Matrícula no fue encontrado", 404);
   }
 
- let materiaPendiente = null;
+  let materiaPendiente = null;
 
-if (tipoOrigen === "Previa") {
-  materiaPendiente = obtenerMateriaPendiente(
-    alumno,
-    materiaPendienteId,
-  );
+  if (tipoOrigen === "Previa") {
+    materiaPendiente = obtenerMateriaPendiente(alumno, materiaPendienteId);
 
-  if (!materiaPendiente) {
-    throw crearError(
-      "La asignatura seleccionada no figura entre las previas del estudiante",
-      404,
-    );
+    if (!materiaPendiente) {
+      throw crearError(
+        "La asignatura seleccionada no figura entre las previas del estudiante",
+        404,
+      );
+    }
+
+    if (!esAsignaturaFotiaValida(materiaPendiente?.asignatura)) {
+      throw crearError(
+        "El registro seleccionado indica que el estudiante no posee asignaturas previas.",
+        400,
+      );
+    }
   }
-
-  if (!esAsignaturaFotiaValida(materiaPendiente?.asignatura)) {
-    throw crearError(
-      "El registro seleccionado indica que el estudiante no posee asignaturas previas.",
-      400,
-    );
-  }
-}
-
- 
 
   let docente = null;
 
@@ -435,22 +464,22 @@ if (tipoOrigen === "Previa") {
   }
 
   const asignaturaBuscada =
-  tipoOrigen === "Previa"
-    ? materiaPendiente?.asignatura 
-    : String(asignatura || "").trim();
+    tipoOrigen === "Previa"
+      ? materiaPendiente?.asignatura
+      : String(asignatura || "").trim();
 
   const anioBuscado =
-  tipoOrigen === "Previa"
-    ? String(materiaPendiente?.anio || "").trim()
-    : String(anio || "").trim();
+    tipoOrigen === "Previa"
+      ? String(materiaPendiente?.anio || "").trim()
+      : String(anio || "").trim();
 
   const inscripcionExistente = await FotiaInscripcion.findOne({
-  periodoId,
-  alumnoId,
-  tipoOrigen,
-  asignatura: asignaturaBuscada,
-  anio: anioBuscado,
-});
+    periodoId,
+    alumnoId,
+    tipoOrigen,
+    asignatura: asignaturaBuscada,
+    anio: anioBuscado,
+  });
 
   if (inscripcionExistente) {
     if (!inscripcionExistente.activo) {
@@ -485,103 +514,97 @@ if (tipoOrigen === "Previa") {
 
   const datosNombre = obtenerNombreCompletoFotia(alumno);
 
-const asignaturaFinal =
-  tipoOrigen === "Previa"
-    ? materiaPendiente?.asignatura
-    : String(asignatura || "").trim();
-
-const anioFinal =
-  tipoOrigen === "Previa"
-    ? String(materiaPendiente?.anio || "").trim()
-    : String(anio || "").trim();
-
-if (!esAsignaturaFotiaValida(asignaturaFinal)) {
-  throw crearError(
-    "La asignatura seleccionada no es válida para FOTIA.",
-    400,
-  );
-}
-
-if (!["Previa", "En curso"].includes(tipoOrigen)) {
-  throw crearError(
-    "El origen de la asignatura no es válido.",
-    400,
-  );
-}
-
-const nuevaInscripcion = new FotiaInscripcion({
-  periodoId: periodo._id,
-
-  alumnoId: alumno._id,
-
-  apellido: datosNombre.apellido,
-
-  nombre: datosNombre.nombre,
-
-  curso: alumno.curso || "Sin curso",
-
-  turno: alumno.turno || "",
-
-  tipoOrigen,
-
-  materiaPendienteId:
+  const asignaturaFinal =
     tipoOrigen === "Previa"
-      ? materiaPendiente?._id
-      : null,
+      ? materiaPendiente?.asignatura
+      : String(asignatura || "").trim();
 
-  asignatura: asignaturaFinal,
+  const anioFinal =
+    tipoOrigen === "Previa"
+      ? String(materiaPendiente?.anio || "").trim()
+      : String(anio || "").trim();
 
-  anio: anioFinal,
-
-  docenteId: docente?._id || null,
-
-  docenteNombre: docente
-    ? `${docente.apellido} ${docente.nombre}`.trim()
-    : "",
-
-  estado: "Incorporada",
-
-  fechaIncorporacion,
-
-  motivoIncorporacion,
-
-  observaciones,
-
-  activo: true,
-});
-
-try {
-  await nuevaInscripcion.save();
-} catch (error) {
-  if (error?.code === 11000) {
-  console.error("DUPLICADO FOTIA EN MONGODB:", {
-    keyPattern: error.keyPattern,
-    keyValue: error.keyValue,
-    mensaje: error.message,
-  });
-
-  throw crearError(
-    "Esta asignatura ya fue incorporada a ese período de FOTIA",
-    409,
-  );
-} 
-
-  if (error?.name === "ValidationError") {
-    console.error(
-      "Error de validación al guardar inscripción FOTIA:",
-      error.errors,
-    );
-
+  if (!esAsignaturaFotiaValida(asignaturaFinal)) {
     throw crearError(
-      "No se pudo guardar la inscripción porque faltan datos obligatorios.",
+      "La asignatura seleccionada no es válida para FOTIA.",
       400,
     );
   }
 
-  throw error;
-}
+  if (!["Previa", "En curso"].includes(tipoOrigen)) {
+    throw crearError("El origen de la asignatura no es válido.", 400);
+  }
 
-return nuevaInscripcion;
+  const nuevaInscripcion = new FotiaInscripcion({
+    periodoId: periodo._id,
+
+    alumnoId: alumno._id,
+
+    apellido: datosNombre.apellido,
+
+    nombre: datosNombre.nombre,
+
+    curso: alumno.curso || "Sin curso",
+
+    turno: alumno.turno || "",
+
+    tipoOrigen,
+
+    materiaPendienteId: tipoOrigen === "Previa" ? materiaPendiente?._id : null,
+
+    asignatura: asignaturaFinal,
+
+    anio: anioFinal,
+
+    docenteId: docente?._id || null,
+
+    docenteNombre: docente
+      ? `${docente.apellido} ${docente.nombre}`.trim()
+      : "",
+
+    estado: "Incorporada",
+
+    fechaIncorporacion,
+
+    motivoIncorporacion,
+
+    observaciones,
+
+    activo: true,
+  });
+
+  try {
+    await nuevaInscripcion.save();
+  } catch (error) {
+    if (error?.code === 11000) {
+      console.error("DUPLICADO FOTIA EN MONGODB:", {
+        keyPattern: error.keyPattern,
+        keyValue: error.keyValue,
+        mensaje: error.message,
+      });
+
+      throw crearError(
+        "Esta asignatura ya fue incorporada a ese período de FOTIA",
+        409,
+      );
+    }
+
+    if (error?.name === "ValidationError") {
+      console.error(
+        "Error de validación al guardar inscripción FOTIA:",
+        error.errors,
+      );
+
+      throw crearError(
+        "No se pudo guardar la inscripción porque faltan datos obligatorios.",
+        400,
+      );
+    }
+
+    throw error;
+  }
+
+  return nuevaInscripcion;
 };
 export const actualizarInscripcion = async (inscripcionId, cambios) => {
   const inscripcion = await FotiaInscripcion.findById(inscripcionId);
@@ -730,17 +753,20 @@ export const acreditarInscripcion = async (
         throw crearError("El estudiante de Matrícula no fue encontrado", 404);
       }
 
-      
-      const materiaPendiente = obtenerMateriaPendiente(
-        alumno,
-        inscripcion.materiaPendienteId,
-      );
+      let materiaPendiente = null;
 
-      if (!materiaPendiente) {
-        throw crearError(
-          "La asignatura ya no figura entre las previas del estudiante",
-          409,
+      if (inscripcion.tipoOrigen === "Previa") {
+        materiaPendiente = obtenerMateriaPendiente(
+          alumno,
+          inscripcion.materiaPendienteId,
         );
+
+        if (!materiaPendiente) {
+          throw crearError(
+            "La asignatura ya no figura entre las previas del estudiante",
+            409,
+          );
+        }
       }
 
       inscripcion.estado = "Acreditada";
@@ -757,22 +783,30 @@ export const acreditarInscripcion = async (
         session,
       });
 
-      alumno.materiasPendientes = alumno.materiasPendientes.filter(
-        (materia) =>
-          String(materia._id) !== String(inscripcion.materiaPendienteId),
-      );
+      if (inscripcion.tipoOrigen === "Previa") {
+        alumno.materiasPendientes = alumno.materiasPendientes.filter(
+          (materia) =>
+            String(materia._id) !== String(inscripcion.materiaPendienteId),
+        );
 
-      alumnoActualizado = await alumno.save({
-        session,
-      });
+        alumnoActualizado = await alumno.save({
+          session,
+        });
+      } else {
+        alumnoActualizado = alumno;
+      }
 
       inscripcionAcreditada = inscripcion;
     });
 
     return {
       mensaje:
-        "La asignatura fue acreditada y dejó de figurar como previa institucional",
+        inscripcionAcreditada.tipoOrigen === "Previa"
+          ? "La asignatura fue acreditada..."
+          : "La asignatura del año fue acreditada correctamente en FOTIA.",
+
       inscripcion: inscripcionAcreditada,
+
       alumno: alumnoActualizado,
     };
   } finally {

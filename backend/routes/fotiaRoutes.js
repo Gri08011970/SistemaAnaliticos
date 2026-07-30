@@ -14,6 +14,7 @@ import {
   actualizarDocenteController,
 
   // Inscripciones
+  obtenerAcreditacionesController,
   obtenerInscripcionesController,
   obtenerInscripcionController,
   incorporarAsignaturaController,
@@ -78,6 +79,14 @@ router.put(
 // INSCRIPCIONES AL FORTALECIMIENTO
 // ======================================================
 
+// ======================================================
+// ACREDITACIONES
+// ======================================================
+
+router.get(
+  "/acreditaciones",
+  obtenerAcreditacionesController,
+);
 router.get(
   "/inscripciones",
   obtenerInscripcionesController

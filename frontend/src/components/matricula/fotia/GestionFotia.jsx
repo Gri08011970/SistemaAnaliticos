@@ -352,7 +352,7 @@ export default function GestionFotia({
             }}
           >
             Gestión del fortalecimiento de asignaturas pendientes.
-          </p>
+          </p> 
 
           <div
             style={{
@@ -381,7 +381,7 @@ export default function GestionFotia({
                   margin: "0 0 14px",
                   color: "#23436d",
                   textAlign: "center",
-                  fontSize: "21px",
+                  fontSize: "21px", 
                 }}
               >
                 ✓ Gestión del fortalecimiento
@@ -857,7 +857,7 @@ export default function GestionFotia({
               />
             )}
 
-            {periodoActivo && !mostrarIncorporacion && (
+            {periodoActivo && !mostrarIncorporacion &&  inscripcionesFotia.length > 0 && (
               <div
                 style={{
                   display: "flex",
@@ -917,6 +917,12 @@ export default function GestionFotia({
             )}
           </div>
         </div>
+      )}
+       {vistaActiva === "docentes" && (
+        <GestionDocentesFotia
+          docentesFotia={docentesFotia}
+          onVolver={volverAlInicioFotia}
+        />
       )}
     </div>
   );

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import FormularioEditarInscripcionFotia from "./FormularioEditarInscripcionFotia";
+import FormularioAcreditacionFotia from "./FormularioAcreditacionFotia";
 
 const CONFIGURACION_ESTADOS = {
   Incorporada: {
@@ -63,6 +64,7 @@ export default function TarjetaAsignaturaFotia({
     CONFIGURACION_ESTADOS.Incorporada;
 
   const [modoEdicion, setModoEdicion] = useState(false);
+  const [modoAcreditacion, setModoAcreditacion] = useState(false);
 
   return (
     <article
@@ -147,7 +149,7 @@ export default function TarjetaAsignaturaFotia({
         </span>
       </div>
 
-      <div
+            <div
         style={{
           display: "grid",
           gridTemplateColumns:
@@ -188,70 +190,74 @@ export default function TarjetaAsignaturaFotia({
         )}
       </div>
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "flex-end",
-          flexWrap: "wrap",
-          gap: "9px",
-          marginTop: "16px",
-          paddingTop: "14px",
-          borderTop: "1px solid #e0e9f0",
-        }}
-      >
-        <button
-          type="button"
-          onClick={() => setModoEdicion(true)}
+      {asignatura.estado !== "Acreditada" && (
+        <div
           style={{
-            padding: "8px 12px",
-            border: "1px solid #f1c3b8",
-            borderRadius: "8px",
-            background: "#fff6f4",
-            color: "#d26b56",
-            fontWeight: "700",
-            cursor: "pointer",
+            display: "flex",
+            justifyContent: "flex-end",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: "9px",
+            marginTop: "16px",
+            paddingTop: "14px",
+            borderTop: "1px solid #e0e9f0",
           }}
         >
-          ✏️ Editar
-        </button>
+          <button
+            type="button"
+            onClick={() => {
+              setModoAcreditacion(false);
+              setModoEdicion(true);
+            }}
+            style={{
+              padding: "8px 12px",
+              border: "1px solid #f1c3b8",
+              borderRadius: "8px",
+              background: "#fff6f4",
+              color: "#d26b56",
+              fontWeight: "700",
+              cursor: "pointer",
+            }}
+          >
+            ✏️ Editar
+          </button>
 
-        <button
-          type="button"
-          onClick={() => {
-            console.log("Clic en Retirar:", asignatura, onRetirar);
+          <button
+            type="button"
+            onClick={() => onRetirar?.(asignatura)}
+            style={{
+              padding: "8px 12px",
+              border: "1px solid #e6cf9e",
+              borderRadius: "8px",
+              background: "#fff8e8",
+              color: "#9a712a",
+              fontWeight: "700",
+              cursor: "pointer",
+            }}
+          >
+            ⏸️ Retirar de FOTIA
+          </button>
 
-            onRetirar?.(asignatura);
-          }}
-          style={{
-            padding: "8px 12px",
-            border: "1px solid #e6cf9e",
-            borderRadius: "8px",
-            background: "#fff8e8",
-            color: "#9a712a",
-            fontWeight: "700",
-            cursor: "pointer",
-          }}
-        >
-          ⏸️ Retirar de FOTIA
-        </button>
-        <button
-          type="button"
-          disabled
-          title="Disponible en la próxima etapa"
-          style={{
-            padding: "8px 12px",
-            border: "1px solid #b7ddd3",
-            borderRadius: "8px",
-            background: "#eef8f5",
-            color: "#4a8178",
-            fontWeight: "700",
-            cursor: "not-allowed",
-            opacity: 0.72,
-          }}
-        >
-          ✅ Acreditar
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={() => {
+              setModoEdicion(false);
+              setModoAcreditacion(true);
+            }}
+            style={{
+              padding: "8px 12px",
+              border: "1px solid #70b7a8",
+              borderRadius: "8px",
+              background: "#eef8f5",
+              color: "#256b61",
+              fontWeight: "700",
+              cursor: "pointer",
+            }}
+          >
+            ✅ Acreditar
+          </button>
+        </div>
+      )}
 
       {modoEdicion && (
         <FormularioEditarInscripcionFotia
@@ -261,6 +267,17 @@ export default function TarjetaAsignaturaFotia({
           onGuardado={(inscripcionActualizada) => {
             onActualizada?.(inscripcionActualizada);
             setModoEdicion(false);
+          }}
+        />
+      )}
+      {modoAcreditacion && (
+        <FormularioAcreditacionFotia
+          inscripcion={asignatura}
+          docentesFotia={docentesFotia}
+          onCancelar={() => setModoAcreditacion(false)}
+          onAcreditada={(inscripcionAcreditada) => {
+            onActualizada?.(inscripcionAcreditada);
+            setModoAcreditacion(false);
           }}
         />
       )}
