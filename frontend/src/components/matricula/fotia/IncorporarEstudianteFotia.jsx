@@ -807,64 +807,63 @@ export default function IncorporarEstudianteFotia({
               </label>
             </div>
 
-            {docentesFotia.length === 0 && (
-              <>
-                <p
-                  style={{
-                    margin: "14px 0 0",
-                    padding: "11px 13px",
-                    borderRadius: "9px",
-                    background: "#fff8e8",
-                    color: "#8a5a16",
-                    textAlign: "center",
-                    fontSize: "14px",
-                  }}
-                >
-                  Todavía no hay docentes registrados en FOTIA. Podrás
-                  incorporar al estudiante y asignar el docente posteriormente.
-                </p>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    marginTop: "24px",
-                    paddingTop: "16px",
-                    borderTop: "1px solid #d8e6ee",
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={incorporarAFotia}
-                    disabled={guardando || materiasSeleccionadas.length === 0}
-                    style={{
-                      padding: "12px 24px",
-                      border: "none",
-                      borderRadius: "10px",
-                      background:
-                        materiasSeleccionadas.length === 0
-                          ? "#b7c3cc"
-                          : "#148c84",
-                      color: "#ffffff",
-                      fontSize: "15px",
-                      fontWeight: "700",
-                      cursor:
-                        guardando || materiasSeleccionadas.length === 0
-                          ? "not-allowed"
-                          : "pointer",
-                      opacity: guardando ? 0.72 : 1,
-                      boxShadow:
-                        materiasSeleccionadas.length === 0
-                          ? "none"
-                          : "0 4px 10px rgba(20, 140, 132, 0.20)",
-                    }}
-                  >
-                    {guardando
-                      ? "Guardando incorporación..."
-                      : "💾 Incorporar a FOTIA"}
-                  </button>
-                </div>
-              </>
+                        {docentesFotia.length === 0 && (
+              <p
+                style={{
+                  margin: "14px 0 0",
+                  padding: "11px 13px",
+                  borderRadius: "9px",
+                  background: "#fff8e8",
+                  color: "#8a5a16",
+                  textAlign: "center",
+                  fontSize: "14px",
+                }}
+              >
+                Todavía no hay docentes registrados en FOTIA. Podrás
+                incorporar al estudiante y asignar el docente posteriormente.
+              </p>
             )}
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                marginTop: "24px",
+                paddingTop: "16px",
+                borderTop: "1px solid #d8e6ee",
+              }}
+            >
+              <button
+                type="button"
+                onClick={incorporarAFotia}
+                disabled={guardando || materiasSeleccionadas.length === 0}
+                style={{
+                  padding: "12px 24px",
+                  border: "none",
+                  borderRadius: "10px",
+                  background:
+                    materiasSeleccionadas.length === 0
+                      ? "#b7c3cc"
+                      : "#148c84",
+                  color: "#ffffff",
+                  fontSize: "15px",
+                  fontWeight: "700",
+                  cursor:
+                    guardando || materiasSeleccionadas.length === 0
+                      ? "not-allowed"
+                      : "pointer",
+                  opacity: guardando ? 0.72 : 1,
+                  boxShadow:
+                    materiasSeleccionadas.length === 0
+                      ? "none"
+                      : "0 4px 10px rgba(20, 140, 132, 0.20)",
+                }}
+              >
+                {guardando
+                  ? "Guardando incorporación..."
+                  : "💾 Incorporar a FOTIA"}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -7,7 +7,7 @@ export default function TarjetaEstudianteFotia({
   onRetirar,
   onActualizada,
 }) {
-  const [expandida, setExpandida] = useState(true);
+  const [expandida, setExpandida] = useState(false);
 
   const asignaturas = estudiante?.asignaturas || [];
 

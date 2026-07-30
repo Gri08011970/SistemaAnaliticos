@@ -352,7 +352,7 @@ export default function GestionFotia({
             }}
           >
             Gestión del fortalecimiento de asignaturas pendientes.
-          </p> 
+          </p>
 
           <div
             style={{
@@ -381,7 +381,7 @@ export default function GestionFotia({
                   margin: "0 0 14px",
                   color: "#23436d",
                   textAlign: "center",
-                  fontSize: "21px", 
+                  fontSize: "21px",
                 }}
               >
                 ✓ Gestión del fortalecimiento
@@ -552,12 +552,9 @@ export default function GestionFotia({
               fontWeight: "700",
             }}
           >
-           
             ← Volver al inicio de FOTIA
           </button>
 
-          
-            
           <div
             style={{
               border: "2px solid #b9d4ea",
@@ -857,34 +854,36 @@ export default function GestionFotia({
               />
             )}
 
-            {periodoActivo && !mostrarIncorporacion &&  inscripcionesFotia.length > 0 && (
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  marginTop: "24px",
-                  marginBottom: "18px",
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={() => setMostrarIncorporacion(true)}
+            {periodoActivo &&
+              !mostrarIncorporacion &&
+              inscripcionesFotia.length > 0 && (
+                <div
                   style={{
-                    padding: "11px 20px",
-                    border: "none",
-                    borderRadius: "10px",
-                    background: "#148c84",
-                    color: "#ffffff",
-                    fontSize: "15px",
-                    fontWeight: "700",
-                    cursor: "pointer",
-                    boxShadow: "0 4px 10px rgba(20, 140, 132, 0.20)",
+                    display: "flex",
+                    justifyContent: "center",
+                    marginTop: "24px",
+                    marginBottom: "18px",
                   }}
                 >
-                  ➕ Incorporar otro estudiante
-                </button>
-              </div>
-            )}
+                  <button
+                    type="button"
+                    onClick={() => setMostrarIncorporacion(true)}
+                    style={{
+                      padding: "11px 20px",
+                      border: "none",
+                      borderRadius: "10px",
+                      background: "#148c84",
+                      color: "#ffffff",
+                      fontSize: "15px",
+                      fontWeight: "700",
+                      cursor: "pointer",
+                      boxShadow: "0 4px 10px rgba(20, 140, 132, 0.20)",
+                    }}
+                  >
+                    ➕ Incorporar otro estudiante
+                  </button>
+                </div>
+              )}
 
             <ListadoInscripcionesFotia
               inscripciones={inscripcionesFotia}
@@ -918,10 +917,29 @@ export default function GestionFotia({
           </div>
         </div>
       )}
-       {vistaActiva === "docentes" && (
+      {vistaActiva === "docentes" && (
         <GestionDocentesFotia
           docentesFotia={docentesFotia}
           onVolver={volverAlInicioFotia}
+          onDocenteCreado={(nuevoDocente) => {
+            setDocentesFotia((anteriores) => [...anteriores, nuevoDocente]);
+          }}
+          onDocenteActualizado={(docenteActualizado) => {
+            setDocentesFotia((anteriores) =>
+              anteriores.map((docente) =>
+                docente._id === docenteActualizado._id
+                  ? docenteActualizado
+                  : docente,
+              ),
+            );
+          }}
+          onDocenteEliminado={(docenteEliminado) => {
+            setDocentesFotia((anteriores) =>
+              anteriores.filter(
+                (docente) => docente._id !== docenteEliminado._id,
+              ),
+            );
+          }}
         />
       )}
     </div>

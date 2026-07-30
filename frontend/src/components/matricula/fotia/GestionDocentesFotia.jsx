@@ -12,15 +12,22 @@ const FORMULARIO_INICIAL = {
 };
 
 export default function GestionDocentesFotia({
-  
   docentesFotia = [],
   onVolver,
+  onDocenteCreado,
+  onDocenteActualizado,
+  onDocenteEliminado,
 }) {
-
   console.log("GESTIÓN DOCENTES FOTIA SE ESTÁ RENDERIZANDO");
-  
+
   const [formulario, setFormulario] = useState(FORMULARIO_INICIAL);
   const [nuevaArea, setNuevaArea] = useState("");
+
+  const [guardando, setGuardando] = useState(false);
+  const [mensajeExito, setMensajeExito] = useState("");
+  const [mensajeError, setMensajeError] = useState("");
+
+  const [docenteEnEdicion, setDocenteEnEdicion] = useState(null);
 
   const cambiarCampo = (evento) => {
     const { name, value } = evento.target;
@@ -56,9 +63,7 @@ export default function GestionDocentesFotia({
   const quitarArea = (areaAEliminar) => {
     setFormulario((formularioAnterior) => ({
       ...formularioAnterior,
-      areas: formularioAnterior.areas.filter(
-        (area) => area !== areaAEliminar,
-      ),
+      areas: formularioAnterior.areas.filter((area) => area !== areaAEliminar),
     }));
   };
 
@@ -69,12 +74,164 @@ export default function GestionDocentesFotia({
     }
   };
 
-  const manejarSubmit = (evento) => {
-    evento.preventDefault();
+  const manejarSubmit = async (evento) => {
+  evento.preventDefault();
 
-    // En el paso siguiente conectaremos este formulario
-    // con POST /api/fotia/docentes.
-    console.log("Docente preparado para guardar:", formulario);
+  setMensajeExito("");
+  setMensajeError("");
+
+  const apellido = formulario.apellido.trim();
+  const nombre = formulario.nombre.trim();
+
+  if (!apellido || !nombre) {
+    setMensajeError(
+      "El apellido y el nombre del docente son obligatorios.",
+    );
+    return;
+  }
+
+  const docenteParaGuardar = {
+    apellido,
+    nombre,
+    dni: formulario.dni.trim(),
+    cargo: formulario.cargo.trim(),
+    areas: formulario.areas,
+    email: formulario.email.trim(),
+    telefono: formulario.telefono.trim(),
+    observaciones: formulario.observaciones.trim(),
+  };
+
+  try {
+    setGuardando(true);
+
+    const editando = Boolean(docenteEnEdicion?._id);
+
+    const url = editando
+      ? `http://localhost:3001/api/fotia/docentes/${docenteEnEdicion._id}`
+      : "http://localhost:3001/api/fotia/docentes";
+
+    const respuesta = await fetch(url, {
+      method: editando ? "PUT" : "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(docenteParaGuardar),
+    });
+
+    const datos = await respuesta.json();
+
+    if (!respuesta.ok) {
+      throw new Error(
+        datos.mensaje || "No se pudo guardar el docente.",
+      );
+    }
+
+    if (editando) {
+      onDocenteActualizado?.(datos.docente);
+    } else {
+      onDocenteCreado?.(datos.docente);
+    }
+
+    setFormulario(FORMULARIO_INICIAL);
+    setNuevaArea("");
+    setDocenteEnEdicion(null);
+
+    setMensajeExito(
+      editando
+        ? `✔ Los datos de ${datos.docente.nombre} ${datos.docente.apellido} fueron actualizados correctamente.`
+        : `✔ ${datos.docente.nombre} ${datos.docente.apellido} fue incorporado/a correctamente como docente responsable de FOTIA.`,
+    );
+  } catch (error) {
+    console.error("Error al guardar docente FOTIA:", error);
+
+    setMensajeError(
+      error.message || "Ocurrió un error al guardar el docente.",
+    );
+  } finally {
+    setGuardando(false);
+  }
+};
+
+  const comenzarEdicion = (docente) => {
+    setDocenteEnEdicion(docente);
+
+    setFormulario({
+      apellido: docente.apellido || "",
+      nombre: docente.nombre || "",
+      dni: docente.dni || "",
+      cargo: docente.cargo || "",
+      areas: Array.isArray(docente.areas) ? docente.areas : [],
+      email: docente.email || "",
+      telefono: docente.telefono || "",
+      observaciones: docente.observaciones || "",
+    });
+
+    setNuevaArea("");
+    setMensajeExito("");
+    setMensajeError("");
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+  const cancelarEdicion = () => {
+    setDocenteEnEdicion(null);
+    setFormulario(FORMULARIO_INICIAL);
+    setNuevaArea("");
+    setMensajeError("");
+  };
+
+  const eliminarDocente = async (docente) => {
+    const nombreCompleto =
+      `${docente.apellido || ""} ${docente.nombre || ""}`.trim();
+
+    const confirmar = window.confirm(
+      `¿Eliminar a ${nombreCompleto} del plantel activo de FOTIA?\n\nDejará de aparecer en nuevas asignaciones, pero se conservarán sus registros históricos.`,
+    );
+
+    if (!confirmar) return;
+
+    try {
+      setMensajeExito("");
+      setMensajeError("");
+
+      const respuesta = await fetch(
+        `http://localhost:3001/api/fotia/docentes/${docente._id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            activo: false,
+          }),
+        },
+      );
+
+      const datos = await respuesta.json();
+
+      if (!respuesta.ok) {
+        throw new Error(datos.mensaje || "No se pudo eliminar el docente.");
+      }
+
+      onDocenteEliminado?.(datos.docente);
+
+      if (docenteEnEdicion?._id === docente._id) {
+        cancelarEdicion();
+      }
+
+      setMensajeExito(
+        `✔ ${nombreCompleto} fue eliminado/a del plantel activo de FOTIA.`,
+      );
+    } catch (error) {
+      console.error("Error al eliminar docente FOTIA:", error);
+
+      setMensajeError(
+        error.message || "Ocurrió un error al eliminar el docente.",
+      );
+    }
   };
 
   const estiloLabel = {
@@ -157,10 +314,50 @@ export default function GestionDocentesFotia({
             lineHeight: 1.6,
           }}
         >
-          Registre aquí a los docentes que participarán en las intervenciones
-          y acreditaciones de FOTIA.
+          Registre aquí a los docentes que participarán en las intervenciones y
+          acreditaciones de FOTIA.
         </p>
       </div>
+
+      {mensajeExito && (
+        <div
+          role="status"
+          style={{
+            maxWidth: "760px",
+            margin: "0 auto 18px",
+            padding: "14px 18px",
+            border: "1px solid #9fd5c8",
+            borderRadius: "11px",
+            background: "#eaf8f4",
+            color: "#176b61",
+            fontWeight: "700",
+            lineHeight: 1.5,
+            textAlign: "center",
+          }}
+        >
+          {mensajeExito}
+        </div>
+      )}
+
+      {mensajeError && (
+        <div
+          role="alert"
+          style={{
+            maxWidth: "760px",
+            margin: "0 auto 18px",
+            padding: "14px 18px",
+            border: "1px solid #e2b8b8",
+            borderRadius: "11px",
+            background: "#fff1f1",
+            color: "#963d3d",
+            fontWeight: "700",
+            lineHeight: 1.5,
+            textAlign: "center",
+          }}
+        >
+          {mensajeError}
+        </div>
+      )}
 
       <form
         onSubmit={manejarSubmit}
@@ -204,7 +401,9 @@ export default function GestionDocentesFotia({
                 fontSize: "21px",
               }}
             >
-              Nuevo docente responsable
+              {docenteEnEdicion
+                ? "Editar docente responsable"
+                : "Nuevo docente responsable"}
             </h3>
 
             <p
@@ -315,8 +514,8 @@ export default function GestionDocentesFotia({
               lineHeight: 1.5,
             }}
           >
-            Escriba un área y presione Enter o el botón Agregar. Puede
-            registrar más de una.
+            Escriba un área y presione Enter o el botón Agregar. Puede registrar
+            más de una.
           </p>
 
           <div
@@ -345,6 +544,7 @@ export default function GestionDocentesFotia({
               onClick={agregarArea}
               style={{
                 padding: "10px 18px",
+                minWidth: "150px",
                 border: "1px solid #7bc4b6",
                 borderRadius: "9px",
                 background: "#e9f8f4",
@@ -418,7 +618,8 @@ export default function GestionDocentesFotia({
                 fontStyle: "italic",
               }}
             >
-              Todavía no se agregaron áreas.
+              Agregue una o más áreas para identificar las asignaturas que podrá
+              acompañar en FOTIA.
             </p>
           )}
         </div>
@@ -497,38 +698,273 @@ export default function GestionDocentesFotia({
         >
           <button
             type="submit"
-            title="En el próximo paso conectaremos el guardado con el backend"
+            disabled={guardando}
             style={{
-              minWidth: "210px",
-              padding: "11px 20px",
+              minWidth: "250px",
+              padding: "12px 22px",
               border: "1px solid #70b7a8",
               borderRadius: "9px",
               background: "#148c84",
               color: "#ffffff",
               fontWeight: "800",
-              fontSize: "15px",
-              cursor: "pointer",
+              fontSize: "16px",
+              letterSpacing: ".02em",
+              cursor: guardando ? "not-allowed" : "pointer",
+              opacity: guardando ? 0.7 : 1,
               boxShadow: "0 3px 8px rgba(20,140,132,.18)",
             }}
           >
-            💾 Guardar docente
+            {guardando
+              ? "Guardando..."
+              : docenteEnEdicion
+                ? "💾 Guardar cambios"
+                : "💾 Guardar docente"}
           </button>
+          {docenteEnEdicion && (
+            <button
+              type="button"
+              onClick={cancelarEdicion}
+              disabled={guardando}
+              style={{
+                marginLeft: "10px",
+                minWidth: "170px",
+                padding: "12px 20px",
+                border: "1px solid #cbd8df",
+                borderRadius: "9px",
+                background: "#f4f7f9",
+                color: "#607080",
+                fontWeight: "700",
+                cursor: guardando ? "not-allowed" : "pointer",
+              }}
+            >
+              Cancelar edición
+            </button>
+          )}
         </div>
       </form>
-
       <div
         style={{
-          marginTop: "24px",
-          padding: "16px 20px",
-          border: "1px solid #d8e7ee",
-          borderRadius: "12px",
-          background: "#f8fbfd",
-          color: "#315f6f",
-          fontWeight: "700",
-          textAlign: "center",
+          marginTop: "28px",
+          border: "1px solid #cfe0e8",
+          borderRadius: "15px",
+          padding: "22px",
+          background: "#fbfdfe",
         }}
       >
-        Docentes registrados: {docentesFotia.length} 
+        <div
+          style={{
+            textAlign: "center",
+            marginBottom: "20px",
+          }}
+        >
+          <p
+            style={{
+              margin: 0,
+              color: "#6b7f92",
+              fontSize: "12px",
+              fontWeight: "800",
+              letterSpacing: ".08em",
+              textTransform: "uppercase",
+            }}
+          >
+            Plantel FOTIA
+          </p>
+
+          <h3
+            style={{
+              margin: "7px 0 0",
+              color: "#23436d",
+              fontSize: "22px",
+            }}
+          >
+            👩‍🏫 Docentes registrados: {docentesFotia.length}
+          </h3>
+        </div>
+
+        {docentesFotia.length === 0 ? (
+          <div
+            style={{
+              padding: "24px",
+              border: "2px dashed #c9dce6",
+              borderRadius: "12px",
+              background: "#ffffff",
+              textAlign: "center",
+              color: "#748594",
+            }}
+          >
+            Todavía no hay docentes activos registrados en FOTIA.
+          </div>
+        ) : (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns:
+                "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
+              gap: "16px",
+            }}
+          >
+            {docentesFotia.map((docente) => (
+              <article
+                key={docente._id}
+                style={{
+                  padding: "18px",
+                  border: "1px solid #c8dde6",
+                  borderRadius: "13px",
+                  background: "#ffffff",
+                  boxShadow: "0 3px 9px rgba(41,78,112,.06)",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: "12px",
+                    alignItems: "flex-start",
+                  }}
+                >
+                  <div>
+                    <p
+                      style={{
+                        margin: 0,
+                        color: "#718291",
+                        fontSize: "11px",
+                        fontWeight: "800",
+                        letterSpacing: ".07em",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Docente responsable
+                    </p>
+
+                    <h4
+                      style={{
+                        margin: "6px 0 0",
+                        color: "#23436d",
+                        fontSize: "19px",
+                      }}
+                    >
+                      {docente.apellido} {docente.nombre}
+                    </h4>
+                  </div>
+
+                  <span
+                    style={{
+                      padding: "6px 10px",
+                      border: "1px solid #a9dacd",
+                      borderRadius: "999px",
+                      background: "#eaf8f4",
+                      color: "#16766c",
+                      fontSize: "12px",
+                      fontWeight: "800",
+                    }}
+                  >
+                    Activo
+                  </span>
+                </div>
+
+                {docente.cargo && (
+                  <p
+                    style={{
+                      margin: "13px 0 0",
+                      color: "#536a7d",
+                      fontWeight: "700",
+                    }}
+                  >
+                    {docente.cargo}
+                  </p>
+                )}
+
+                {Array.isArray(docente.areas) && docente.areas.length > 0 && (
+                  <div
+                    style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: "7px",
+                      marginTop: "14px",
+                    }}
+                  >
+                    {docente.areas.map((area) => (
+                      <span
+                        key={area}
+                        style={{
+                          padding: "6px 10px",
+                          border: "1px solid #b9e0d7",
+                          borderRadius: "999px",
+                          background: "#edf9f6",
+                          color: "#19786f",
+                          fontSize: "12px",
+                          fontWeight: "700",
+                        }}
+                      >
+                        {area}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {(docente.email || docente.telefono) && (
+                  <div
+                    style={{
+                      marginTop: "15px",
+                      paddingTop: "13px",
+                      borderTop: "1px solid #e0e9ed",
+                      color: "#607080",
+                      fontSize: "13px",
+                      lineHeight: 1.7,
+                    }}
+                  >
+                    {docente.email && <div>📧 {docente.email}</div>}
+                    {docente.telefono && <div>📱 {docente.telefono}</div>}
+                  </div>
+                )}
+
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    flexWrap: "wrap",
+                    gap: "9px",
+                    marginTop: "18px",
+                    paddingTop: "14px",
+                    borderTop: "1px solid #e0e9ed",
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => comenzarEdicion(docente)}
+                    style={{
+                      padding: "8px 14px",
+                      border: "1px solid #efc1b3",
+                      borderRadius: "8px",
+                      background: "#fff5f1",
+                      color: "#b45c43",
+                      fontWeight: "700",
+                      cursor: "pointer",
+                    }}
+                  >
+                    ✏️ Editar
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => eliminarDocente(docente)}
+                    style={{
+                      padding: "8px 14px",
+                      border: "1px solid #e2bcbc",
+                      borderRadius: "8px",
+                      background: "#fff1f1",
+                      color: "#a64949",
+                      fontWeight: "700",
+                      cursor: "pointer",
+                    }}
+                  >
+                    🗑️ Eliminar
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
