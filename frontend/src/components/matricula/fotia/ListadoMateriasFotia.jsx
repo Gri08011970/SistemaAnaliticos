@@ -89,30 +89,82 @@ function GrupoMateriasFotia({
   obtenerIdMateria,
   onCambiarSeleccion,
   mensajeVacio,
+  textoSeleccionarTodas,
 }) {
+  const todasSeleccionadas =
+    materias.length > 0 &&
+    materias.every((materia) =>
+      materiasSeleccionadas.includes(obtenerIdMateria(materia)),
+    );
+
+  const seleccionarTodasDelGrupo = () => {
+    materias.forEach((materia) => {
+      const materiaId = obtenerIdMateria(materia);
+
+      if (!materiasSeleccionadas.includes(materiaId)) {
+        onCambiarSeleccion(materia);
+      }
+    });
+  };
+
   return (
     <section style={{ marginBottom: "24px" }}>
-      <h4
+      <div
         style={{
-          margin: "0 0 8px",
-          color: "#23436d",
-          fontSize: "17px",
-          textAlign: "left",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          flexWrap: "wrap",
+          gap: "10px",
+          marginBottom: "8px",
         }}
       >
-        {titulo}
-      </h4>
+        <div style={{ minWidth: 0 }}>
+          <h4
+            style={{
+              margin: "0 0 8px",
+              color: "#23436d",
+              fontSize: "17px",
+              textAlign: "left",
+            }}
+          >
+            {titulo}
+          </h4>
 
-      <p
-        style={{
-          margin: "0 0 14px",
-          color: "#68798a",
-          fontSize: "14px",
-          textAlign: "left",
-        }}
-      >
-        {descripcion}
-      </p>
+          <p
+            style={{
+              margin: 0,
+              color: "#68798a",
+              fontSize: "14px",
+              textAlign: "left",
+            }}
+          >
+            {descripcion}
+          </p>
+        </div>
+
+        {materias.length > 0 && (
+          <button
+            type="button"
+            onClick={seleccionarTodasDelGrupo}
+            disabled={todasSeleccionadas}
+            style={{
+              padding: "8px 12px",
+              border: todasSeleccionadas
+                ? "1px solid #d4dce4"
+                : "1px solid #b7ddd3",
+              borderRadius: "8px",
+              background: todasSeleccionadas ? "#f3f5f7" : "#eef8f5",
+              color: todasSeleccionadas ? "#83909b" : "#256b61",
+              cursor: todasSeleccionadas ? "default" : "pointer",
+              fontWeight: "700",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {todasSeleccionadas ? "Todas seleccionadas" : textoSeleccionarTodas}
+          </button>
+        )}
+      </div>
 
       {materias.length === 0 ? (
         <div
@@ -134,6 +186,7 @@ function GrupoMateriasFotia({
             gridTemplateColumns:
               "repeat(auto-fit, minmax(min(100%, 230px), 1fr))",
             gap: "12px",
+            marginTop: "14px",
           }}
         >
           {materias.map((materia) => {
@@ -143,9 +196,7 @@ function GrupoMateriasFotia({
               <TarjetaMateriaFotia
                 key={materiaId}
                 materia={materia}
-                seleccionada={materiasSeleccionadas.includes(
-                  materiaId,
-                )}
+                seleccionada={materiasSeleccionadas.includes(materiaId)}
                 onCambiarSeleccion={onCambiarSeleccion}
               />
             );
@@ -162,7 +213,6 @@ export default function ListadoMateriasFotia({
   materiasSeleccionadas = [],
   obtenerIdMateria,
   onCambiarSeleccion,
-  onSeleccionarTodas,
   onLimpiarSeleccion,
 }) {
   return (
@@ -203,50 +253,30 @@ export default function ListadoMateriasFotia({
               lineHeight: 1.4,
             }}
           >
-            Seleccioná solamente las asignaturas que formarán
-            parte de este período de FOTIA.
+            Seleccioná solamente las asignaturas que formarán parte de este
+            período de FOTIA.
           </p>
         </div>
 
-        <div
+        <button
+          type="button"
+          onClick={onLimpiarSeleccion}
+          disabled={materiasSeleccionadas.length === 0}
           style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "8px",
+            padding: "8px 12px",
+            border: "1px solid #d4dce4",
+            borderRadius: "8px",
+            background:
+              materiasSeleccionadas.length === 0 ? "#f3f5f7" : "#f6f8fa",
+            color:
+              materiasSeleccionadas.length === 0 ? "#8a96a1" : "#56697a",
+            cursor:
+              materiasSeleccionadas.length === 0 ? "default" : "pointer",
+            fontWeight: "700",
           }}
         >
-          <button
-            type="button"
-            onClick={onSeleccionarTodas}
-            style={{
-              padding: "8px 12px",
-              border: "1px solid #b7ddd3",
-              borderRadius: "8px",
-              background: "#eef8f5",
-              color: "#256b61",
-              cursor: "pointer",
-              fontWeight: "700",
-            }}
-          >
-            Seleccionar todas
-          </button>
-
-          <button
-            type="button"
-            onClick={onLimpiarSeleccion}
-            style={{
-              padding: "8px 12px",
-              border: "1px solid #d4dce4",
-              borderRadius: "8px",
-              background: "#f6f8fa",
-              color: "#56697a",
-              cursor: "pointer",
-              fontWeight: "700",
-            }}
-          >
-            Limpiar selección
-          </button>
-        </div>
+          Limpiar selección
+        </button>
       </div>
 
       <GrupoMateriasFotia
@@ -257,6 +287,7 @@ export default function ListadoMateriasFotia({
         obtenerIdMateria={obtenerIdMateria}
         onCambiarSeleccion={onCambiarSeleccion}
         mensajeVacio="El estudiante no posee asignaturas previas."
+        textoSeleccionarTodas="Seleccionar todas las previas"
       />
 
       <GrupoMateriasFotia
@@ -267,6 +298,7 @@ export default function ListadoMateriasFotia({
         obtenerIdMateria={obtenerIdMateria}
         onCambiarSeleccion={onCambiarSeleccion}
         mensajeVacio="No se encontraron asignaturas para el curso informado."
+        textoSeleccionarTodas="Seleccionar todas las del año"
       />
 
       <div
@@ -275,13 +307,9 @@ export default function ListadoMateriasFotia({
           padding: "11px 14px",
           borderRadius: "9px",
           background:
-            materiasSeleccionadas.length > 0
-              ? "#eef8f5"
-              : "#fff8e8",
+            materiasSeleccionadas.length > 0 ? "#eef8f5" : "#fff8e8",
           color:
-            materiasSeleccionadas.length > 0
-              ? "#256b61"
-              : "#8a5a16",
+            materiasSeleccionadas.length > 0 ? "#256b61" : "#8a5a16",
           textAlign: "center",
           fontWeight: "700",
         }}

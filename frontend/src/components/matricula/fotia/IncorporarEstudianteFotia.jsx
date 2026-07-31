@@ -856,7 +856,7 @@ export default function IncorporarEstudianteFotia({
                   boxShadow:
                     materiasSeleccionadas.length === 0
                       ? "none"
-                      : "0 4px 10px rgba(20, 140, 132, 0.20)",
+                      : "0 4px 10px rgba(20, 140, 132, 0.20)", 
                 }}
               >
                 {guardando

@@ -313,75 +313,81 @@ export default function GestionFotia({
     }
   };
 
-  const eliminarEstudiantePeriodo = async (estudiante) => {
-    const alumnoId =
-      estudiante.alumnoId?._id || estudiante.alumnoId || estudiante._id;
+ const eliminarEstudiantePeriodo = async (estudiante) => {
+  const alumnoId =
+    estudiante.alumnoId?._id || estudiante.alumnoId || estudiante._id;
 
-    const periodoId = periodoActivo?._id || periodoActivo?.id;
+  const periodoId = periodoActivo?._id || periodoActivo?.id;
 
-    const nombreCompleto =
-      [estudiante.apellido, estudiante.nombre]
-        .filter(Boolean)
-        .join(" ")
-        .trim() || "este estudiante";
+  const nombreCompleto =
+    [estudiante.apellido, estudiante.nombre]
+      .filter(Boolean)
+      .join(" ")
+      .trim() || "este estudiante";
 
-    if (!alumnoId || !periodoId) {
-      window.alert(
-        "No se pudo identificar correctamente al estudiante o al período de FOTIA.",
-      );
-      return;
-    }
+  if (!alumnoId || !periodoId) {
+    window.alert(
+      "No se pudo identificar correctamente al estudiante o al período de FOTIA.",
+    );
+    return;
+  }
 
-    const confirmar = window.confirm(
-      `¿Eliminar completamente a ${nombreCompleto} del período ${periodoActivo?.nombre || "actual"}?\n\n` +
-        "Se eliminarán todas sus incorporaciones y acreditaciones de este período.\n\n" +
-        "Las asignaturas previas acreditadas serán restauradas en Matrícula cuando corresponda.",
+  const confirmar = window.confirm(
+    `¿Eliminar completamente a ${nombreCompleto} del período ${
+      periodoActivo?.nombre || "actual"
+    }?\n\n` +
+      "Se eliminarán sus registros de participación en este período de FOTIA.\n\n" +
+      "Las asignaturas previas ya acreditadas no volverán a Matrícula.\n\n" +
+      "Esta acción no se puede deshacer.",
+  );
+
+  if (!confirmar) {
+    return;
+  }
+
+  try {
+    setErrorFotia("");
+
+    const respuesta = await fetch(
+      `http://localhost:3001/api/fotia/periodos/${periodoId}/estudiantes/${alumnoId}`,
+      {
+        method: "DELETE",
+      },
     );
 
-    if (!confirmar) return;
+    const datos = await respuesta.json();
 
-    try {
-      setErrorFotia("");
-
-      const respuesta = await fetch(
-        `http://localhost:3001/api/fotia/periodos/${periodoId}/estudiantes/${alumnoId}`,
-        {
-          method: "DELETE",
-        },
-      );
-
-      const datos = await respuesta.json();
-
-      if (!respuesta.ok) {
-        throw new Error(
-          datos.mensaje || "No se pudo eliminar al estudiante de FOTIA.",
-        );
-      }
-
-      setInscripcionesFotia((anteriores) =>
-        anteriores.filter((inscripcion) => {
-          const idInscripcion =
-            inscripcion.alumnoId?._id || inscripcion.alumnoId;
-
-          return String(idInscripcion) !== String(alumnoId);
-        }),
-      );
-
-      window.alert(
-        `${datos.mensaje}\n\n` +
-          `Registros eliminados: ${datos.cantidadEliminada || 0}\n` +
-          `Previas restauradas en Matrícula: ${
-            datos.cantidadPreviasRestauradas || 0
-          }`,
-      );
-    } catch (error) {
-      console.error("Error al eliminar estudiante del período FOTIA:", error);
-
-      setErrorFotia(
-        error.message || "Ocurrió un error al eliminar al estudiante de FOTIA.",
+    if (!respuesta.ok) {
+      throw new Error(
+        datos.mensaje || "No se pudo eliminar al estudiante de FOTIA.",
       );
     }
-  };
+
+    setInscripcionesFotia((anteriores) =>
+      anteriores.filter((inscripcion) => {
+        const idInscripcion =
+          inscripcion.alumnoId?._id || inscripcion.alumnoId;
+
+        return String(idInscripcion) !== String(alumnoId);
+      }),
+    );
+
+    window.alert(
+      `${datos.mensaje}\n\n` +
+        `Registros eliminados: ${datos.cantidadEliminada || 0}`,
+    );
+  } catch (error) {
+    console.error(
+      "Error al eliminar estudiante del período FOTIA:",
+      error,
+    );
+
+    setErrorFotia(
+      error.message ||
+        "Ocurrió un error al eliminar al estudiante de FOTIA.",
+    );
+  }
+};
 
   const actualizarInscripcionEnPantalla = (inscripcionActualizada) => {
     setInscripcionesFotia((anteriores) =>
