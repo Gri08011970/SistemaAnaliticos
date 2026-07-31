@@ -608,7 +608,7 @@ export default function ListadoInscripcionesFotia({
           <div class="resumen">
                <span>
                  Total de estudiantes:
-                ${estudiantesOrdenados.length}
+                ${estudiantesOrdenados.length} 
                </span>
 
               <span>
@@ -960,16 +960,36 @@ export default function ListadoInscripcionesFotia({
           </span>
         </div>
       ) : (
-        estudiantesOrdenados.map((estudiante) => (
-          <TarjetaEstudianteFotia
-            key={estudiante.alumnoId}
-            estudiante={estudiante}
-            docentesFotia={docentesFotia}
-            onRetirar={onRetirar}
-            onActualizada={onActualizada}
-            onEliminarEstudiante={onEliminarEstudiante}
-          />
-        ))
+        <div
+          style={{
+            maxHeight: "720px",
+            overflowY: "auto",
+            paddingRight: "8px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "16px",
+            scrollbarGutter: "stable",
+            borderRadius: "12px",
+          }}
+        >
+          {estudiantesOrdenados.map((estudiante) => (
+            <div
+              key={estudiante.alumnoId}
+              style={{
+                flex: "0 0 auto",
+                minHeight: 0,
+              }}
+            >
+              <TarjetaEstudianteFotia
+                estudiante={estudiante}
+                docentesFotia={docentesFotia}
+                onRetirar={onRetirar}
+                onActualizada={onActualizada}
+                onEliminarEstudiante={onEliminarEstudiante}
+              />
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
