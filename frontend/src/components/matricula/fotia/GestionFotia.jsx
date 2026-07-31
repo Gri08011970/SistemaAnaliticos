@@ -10,6 +10,7 @@ import IncorporarEstudianteFotia from "./IncorporarEstudianteFotia";
 import ListadoInscripcionesFotia from "./ListadoInscripcionesFotia";
 import GestionDocentesFotia from "./GestionDocentesFotia";
 import HistorialAcreditacionesFotia from "./HistorialAcreditacionesFotia";
+import EstadisticasFotia from "./EstadisticasFotia";
 
 export default function GestionFotia({
   alumnosMatricula = [],
@@ -313,81 +314,77 @@ export default function GestionFotia({
     }
   };
 
- const eliminarEstudiantePeriodo = async (estudiante) => {
-  const alumnoId =
-    estudiante.alumnoId?._id || estudiante.alumnoId || estudiante._id;
+  const eliminarEstudiantePeriodo = async (estudiante) => {
+    const alumnoId =
+      estudiante.alumnoId?._id || estudiante.alumnoId || estudiante._id;
 
-  const periodoId = periodoActivo?._id || periodoActivo?.id;
+    const periodoId = periodoActivo?._id || periodoActivo?.id;
 
-  const nombreCompleto =
-    [estudiante.apellido, estudiante.nombre]
-      .filter(Boolean)
-      .join(" ")
-      .trim() || "este estudiante";
+    const nombreCompleto =
+      [estudiante.apellido, estudiante.nombre]
+        .filter(Boolean)
+        .join(" ")
+        .trim() || "este estudiante";
 
-  if (!alumnoId || !periodoId) {
-    window.alert(
-      "No se pudo identificar correctamente al estudiante o al período de FOTIA.",
-    );
-    return;
-  }
-
-  const confirmar = window.confirm(
-    `¿Eliminar completamente a ${nombreCompleto} del período ${
-      periodoActivo?.nombre || "actual"
-    }?\n\n` +
-      "Se eliminarán sus registros de participación en este período de FOTIA.\n\n" +
-      "Las asignaturas previas ya acreditadas no volverán a Matrícula.\n\n" +
-      "Esta acción no se puede deshacer.",
-  );
-
-  if (!confirmar) {
-    return;
-  }
-
-  try {
-    setErrorFotia("");
-
-    const respuesta = await fetch(
-      `http://localhost:3001/api/fotia/periodos/${periodoId}/estudiantes/${alumnoId}`,
-      {
-        method: "DELETE",
-      },
-    );
-
-    const datos = await respuesta.json();
-
-    if (!respuesta.ok) {
-      throw new Error(
-        datos.mensaje || "No se pudo eliminar al estudiante de FOTIA.",
+    if (!alumnoId || !periodoId) {
+      window.alert(
+        "No se pudo identificar correctamente al estudiante o al período de FOTIA.",
       );
+      return;
     }
 
-    setInscripcionesFotia((anteriores) =>
-      anteriores.filter((inscripcion) => {
-        const idInscripcion =
-          inscripcion.alumnoId?._id || inscripcion.alumnoId;
-
-        return String(idInscripcion) !== String(alumnoId);
-      }),
+    const confirmar = window.confirm(
+      `¿Eliminar completamente a ${nombreCompleto} del período ${
+        periodoActivo?.nombre || "actual"
+      }?\n\n` +
+        "Se eliminarán sus registros de participación en este período de FOTIA.\n\n" +
+        "Las asignaturas previas ya acreditadas no volverán a Matrícula.\n\n" +
+        "Esta acción no se puede deshacer.",
     );
 
-    window.alert(
-      `${datos.mensaje}\n\n` +
-        `Registros eliminados: ${datos.cantidadEliminada || 0}`,
-    );
-  } catch (error) {
-    console.error(
-      "Error al eliminar estudiante del período FOTIA:",
-      error,
-    );
+    if (!confirmar) {
+      return;
+    }
 
-    setErrorFotia(
-      error.message ||
-        "Ocurrió un error al eliminar al estudiante de FOTIA.",
-    );
-  }
-};
+    try {
+      setErrorFotia("");
+
+      const respuesta = await fetch(
+        `http://localhost:3001/api/fotia/periodos/${periodoId}/estudiantes/${alumnoId}`,
+        {
+          method: "DELETE",
+        },
+      );
+
+      const datos = await respuesta.json();
+
+      if (!respuesta.ok) {
+        throw new Error(
+          datos.mensaje || "No se pudo eliminar al estudiante de FOTIA.",
+        );
+      }
+
+      setInscripcionesFotia((anteriores) =>
+        anteriores.filter((inscripcion) => {
+          const idInscripcion =
+            inscripcion.alumnoId?._id || inscripcion.alumnoId;
+
+          return String(idInscripcion) !== String(alumnoId);
+        }),
+      );
+
+      window.alert(
+        `${datos.mensaje}\n\n` +
+          `Registros eliminados: ${datos.cantidadEliminada || 0}`,
+      );
+    } catch (error) {
+      console.error("Error al eliminar estudiante del período FOTIA:", error);
+
+      setErrorFotia(
+        error.message || "Ocurrió un error al eliminar al estudiante de FOTIA.",
+      );
+    }
+  };
 
   const actualizarInscripcionEnPantalla = (inscripcionActualizada) => {
     setInscripcionesFotia((anteriores) =>
@@ -556,95 +553,79 @@ export default function GestionFotia({
               </button>
             </div>
 
-            {[
-              {
-                titulo: "Historial",
-                descripcion: "Consulta de acreditaciones realizadas.",
-                disponible: true,
-              },
-              {
-                titulo: "Estadísticas",
-                descripcion: "Indicadores institucionales de acreditación.",
-                disponible: false,
-              },
-            ].map((modulo) => (
-              <div
-                key={modulo.titulo}
-                style={{
-                  border: modulo.disponible
-                    ? "2px solid #a8c8ee"
-                    : "2px dashed #d6dde5",
-                  borderRadius: "14px",
-                  padding: "20px",
-                  background: modulo.disponible ? "#ffffff" : "#f7f8fa",
-                  opacity: modulo.disponible ? 1 : 0.68,
-                  minHeight: "245px",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "space-between",
-                }}
-              >
-                <h3
-                  style={{
-                    margin: "0 0 14px",
-                    color: modulo.disponible ? "#1d3557" : "#7b8794",
-                    textAlign: "center",
-                    fontSize: "21px",
-                  }}
-                >
-                  {modulo.disponible ? "📖" : "🔒"} {modulo.titulo}
-                </h3>
+          {[
+  {
+    titulo: "Historial",
+    icono: "📖",
+    descripcion: "Consulta de acreditaciones realizadas.",
+    onClick: abrirHistorialFotia,
+  },
+  {
+    titulo: "Estadísticas",
+    icono: "📊",
+    descripcion: "Indicadores institucionales del período FOTIA.",
+    onClick: () => setVistaActiva("estadisticas"),
+  },
+].map((modulo) => (
+  <div
+    key={modulo.titulo}
+    style={{
+      border: "2px solid #a8c8ee",
+      borderRadius: "14px",
+      padding: "20px",
+      background: "#ffffff",
+      minHeight: "245px",
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "space-between",
+    }}
+  >
+    <h3
+      style={{
+        margin: "0 0 14px",
+        color: "#1d3557",
+        textAlign: "center",
+        fontSize: "21px",
+      }}
+    >
+      {modulo.icono} {modulo.titulo}
+    </h3>
 
-                <p
-                  style={{
-                    color: "#8a94a6",
-                    lineHeight: 1.55,
-                    textAlign: "center",
-                    margin: 0,
-                  }}
-                >
-                  {modulo.descripcion}
-                </p>
+    <p
+      style={{
+        color: "#66778a",
+        lineHeight: 1.55,
+        textAlign: "center",
+        margin: 0,
+      }}
+    >
+      {modulo.descripcion}
+    </p>
 
-                {modulo.disponible ? (
-                  <button
-                    type="button"
-                    onClick={abrirHistorialFotia}
-                    style={{
-                      marginTop: "24px",
-                      alignSelf: "center",
-                      padding: "10px 28px",
-                      background: "#1b9a96",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: "10px",
-                      cursor: "pointer",
-                      fontWeight: "700",
-                      fontSize: "15px",
-                      boxShadow: "0 3px 10px rgba(0,0,0,0.15)",
-                    }}
-                  >
-                    Entrar
-                  </button>
-                ) : (
-                  <p
-                    style={{
-                      color: "#9aa5b1",
-                      textAlign: "center",
-                      fontSize: "14px",
-                      marginTop: "20px",
-                      fontWeight: "600",
-                    }}
-                  >
-                    Disponible en una próxima etapa.
-                  </p>
-                )}
-              </div>
-            ))}
+    <button
+      type="button"
+      onClick={modulo.onClick}
+      style={{
+        marginTop: "24px",
+        alignSelf: "center",
+        padding: "10px 28px",
+        background: "#1b9a96",
+        color: "#fff",
+        border: "none",
+        borderRadius: "10px",
+        cursor: "pointer",
+        fontWeight: "700",
+        fontSize: "15px",
+        boxShadow: "0 3px 10px rgba(0,0,0,0.15)",
+      }}
+    >
+      Entrar
+    </button>
+  </div>
+))}
           </div>
         </>
       )}
-
       {vistaActiva === "acreditaciones" && (
         <div style={{ width: "100%", minWidth: 0 }}>
           <button
@@ -1059,6 +1040,15 @@ export default function GestionFotia({
           onVolver={volverAlInicioFotia}
         />
       )}
+
+      {vistaActiva === "estadisticas" && (
+        <EstadisticasFotia
+          periodoActivo={periodoActivo}
+          inscripcionesFotia={inscripcionesFotia}
+          docentesFotia={docentesFotia}
+          onVolver={volverAlInicioFotia}
+        />
+      )} 
     </div>
   );
 }
