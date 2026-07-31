@@ -34,7 +34,7 @@ const colorConceptual = (conceptual) => {
 export default function FichaSeguimientoAlumno({ alumnos = [] }) {
   const [busqueda, setBusqueda] = useState("");
   const [alumnoSeleccionado, setAlumnoSeleccionado] = useState(null);
-  const [periodoInforme, setPeriodoInforme] = useState("1° Cuatrimestre");
+  const [periodoInforme, setPeriodoInforme] = useState("");
 
   const [seguimiento, setSeguimiento] = useState({});
   const [cargandoSeguimiento, setCargandoSeguimiento] = useState(false);
@@ -142,14 +142,15 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
     ? obtenerAsignaturasPorCurso(alumnoSeleccionado.curso)
     : [];
 
-  const resultadoTrayectoria = alumnoSeleccionado
-    ? analizarTrayectoria({
-        alumno: alumnoSeleccionado,
-        seguimiento,
-        asignaturas,
-        periodo: periodoInforme,
-      })
-    : null;
+  const resultadoTrayectoria =
+    alumnoSeleccionado && periodoInforme
+      ? analizarTrayectoria({
+          alumno: alumnoSeleccionado,
+          seguimiento,
+          asignaturas,
+          periodo: periodoInforme,
+        })
+      : null;
 
   const informeInstitucional = resultadoTrayectoria?.informe || null;
 
@@ -158,7 +159,32 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
     return seguimiento[clave] || {};
   };
 
+  const abrirInformeCompleto = () => {
+    if (!periodoInforme) {
+      window.alert(
+        "Seleccioná un período para ver el informe completo.",
+      );
+      return;
+    }
+
+    if (!informeInstitucional) {
+      window.alert(
+        "Todavía no hay información suficiente para generar el informe de este período.",
+      );
+      return;
+    }
+
+    setMostrarInformeCompleto(true);
+  };
+
   const imprimirFicha = () => {
+    if (!periodoInforme) {
+      window.alert(
+        "Seleccioná un período antes de imprimir el informe.",
+      );
+      return;
+    }
+
     const informe = document.getElementById("informe-institucional-imprimir");
 
     if (!informe) {
@@ -349,6 +375,7 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
           onChange={(e) => {
             setBusqueda(e.target.value);
             setAlumnoSeleccionado(null);
+            setPeriodoInforme("");
             setMostrarInformeCompleto(false);
           }}
           style={{
@@ -375,6 +402,7 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
                 key={alumno._id || alumno.dni}
                 onClick={() => {
                   setAlumnoSeleccionado(alumno);
+                  setPeriodoInforme("");
                   setMostrarInformeCompleto(false);
                 }}
                 style={{
@@ -413,7 +441,10 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
             <select
               id="periodo-informe-institucional"
               value={periodoInforme}
-              onChange={(e) => setPeriodoInforme(e.target.value)}
+              onChange={(e) => {
+                setPeriodoInforme(e.target.value);
+                setMostrarInformeCompleto(false);
+              }}
               style={{
                 padding: "8px 12px",
                 borderRadius: "8px",
@@ -422,6 +453,8 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
                 fontWeight: "600",
               }}
             >
+              <option value="">Seleccionar período</option>
+
               {PERIODOS_ANALISIS_TRAYECTORIA.map((periodo) => (
                 <option key={periodo} value={periodo}>
                   {ETIQUETAS_PERIODOS_ANALISIS[periodo]}
@@ -614,7 +647,7 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
                 top: "20px",
               }}
             >
-              {!cargandoSeguimiento && informeInstitucional && (
+              {!cargandoSeguimiento && (
                 <section
                   style={{
                     border: "2px solid #b9d7d3",
@@ -696,7 +729,9 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
                         textTransform: "uppercase",
                       }}
                     >
-                      Valoración institucional
+                      {periodoInforme
+                        ? "Valoración institucional"
+                        : "Período pendiente de selección"}
                     </span>
 
                     <strong
@@ -707,8 +742,10 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
                         lineHeight: 1.45,
                       }}
                     >
-                      {informeInstitucional.encabezado?.titulo ||
-                        "Informe institucional de seguimiento pedagógico"}
+                      {periodoInforme
+                        ? informeInstitucional?.encabezado?.titulo ||
+                          "Informe institucional de seguimiento pedagógico"
+                        : "Seleccioná un período para generar el análisis institucional."}
                     </strong>
                   </div>
 
@@ -735,20 +772,22 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
                         overflow: "hidden",
                       }}
                     >
-                      {informeInstitucional.resumen ||
-                        "El informe institucional se encuentra disponible para su lectura completa."}
+                      {periodoInforme
+                        ? informeInstitucional?.resumen ||
+                          "Todavía no hay información suficiente para generar la síntesis de este período."
+                        : "Elegí el período institucional que querés analizar antes de abrir el informe completo."}
                     </p>
                   </div>
 
                   <button
                     type="button"
-                    onClick={() => setMostrarInformeCompleto(true)}
+                    onClick={abrirInformeCompleto}
                     style={{
                       width: "100%",
                       padding: "13px 18px",
                       border: "none",
                       borderRadius: "11px",
-                      background: "#315f5a",
+                      background: periodoInforme ? "#315f5a" : "#7f9794",
                       color: "#ffffff",
                       cursor: "pointer",
                       fontWeight: "700",
@@ -768,7 +807,9 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
                       textAlign: "center",
                     }}
                   >
-                    Se abrirá en una vista exclusiva para su lectura.
+                    {periodoInforme
+                      ? "Se abrirá en una vista exclusiva para su lectura."
+                      : "Primero seleccioná el período del informe."}
                   </p>
                 </section>
               )}

@@ -1,10 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import TablaFotia from "./TablaFotia";
-import {
-  crearFilasFotia,
-  ordenarFilasFotia,
-  obtenerEstudiantesUnicosFotia,
-} from "./fotiaUtils";
 import FormularioPeriodoFotia from "./FormularioPeriodoFotia";
 import IncorporarEstudianteFotia from "./IncorporarEstudianteFotia";
 import ListadoInscripcionesFotia from "./ListadoInscripcionesFotia";
@@ -17,7 +11,6 @@ export default function GestionFotia({
   alumnosParaExamen = [],
 }) {
   const [vistaActiva, setVistaActiva] = useState("inicio");
-  const [periodosFotia, setPeriodosFotia] = useState([]);
 
   const [periodoActivo, setPeriodoActivo] = useState(null);
 
@@ -29,50 +22,17 @@ export default function GestionFotia({
 
   const [errorFotia, setErrorFotia] = useState("");
 
-  const [estadosTemporales, setEstadosTemporales] = useState({});
-  const [previasQuitadasDeFotia, setPreviasQuitadasDeFotia] = useState([]);
-
-  const docentesTemporales = [
-    {
-      id: "docente-1",
-      nombre: "Docente de prueba 1",
-    },
-    {
-      id: "docente-2",
-      nombre: "Docente de prueba 2",
-    },
-  ];
-
   const fuenteAlumnos =
     Array.isArray(alumnosMatricula) && alumnosMatricula.length > 0
       ? alumnosMatricula
       : alumnosParaExamen;
 
-  const filasFotia = useMemo(
-    () => ordenarFilasFotia(crearFilasFotia(fuenteAlumnos)),
-    [fuenteAlumnos],
-  );
-
-  const filasVisibles = useMemo(
-    () =>
-      filasFotia.filter((fila) => !previasQuitadasDeFotia.includes(fila.id)),
-    [filasFotia, previasQuitadasDeFotia],
-  );
-
-  const filasConEstado = useMemo(
-    () =>
-      filasVisibles.map((fila) => ({
-        ...fila,
-        ...(estadosTemporales[fila.id] || {}),
-      })),
-    [filasVisibles, estadosTemporales],
-  );
-
   const inscripcionesActivas = useMemo(
     () =>
       inscripcionesFotia.filter(
         (inscripcion) =>
-          inscripcion.activo !== false && inscripcion.estado !== "Suspendida",
+          inscripcion.activo !== false &&
+          inscripcion.estado !== "Suspendida",
       ),
     [inscripcionesFotia],
   );
@@ -81,7 +41,11 @@ export default function GestionFotia({
     const estudiantes = new Set(
       inscripcionesActivas
         .map((inscripcion) =>
-          String(inscripcion.alumnoId?._id || inscripcion.alumnoId || ""),
+          String(
+            inscripcion.alumnoId?._id ||
+              inscripcion.alumnoId ||
+              "",
+          ),
         )
         .filter(Boolean),
     );
@@ -89,13 +53,18 @@ export default function GestionFotia({
     return estudiantes.size;
   }, [inscripcionesActivas]);
 
-  const totalAsignaturasFortalecimiento = inscripcionesActivas.length;
+  const totalAsignaturasFortalecimiento =
+    inscripcionesActivas.length;
 
   const totalDocentesParticipantes = useMemo(() => {
     const docentes = new Set(
       inscripcionesActivas
         .map((inscripcion) =>
-          String(inscripcion.docenteId?._id || inscripcion.docenteId || ""),
+          String(
+            inscripcion.docenteId?._id ||
+              inscripcion.docenteId ||
+              "",
+          ),
         )
         .filter(Boolean),
     );
@@ -106,7 +75,8 @@ export default function GestionFotia({
   const totalAcreditaciones = useMemo(
     () =>
       inscripcionesFotia.filter(
-        (inscripcion) => inscripcion.estado === "Acreditada",
+        (inscripcion) =>
+          inscripcion.estado === "Acreditada",
       ).length,
     [inscripcionesFotia],
   );
@@ -119,67 +89,6 @@ export default function GestionFotia({
     setVistaActiva("historial");
   };
 
-  const actualizarFilaTemporal = (filaId, cambios) => {
-    setEstadosTemporales((estadoAnterior) => ({
-      ...estadoAnterior,
-      [filaId]: {
-        ...(estadoAnterior[filaId] || {}),
-        ...cambios,
-      },
-    }));
-  };
-
-  const cambiarEstado = (fila, nuevoEstado) => {
-    if (nuevoEstado === "Pendiente") {
-      actualizarFilaTemporal(fila.id, {
-        estado: "Pendiente",
-        fechaAprobacion: "",
-        docenteResponsableId: "",
-        docenteResponsableNombre: "",
-      });
-
-      return;
-    }
-
-    actualizarFilaTemporal(fila.id, {
-      estado: "Aprobada",
-    });
-  };
-
-  const cambiarFecha = (fila, nuevaFecha) => {
-    actualizarFilaTemporal(fila.id, {
-      fechaAprobacion: nuevaFecha,
-    });
-  };
-
-  const cambiarDocente = (fila, docenteId) => {
-    const docenteSeleccionado = docentesTemporales.find(
-      (docente) =>
-        String(docente.id || docente._id || docente.nombre) ===
-        String(docenteId),
-    );
-
-    actualizarFilaTemporal(fila.id, {
-      docenteResponsableId: docenteId,
-      docenteResponsableNombre: docenteSeleccionado?.nombre || "",
-    });
-  };
-
-  const quitarDeFotiaTemporalmente = (fila) => {
-    const confirmar = window.confirm(
-      `¿Quitar "${fila.asignatura}" de FOTIA para ${fila.estudiante}?\n\nLa asignatura seguirá registrada como previa en Matrícula y en las demás listas institucionales.`,
-    );
-
-    if (!confirmar) return;
-
-    setPreviasQuitadasDeFotia((anteriores) => [...anteriores, fila.id]);
-
-    setEstadosTemporales((estadoAnterior) => {
-      const copia = { ...estadoAnterior };
-      delete copia[fila.id];
-      return copia;
-    });
-  };
   useEffect(() => {
     async function cargarDatosFotia() {
       try {
@@ -207,7 +116,6 @@ export default function GestionFotia({
 
         const listaDocentes = Array.isArray(docentes) ? docentes : [];
 
-        setPeriodosFotia(listaPeriodos);
         setDocentesFotia(listaDocentes);
 
         const periodoEncontrado =
@@ -259,8 +167,6 @@ export default function GestionFotia({
 
   const periodoCreado = (periodo) => {
     setMostrarFormularioPeriodo(false);
-
-    setPeriodosFotia((anteriores) => [periodo, ...anteriores]);
 
     if (periodo.estado === "Activo" && periodo.activo !== false) {
       setPeriodoActivo(periodo);
@@ -553,76 +459,76 @@ export default function GestionFotia({
               </button>
             </div>
 
-          {[
-  {
-    titulo: "Historial",
-    icono: "📖",
-    descripcion: "Consulta de acreditaciones realizadas.",
-    onClick: abrirHistorialFotia,
-  },
-  {
-    titulo: "Estadísticas",
-    icono: "📊",
-    descripcion: "Indicadores institucionales del período FOTIA.",
-    onClick: () => setVistaActiva("estadisticas"),
-  },
-].map((modulo) => (
-  <div
-    key={modulo.titulo}
-    style={{
-      border: "2px solid #a8c8ee",
-      borderRadius: "14px",
-      padding: "20px",
-      background: "#ffffff",
-      minHeight: "245px",
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "space-between",
-    }}
-  >
-    <h3
-      style={{
-        margin: "0 0 14px",
-        color: "#1d3557",
-        textAlign: "center",
-        fontSize: "21px",
-      }}
-    >
-      {modulo.icono} {modulo.titulo}
-    </h3>
+            {[
+              {
+                titulo: "Historial",
+                icono: "📖",
+                descripcion: "Consulta de acreditaciones realizadas.",
+                onClick: abrirHistorialFotia,
+              },
+              {
+                titulo: "Estadísticas",
+                icono: "📊",
+                descripcion: "Indicadores institucionales del período FOTIA.",
+                onClick: () => setVistaActiva("estadisticas"),
+              },
+            ].map((modulo) => (
+              <div
+                key={modulo.titulo}
+                style={{
+                  border: "2px solid #a8c8ee",
+                  borderRadius: "14px",
+                  padding: "20px",
+                  background: "#ffffff",
+                  minHeight: "245px",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                }}
+              >
+                <h3
+                  style={{
+                    margin: "0 0 14px",
+                    color: "#1d3557",
+                    textAlign: "center",
+                    fontSize: "21px",
+                  }}
+                >
+                  {modulo.icono} {modulo.titulo}
+                </h3>
 
-    <p
-      style={{
-        color: "#66778a",
-        lineHeight: 1.55,
-        textAlign: "center",
-        margin: 0,
-      }}
-    >
-      {modulo.descripcion}
-    </p>
+                <p
+                  style={{
+                    color: "#66778a",
+                    lineHeight: 1.55,
+                    textAlign: "center",
+                    margin: 0,
+                  }}
+                >
+                  {modulo.descripcion}
+                </p>
 
-    <button
-      type="button"
-      onClick={modulo.onClick}
-      style={{
-        marginTop: "24px",
-        alignSelf: "center",
-        padding: "10px 28px",
-        background: "#1b9a96",
-        color: "#fff",
-        border: "none",
-        borderRadius: "10px",
-        cursor: "pointer",
-        fontWeight: "700",
-        fontSize: "15px",
-        boxShadow: "0 3px 10px rgba(0,0,0,0.15)",
-      }}
-    >
-      Entrar
-    </button>
-  </div>
-))}
+                <button
+                  type="button"
+                  onClick={modulo.onClick}
+                  style={{
+                    marginTop: "24px",
+                    alignSelf: "center",
+                    padding: "10px 28px",
+                    background: "#1b9a96",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "10px",
+                    cursor: "pointer",
+                    fontWeight: "700",
+                    fontSize: "15px",
+                    boxShadow: "0 3px 10px rgba(0,0,0,0.15)",
+                  }}
+                >
+                  Entrar
+                </button>
+              </div>
+            ))}
           </div>
         </>
       )}
@@ -983,28 +889,7 @@ export default function GestionFotia({
               onEliminarEstudiante={eliminarEstudiantePeriodo}
             />
 
-            {/*  <TablaFotia
-              filas={filasConEstado}
-              docentes={docentesTemporales}
-              onCambiarEstado={cambiarEstado}
-              onCambiarFecha={cambiarFecha}
-              onCambiarDocente={cambiarDocente}
-              onQuitarDeFotia={quitarDeFotiaTemporalmente}
-            />*/}
 
-            {previasQuitadasDeFotia.length > 0 && (
-              <p
-                style={{
-                  margin: "14px 0 0",
-                  color: "#8a5a16",
-                  fontSize: "13px",
-                  textAlign: "center",
-                }}
-              >
-                Las asignaturas quitadas de esta prueba sólo se ocultan de FOTIA
-                y reaparecerán al recargar la página.
-              </p>
-            )}
           </div>
         </div>
       )}
@@ -1045,10 +930,9 @@ export default function GestionFotia({
         <EstadisticasFotia
           periodoActivo={periodoActivo}
           inscripcionesFotia={inscripcionesFotia}
-          docentesFotia={docentesFotia}
           onVolver={volverAlInicioFotia}
         />
-      )} 
+      )}
     </div>
   );
 }

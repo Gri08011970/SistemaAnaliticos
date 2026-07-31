@@ -553,6 +553,7 @@ export default function App() {
             )}
 
             <FormularioNuevo
+              key={alumnoEditando?._id || "nuevo-analitico"}
               agregarEstudiante={agregarEstudiante}
               actualizarEstudianteEditado={actualizarEstudianteEditado}
               alumnoEditando={alumnoEditando}

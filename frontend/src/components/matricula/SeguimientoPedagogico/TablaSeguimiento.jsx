@@ -1,6 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import CeldaSemaforo from "./CeldaSemaforo";
 
+const obtenerClaveSeguimiento = (
+  curso,
+  asignatura,
+  alumnoId,
+  periodo,
+) => `${curso}-${asignatura}-${alumnoId}-${periodo}`;
+
 export default function TablaSeguimiento({ curso, asignatura, alumnos,esAdmin, }) {
   const [seguimiento, setSeguimiento] = useState({});
 
@@ -14,9 +21,6 @@ export default function TablaSeguimiento({ curso, asignatura, alumnos,esAdmin, }
 }, [seguimiento]);
 
   const alumnosCurso = alumnos.filter((alumno) => alumno.curso === curso);
-
-  const obtenerClave = (alumnoId, periodo) =>
-    `${curso}-${asignatura}-${alumnoId}-${periodo}`;
 
   // =====================================
   // LEER REGISTROS DESDE MONGODB
@@ -48,7 +52,12 @@ export default function TablaSeguimiento({ curso, asignatura, alumnos,esAdmin, }
         const registrosConvertidos = {};
 
         registros.forEach((registro) => {
-          const clave = obtenerClave(registro.alumnoId, registro.periodo);
+          const clave = obtenerClaveSeguimiento(
+            curso,
+            asignatura,
+            registro.alumnoId,
+            registro.periodo,
+          );
 
           registrosConvertidos[clave] = {
             conceptual: registro.conceptual || "-",
@@ -112,7 +121,12 @@ export default function TablaSeguimiento({ curso, asignatura, alumnos,esAdmin, }
         throw new Error(datos.mensaje || "No se pudo guardar el seguimiento");
       }
 
-      const clave = obtenerClave(alumnoId, periodo);
+      const clave = obtenerClaveSeguimiento(
+        curso,
+        asignatura,
+        alumnoId,
+        periodo,
+      );
 
       setSeguimiento((datosAnteriores) => ({
         ...datosAnteriores,
@@ -135,7 +149,12 @@ export default function TablaSeguimiento({ curso, asignatura, alumnos,esAdmin, }
   const cambiarEstado = (alumnoId, periodo) => {
   if (!esAdmin) return;
 
-  const clave = obtenerClave(alumnoId, periodo);
+  const clave = obtenerClaveSeguimiento(
+        curso,
+        asignatura,
+        alumnoId,
+        periodo,
+      );
 
   const registroActual =
     seguimientoRef.current[clave] || {};
@@ -182,7 +201,9 @@ export default function TablaSeguimiento({ curso, asignatura, alumnos,esAdmin, }
   periodo,
   nota,
 ) => {
-  const clave = obtenerClave(
+  const clave = obtenerClaveSeguimiento(
+    curso,
+    asignatura,
     alumnoId,
     periodo,
   );
@@ -379,7 +400,12 @@ export default function TablaSeguimiento({ curso, asignatura, alumnos,esAdmin, }
               </td>
 
               {periodos.map((periodo) => {
-                const clave = obtenerClave(alumno._id, periodo.clave);
+                const clave = obtenerClaveSeguimiento(
+                  curso,
+                  asignatura,
+                  alumno._id,
+                  periodo.clave,
+                );
 
                 return (
                   <td

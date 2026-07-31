@@ -45,7 +45,6 @@ const convertirMapaEnLista = (mapa) =>
 export default function EstadisticasFotia({
   periodoActivo = null,
   inscripcionesFotia = [],
-  docentesFotia = [],
   onVolver,
 }) {
   const datos = useMemo(() => {

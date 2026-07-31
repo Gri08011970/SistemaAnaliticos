@@ -1,4 +1,7 @@
-import { useEffect, useState } from "react"
+import { useState } from "react";
+
+const obtenerValorInicial = (alumnoEditando, campo) =>
+  alumnoEditando?.[campo] || "";
 
 export default function FormularioNuevo({
   agregarEstudiante,
@@ -7,43 +10,59 @@ export default function FormularioNuevo({
   setAlumnoEditando,
   cancelarFormulario,
 }) {
-  const [nombre, setNombre] = useState("")
-  const [dni, setDni] = useState("")
-  const [libro, setLibro] = useState("")
-  const [folio, setFolio] = useState("")
-  const [fecha, setFecha] = useState("")
-  const [ultimoAnio, setUltimoAnio] = useState("")
+  const [nombre, setNombre] = useState(() =>
+    obtenerValorInicial(alumnoEditando, "nombre"),
+  );
 
-  useEffect(() => {
-    if (alumnoEditando) {
-      setNombre(alumnoEditando.nombre || "")
-      setDni(alumnoEditando.dni || "")
-      setLibro(alumnoEditando.libro || "")
-      setFolio(alumnoEditando.folio || "")
-      setUltimoAnio(alumnoEditando.ultimoAnio || "")
-      setFecha("")
-    }
-  }, [alumnoEditando])
+  const [dni, setDni] = useState(() =>
+    obtenerValorInicial(alumnoEditando, "dni"),
+  );
+
+  const [libro, setLibro] = useState(() =>
+    obtenerValorInicial(alumnoEditando, "libro"),
+  );
+
+  const [folio, setFolio] = useState(() =>
+    obtenerValorInicial(alumnoEditando, "folio"),
+  );
+
+  const [fecha, setFecha] = useState("");
+
+  const [ultimoAnio, setUltimoAnio] = useState(() =>
+    obtenerValorInicial(alumnoEditando, "ultimoAnio"),
+  );
+
+  function limpiarFormulario() {
+    setNombre("");
+    setDni("");
+    setLibro("");
+    setFolio("");
+    setFecha("");
+    setUltimoAnio("");
+    setAlumnoEditando(null);
+  }
 
   function manejarEnvio() {
     if (fecha) {
-      const hoy = new Date()
-      hoy.setHours(0, 0, 0, 0)
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
 
-      const fechaIngresada = new Date(fecha)
-      fechaIngresada.setHours(0, 0, 0, 0)
+      const fechaIngresada = new Date(`${fecha}T00:00:00`);
+      fechaIngresada.setHours(0, 0, 0, 0);
 
       if (fechaIngresada > hoy) {
-        alert("La fecha del pedido no puede ser posterior al día de hoy.")
-        return
+        window.alert(
+          "La fecha del pedido no puede ser posterior al día de hoy.",
+        );
+        return;
       }
     }
 
     const nuevoEstudiante = {
-      nombre,
-      dni,
-      libro,
-      folio,
+      nombre: nombre.trim(),
+      dni: dni.trim(),
+      libro: libro.trim(),
+      folio: folio.trim(),
       fecha: fecha
         ? fecha.split("-").reverse().join("/")
         : alumnoEditando?.fecha || "",
@@ -51,37 +70,84 @@ export default function FormularioNuevo({
       estado: alumnoEditando?.estado || "Pendiente",
       carpeta: alumnoEditando?.carpeta || "---",
       seleccionado: alumnoEditando?.seleccionado || false,
-      fechaCarga: alumnoEditando?.fechaCarga || new Date().toISOString(),
-    }
+      fechaCarga:
+        alumnoEditando?.fechaCarga || new Date().toISOString(),
+    };
 
     if (alumnoEditando) {
-      actualizarEstudianteEditado(alumnoEditando._id, nuevoEstudiante)
+      actualizarEstudianteEditado(
+        alumnoEditando._id,
+        nuevoEstudiante,
+      );
     } else {
-      agregarEstudiante(nuevoEstudiante)
+      agregarEstudiante(nuevoEstudiante);
     }
 
-    setNombre("")
-    setDni("")
-    setLibro("")
-    setFolio("")
-    setFecha("")
-    setUltimoAnio("")
-    setAlumnoEditando(null)
+    limpiarFormulario();
   }
 
   return (
-    <div className="tarjeta-inicio"  style={contenedorFormulario}>
+    <div
+      className="tarjeta-inicio"
+      style={contenedorFormulario}
+    >
       <h2 style={tituloFormulario}>
-        {alumnoEditando ? "Editar analítico" : "📄 Nuevo pedido de analítico"}
+        {alumnoEditando
+          ? "Editar analítico"
+          : "📄 Nuevo pedido de analítico"}
       </h2>
 
-      <div className="formulario-analitico" style={grillaFormulario}>
-        <input type="text" placeholder="Apellido y Nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} style={estiloInput} />
-        <input type="text" placeholder="DNI" value={dni} onChange={(e) => setDni(e.target.value)} style={estiloInput} />
-        <input type="text" placeholder="Libro" value={libro} onChange={(e) => setLibro(e.target.value)} style={estiloInput} />
-        <input type="text" placeholder="Folio" value={folio} onChange={(e) => setFolio(e.target.value)} style={estiloInput} />
+      <div
+        className="formulario-analitico"
+        style={grillaFormulario}
+      >
+        <input
+          type="text"
+          placeholder="Apellido y Nombre"
+          value={nombre}
+          onChange={(evento) =>
+            setNombre(evento.target.value)
+          }
+          style={estiloInput}
+        />
 
-        <select value={ultimoAnio} onChange={(e) => setUltimoAnio(e.target.value)} style={estiloInput}>
+        <input
+          type="text"
+          placeholder="DNI"
+          value={dni}
+          onChange={(evento) =>
+            setDni(evento.target.value)
+          }
+          style={estiloInput}
+        />
+
+        <input
+          type="text"
+          placeholder="Libro"
+          value={libro}
+          onChange={(evento) =>
+            setLibro(evento.target.value)
+          }
+          style={estiloInput}
+        />
+
+        <input
+          type="text"
+          placeholder="Folio"
+          value={folio}
+          onChange={(evento) =>
+            setFolio(evento.target.value)
+          }
+          style={estiloInput}
+        />
+
+        <select
+          value={ultimoAnio}
+          onChange={(evento) =>
+            setUltimoAnio(evento.target.value)
+          }
+          style={estiloInput}
+        >
           <option value="">Último año cursado</option>
           <option value="1°">1°</option>
           <option value="2°">2°</option>
@@ -91,20 +157,37 @@ export default function FormularioNuevo({
           <option value="6°">6°</option>
         </select>
 
-        <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} style={estiloInput} />
+        <input
+          type="date"
+          value={fecha}
+          onChange={(evento) =>
+            setFecha(evento.target.value)
+          }
+          style={estiloInput}
+        />
       </div>
 
       <div style={contenedorBotones}>
-        <button onClick={cancelarFormulario} style={botonCancelar}>
+        <button
+          type="button"
+          onClick={cancelarFormulario}
+          style={botonCancelar}
+        >
           ← Volver a Analíticos
         </button>
 
-        <button onClick={manejarEnvio} style={botonGuardar}>
-          {alumnoEditando ? "Guardar cambios" : "Guardar pedido"}
+        <button
+          type="button"
+          onClick={manejarEnvio}
+          style={botonGuardar}
+        >
+          {alumnoEditando
+            ? "Guardar cambios"
+            : "Guardar pedido"}
         </button>
       </div>
     </div>
-  )
+  );
 }
 
 const contenedorFormulario = {
@@ -114,21 +197,22 @@ const contenedorFormulario = {
   borderRadius: "18px",
   padding: "30px",
   boxShadow: "0 10px 24px rgba(22,58,95,.15)",
-}
+};
 
 const tituloFormulario = {
   color: "#1e3a5f",
   textAlign: "center",
   marginTop: 0,
   marginBottom: "22px",
-}
+};
 
 const grillaFormulario = {
   display: "grid",
-  gridTemplateColumns: "repeat(2, minmax(260px, 360px))",
+  gridTemplateColumns:
+    "repeat(auto-fit, minmax(min(100%, 260px), 360px))",
   gap: "16px",
   justifyContent: "center",
-}
+};
 
 const estiloInput = {
   width: "100%",
@@ -137,7 +221,7 @@ const estiloInput = {
   border: "1px solid #b9cbd1",
   fontSize: "16px",
   boxSizing: "border-box",
-}
+};
 
 const contenedorBotones = {
   display: "flex",
@@ -145,7 +229,7 @@ const contenedorBotones = {
   marginTop: "22px",
   justifyContent: "center",
   flexWrap: "wrap",
-}
+};
 
 const botonGuardar = {
   backgroundColor: "#19766f",
@@ -156,7 +240,7 @@ const botonGuardar = {
   cursor: "pointer",
   width: "250px",
   fontWeight: "bold",
-}
+};
 
 const botonCancelar = {
   backgroundColor: "#eef5f7",
@@ -167,4 +251,4 @@ const botonCancelar = {
   cursor: "pointer",
   width: "140px",
   fontWeight: "600",
-}
+};
