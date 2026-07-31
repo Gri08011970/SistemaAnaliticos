@@ -424,8 +424,10 @@ export const incorporarAsignaturaAFotia = async (datosInscripcion) => {
   }
 
   const alumno = await MatriculaAlumno.findById(alumnoId);
+
   console.log("ALUMNO FOTIA");
   console.log(alumno);
+
   if (!alumno) {
     throw crearError("El estudiante de Matrícula no fue encontrado", 404);
   }
@@ -698,6 +700,72 @@ export const retirarAsignaturaDeFotia = async (
   return inscripcion;
 };
 
+// =====================================================
+// ELIMINACIÓN ADMINISTRATIVA DE UN ESTUDIANTE
+// =====================================================
+
+// Elimina todas las inscripciones de un estudiante dentro
+// de un período concreto de FOTIA.
+//
+// Esta acción elimina únicamente los registros del período FOTIA.
+// No modifica materiasPendientes de Matrícula.
+// Las acreditaciones ya confirmadas no se restauran.
+export const eliminarEstudianteDelPeriodoFotia = async (
+  periodoId,
+  alumnoId,
+) => {
+  if (!periodoId || !alumnoId) {
+    throw crearError("El período y el estudiante son obligatorios", 400);
+  }
+
+  const session = await mongoose.startSession();
+
+  try {
+    let cantidadEliminada = 0;
+
+    await session.withTransaction(async () => {
+      const periodo = await FotiaPeriodo.findById(periodoId).session(session);
+
+      if (!periodo) {
+        throw crearError("El período de FOTIA no fue encontrado", 404);
+      }
+
+      const inscripciones = await FotiaInscripcion.find({
+        periodoId,
+        alumnoId,
+      }).session(session);
+
+      if (inscripciones.length === 0) {
+        throw crearError(
+          "El estudiante no posee registros en este período de FOTIA",
+          404,
+        );
+      }
+
+      const resultadoEliminacion = await FotiaInscripcion.deleteMany(
+        {
+          periodoId,
+          alumnoId,
+        },
+        {
+          session,
+        },
+      );
+
+      cantidadEliminada = resultadoEliminacion.deletedCount || 0;
+    });
+
+    return {
+      mensaje:
+        "El estudiante fue eliminado correctamente del período de FOTIA.",
+      cantidadEliminada,
+      alumnoId,
+      periodoId,
+    };
+  } finally {
+    await session.endSession();
+  }
+};
 // =====================================================
 // ACREDITACIÓN
 // =====================================================

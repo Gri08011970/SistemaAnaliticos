@@ -8,6 +8,8 @@ export default function BarraEstadoInstitucional({
   sinFechaNacimiento,
   conPrevias,
   sobreedad,
+  alertaActiva = "",
+  onSeleccionarAlerta,
 }) {
   const indicadoresGenerales = [
     { etiqueta: "Total", valor: totalGeneral },
@@ -18,17 +20,33 @@ export default function BarraEstadoInstitucional({
   ];
 
   const alertas = [
-    { etiqueta: "Sin legajo", valor: sinLegajo },
-    { etiqueta: "Sin fecha", valor: sinFechaNacimiento },
-    { etiqueta: "Previas", valor: conPrevias },
-    { etiqueta: "Sobreedad", valor: sobreedad },
+    {
+      clave: "sinLegajo",
+      etiqueta: "Sin legajo",
+      valor: sinLegajo,
+    },
+    {
+      clave: "sinFechaNacimiento",
+      etiqueta: "Sin fecha",
+      valor: sinFechaNacimiento,
+    },
+    {
+      clave: "conPrevias",
+      etiqueta: "Previas",
+      valor: conPrevias,
+    },
+    {
+      clave: "sobreedad",
+      etiqueta: "Sobreedad",
+      valor: sobreedad,
+    },
   ];
 
   const estilos = {
     contenedor: {
       width: "100%",
       marginTop: "8px",
-      marginBottom: "26px",
+      marginBottom: "14px",
       padding: "11px 14px",
       borderTop: "1px solid #dfe7ed",
       borderBottom: "1px solid #dfe7ed",
@@ -85,6 +103,26 @@ export default function BarraEstadoInstitucional({
       fontSize: "13px",
       lineHeight: 1,
     },
+
+    botonAlerta: {
+      display: "inline-flex",
+      alignItems: "baseline",
+      gap: "5px",
+      padding: "5px 8px",
+      border: "1px solid transparent",
+      borderRadius: "8px",
+      background: "transparent",
+      cursor: "pointer",
+      whiteSpace: "nowrap",
+      transition: "all 0.2s ease",
+      fontFamily: "inherit",
+    },
+
+    botonAlertaActivo: {
+      border: "1px solid #e2b77f",
+      background: "#fff5e8",
+      boxShadow: "0 2px 6px rgba(162, 95, 32, 0.12)",
+    },
   };
 
   return (
@@ -112,17 +150,31 @@ export default function BarraEstadoInstitucional({
         </span>
 
         <div style={estilos.grupo}>
-          {alertas.map((indicador) => (
-            <span key={indicador.etiqueta} style={estilos.indicador}>
-              <strong style={estilos.valorAlerta}>
-                {indicador.valor ?? 0}
-              </strong>
+          {alertas.map((indicador) => {
+            const estaActiva = alertaActiva === indicador.clave;
 
-              <span style={estilos.etiqueta}>
-                {indicador.etiqueta}
-              </span>
-            </span>
-          ))}
+            return (
+              <button
+                key={indicador.clave}
+                type="button"
+                onClick={() => onSeleccionarAlerta?.(indicador.clave)}
+                aria-pressed={estaActiva}
+                title={`Ver estudiantes: ${indicador.etiqueta}`}
+                style={{
+                  ...estilos.botonAlerta,
+                  ...(estaActiva ? estilos.botonAlertaActivo : {}),
+                }}
+              >
+                <strong style={estilos.valorAlerta}>
+                  {indicador.valor ?? 0}
+                </strong>
+
+                <span style={estilos.etiqueta}>
+                  {indicador.etiqueta}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
     </section>

@@ -6,6 +6,7 @@ export default function TarjetaEstudianteFotia({
   docentesFotia = [],
   onRetirar,
   onActualizada,
+  onEliminarEstudiante,
 }) {
   const [expandida, setExpandida] = useState(false);
 
@@ -183,6 +184,21 @@ export default function TarjetaEstudianteFotia({
             </span>
           </div>
         </div>
+      </button>
+      <button
+        type="button"
+        onClick={() => onEliminarEstudiante?.(estudiante)}
+        style={{
+          padding: "8px 13px",
+          border: "1px solid #e1bcbc",
+          borderRadius: "8px",
+          background: "#fff1f1",
+          color: "#a64949",
+          fontWeight: "700",
+          cursor: "pointer",
+        }}
+      >
+        🗑️ Eliminar de FOTIA
       </button>
 
       {expandida && (

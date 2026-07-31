@@ -6,6 +6,7 @@ export default function ListadoInscripcionesFotia({
   docentesFotia = [],
   onRetirar,
   onActualizada,
+  onEliminarEstudiante,
 }) {
   const estudiantesAgrupados = useMemo(() => {
     const grupos = new Map();
@@ -95,6 +96,7 @@ export default function ListadoInscripcionesFotia({
           docentesFotia={docentesFotia}
           onRetirar={onRetirar}
           onActualizada={onActualizada}
+          onEliminarEstudiante={onEliminarEstudiante}
         />
       ))}
     </div>

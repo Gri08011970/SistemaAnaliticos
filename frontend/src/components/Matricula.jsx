@@ -11,7 +11,7 @@ import BuscadorGeneralMatricula from "./matricula/BuscadorGeneralMatricula";
 import FichaEstudianteMatricula from "./matricula/FichaEstudianteMatricula";
 import {
   calcularEdadAl30Junio,
-  formatearFecha, 
+  formatearFecha,
   formatearDNI,
   limpiarDNI,
   tieneSobreedad,
@@ -112,7 +112,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
   const [nuevoCurso, setNuevoCurso] = useState("");
   const [nuevoTurno, setNuevoTurno] = useState("");
   const [guardando, setGuardando] = useState(false);
-  
+
   const [verEstadisticasCurso, setVerEstadisticasCurso] = useState(false);
   const [mostrarTurnoManana, setMostrarTurnoManana] = useState(false);
   const [mostrarTurnoTarde, setMostrarTurnoTarde] = useState(false);
@@ -125,6 +125,8 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
   const [anioExamen, setAnioExamen] = useState("");
   const [turnoExamen, setTurnoExamen] = useState("");
   const [busquedaAlumno, setBusquedaAlumno] = useState("");
+  const [alertaInstitucionalActiva, setAlertaInstitucionalActiva] =
+    useState("");
   const [ordenCurso, setOrdenCurso] = useState("apellido");
   const [mostrarRelevamiento, setMostrarRelevamiento] = useState(false);
   const [verSeguimientoPedagogico, setVerSeguimientoPedagogico] =
@@ -139,7 +141,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
   const [anioLegajoFiltro, setAnioLegajoFiltro] = useState("");
   const [verRecursantes, setVerRecursantes] = useState(false);
   const [filtroAvanzado, setFiltroAvanzado] = useState("todos");
-  
+
   const [pedidosAnaliticos, setPedidosAnaliticos] = useState([]);
   const [alumnoSeleccionado, setAlumnoSeleccionado] = useState(null);
   const [anioRelevamiento, setAnioRelevamiento] = useState("1");
@@ -396,7 +398,7 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
 
   const alumnosFiltrados = filtrarAlumnosDelCurso({
     alumnosDelCurso,
-    filtroPrevia, 
+    filtroPrevia,
     filtroAnioPrevia,
     filtroAvanzado,
   });
@@ -485,6 +487,45 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
     alumnosConSobreedad,
   } = obtenerAlertas(alumnosMatricula);
 
+  const datosAlertasInstitucionales = {
+    sinLegajo: {
+      titulo: "Estudiantes sin legajo completo",
+      descripcion:
+        "No poseen número de legajo, año de legajo o alguno de los dos datos.",
+      alumnos: alumnosSinLegajo,
+    },
+
+    sinFechaNacimiento: {
+      titulo: "Estudiantes sin fecha de nacimiento",
+      descripcion:
+        "No tienen registrada la fecha de nacimiento en su ficha de Matrícula.",
+      alumnos: alumnosSinFechaNacimiento,
+    },
+
+    conPrevias: {
+      titulo: "Estudiantes con asignaturas previas",
+      descripcion:
+        "Poseen al menos una asignatura pendiente institucional válida.",
+      alumnos: alumnosConPrevias,
+    },
+
+    sobreedad: {
+      titulo: "Estudiantes con sobreedad",
+      descripcion:
+        "Cumplen el criterio institucional de sobreedad para el curso actual.",
+      alumnos: alumnosConSobreedad,
+    },
+  };
+
+  const alertaInstitucionalSeleccionada =
+    datosAlertasInstitucionales[alertaInstitucionalActiva] || null;
+
+  function alternarAlertaInstitucional(claveAlerta) {
+    setAlertaInstitucionalActiva((alertaAnterior) =>
+      alertaAnterior === claveAlerta ? "" : claveAlerta,
+    );
+  }
+
   const pedidosAnaliticosEncontrados = buscarPedidosAnaliticos({
     pedidosAnaliticos,
     busqueda: busquedaAlumno,
@@ -545,8 +586,8 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
   }
 
   return (
-  <div> 
-    {!cursoSeleccionado && (
+    <div>
+      {!cursoSeleccionado && (
         <>
           <BarraEstadoInstitucional
             totalGeneral={totalGeneral}
@@ -558,11 +599,177 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
             sinFechaNacimiento={alumnosSinFechaNacimiento.length}
             conPrevias={alumnosConPrevias.length}
             sobreedad={alumnosConSobreedad.length}
+            alertaActiva={alertaInstitucionalActiva}
+            onSeleccionarAlerta={alternarAlertaInstitucional}
           />
-          
+
+          {alertaInstitucionalSeleccionada && (
+            <section
+              style={{
+                width: "calc(100% - 68px)",
+                margin: "0 auto 20px",
+                padding: "18px",
+                border: "1px solid #e1c08e",
+                borderRadius: "14px",
+                background: "#fffaf3",
+                boxSizing: "border-box",
+                boxShadow: "0 4px 12px rgba(100, 74, 40, 0.08)",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  flexWrap: "wrap",
+                  gap: "12px",
+                  marginBottom: "14px",
+                }}
+              >
+                <div>
+                  <h3
+                    style={{
+                      margin: "0 0 5px",
+                      color: "#70471e",
+                      fontSize: "18px",
+                    }}
+                  >
+                    ⚠️ {alertaInstitucionalSeleccionada.titulo}
+                  </h3>
+
+                  <p
+                    style={{
+                      margin: 0,
+                      color: "#786956",
+                      fontSize: "13px",
+                      lineHeight: 1.45,
+                    }}
+                  >
+                    {alertaInstitucionalSeleccionada.descripcion}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setAlertaInstitucionalActiva("")}
+                  style={{
+                    padding: "7px 12px",
+                    border: "1px solid #d5b27d",
+                    borderRadius: "8px",
+                    background: "#ffffff",
+                    color: "#70471e",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                  }}
+                >
+                  ✕ Cerrar
+                </button>
+              </div>
+
+              <div
+                style={{
+                  marginBottom: "12px",
+                  color: "#8a5b25",
+                  fontSize: "13px",
+                  fontWeight: 700,
+                }}
+              >
+                Cantidad encontrada:{" "}
+                {alertaInstitucionalSeleccionada.alumnos.length}
+              </div>
+
+              {alertaInstitucionalSeleccionada.alumnos.length === 0 ? (
+                <div
+                  style={{
+                    padding: "18px",
+                    borderRadius: "10px",
+                    background: "#ffffff",
+                    color: "#687481",
+                    textAlign: "center",
+                  }}
+                >
+                  No hay estudiantes incluidos en esta alerta.
+                </div>
+              ) : (
+                <div
+                  style={{
+                    display: "grid",
+                    gap: "8px",
+                    maxHeight: "380px",
+                    overflowY: "auto",
+                    paddingRight: "4px",
+                  }}
+                >
+                  {alertaInstitucionalSeleccionada.alumnos.map((alumno) => (
+                    <article
+                      key={alumno._id || alumno.id}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        flexWrap: "wrap",
+                        gap: "10px",
+                        padding: "11px 13px",
+                        border: "1px solid #e4d8c8",
+                        borderRadius: "10px",
+                        background: "#ffffff",
+                      }}
+                    >
+                      <div style={{ minWidth: 0 }}>
+                        <strong
+                          style={{
+                            display: "block",
+                            color: "#294d6b",
+                            fontSize: "14px",
+                          }}
+                        >
+                          {[alumno.apellido, alumno.nombre]
+                            .filter(Boolean)
+                            .join(", ")}
+                        </strong>
+
+                        <span
+                          style={{
+                            color: "#71808d",
+                            fontSize: "12px",
+                          }}
+                        >
+                          DNI: {formatearDNI(alumno.dni) || "Sin DNI"}
+                          {" · "}
+                          Curso: {alumno.curso || "Sin curso"}
+                          {alumno.turno ? ` · ${alumno.turno}` : ""}
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAlumnoSeleccionado(alumno);
+                          setBusquedaAlumno("");
+                        }}
+                        style={{
+                          padding: "7px 12px",
+                          border: "1px solid #a9c4d6",
+                          borderRadius: "8px",
+                          background: "#edf6fb",
+                          color: "#234d6d",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        👤 Ver ficha
+                      </button>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
+
           <BuscadorGeneralMatricula
             busquedaAlumno={busquedaAlumno}
-            setBusquedaAlumno={setBusquedaAlumno} 
+            setBusquedaAlumno={setBusquedaAlumno}
             alumnosEncontrados={alumnosEncontrados}
             pedidosAnaliticos={pedidosAnaliticos}
             pedidosAnaliticosEncontrados={pedidosAnaliticosEncontrados}
@@ -676,7 +883,6 @@ export default function Matricula({ modoDocumentacion = false, volverInicio }) {
               botonCurso,
             }}
           />
-          
         </>
       )}
 

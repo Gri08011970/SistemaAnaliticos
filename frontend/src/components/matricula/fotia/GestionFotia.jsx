@@ -9,6 +9,7 @@ import FormularioPeriodoFotia from "./FormularioPeriodoFotia";
 import IncorporarEstudianteFotia from "./IncorporarEstudianteFotia";
 import ListadoInscripcionesFotia from "./ListadoInscripcionesFotia";
 import GestionDocentesFotia from "./GestionDocentesFotia";
+import HistorialAcreditacionesFotia from "./HistorialAcreditacionesFotia";
 
 export default function GestionFotia({
   alumnosMatricula = [],
@@ -111,6 +112,10 @@ export default function GestionFotia({
 
   const volverAlInicioFotia = () => {
     setVistaActiva("inicio");
+  };
+
+  const abrirHistorialFotia = () => {
+    setVistaActiva("historial");
   };
 
   const actualizarFilaTemporal = (filaId, cambios) => {
@@ -308,6 +313,76 @@ export default function GestionFotia({
     }
   };
 
+  const eliminarEstudiantePeriodo = async (estudiante) => {
+    const alumnoId =
+      estudiante.alumnoId?._id || estudiante.alumnoId || estudiante._id;
+
+    const periodoId = periodoActivo?._id || periodoActivo?.id;
+
+    const nombreCompleto =
+      [estudiante.apellido, estudiante.nombre]
+        .filter(Boolean)
+        .join(" ")
+        .trim() || "este estudiante";
+
+    if (!alumnoId || !periodoId) {
+      window.alert(
+        "No se pudo identificar correctamente al estudiante o al período de FOTIA.",
+      );
+      return;
+    }
+
+    const confirmar = window.confirm(
+      `¿Eliminar completamente a ${nombreCompleto} del período ${periodoActivo?.nombre || "actual"}?\n\n` +
+        "Se eliminarán todas sus incorporaciones y acreditaciones de este período.\n\n" +
+        "Las asignaturas previas acreditadas serán restauradas en Matrícula cuando corresponda.",
+    );
+
+    if (!confirmar) return;
+
+    try {
+      setErrorFotia("");
+
+      const respuesta = await fetch(
+        `http://localhost:3001/api/fotia/periodos/${periodoId}/estudiantes/${alumnoId}`,
+        {
+          method: "DELETE",
+        },
+      );
+
+      const datos = await respuesta.json();
+
+      if (!respuesta.ok) {
+        throw new Error(
+          datos.mensaje || "No se pudo eliminar al estudiante de FOTIA.",
+        );
+      }
+
+      setInscripcionesFotia((anteriores) =>
+        anteriores.filter((inscripcion) => {
+          const idInscripcion =
+            inscripcion.alumnoId?._id || inscripcion.alumnoId;
+
+          return String(idInscripcion) !== String(alumnoId);
+        }),
+      );
+
+      window.alert(
+        `${datos.mensaje}\n\n` +
+          `Registros eliminados: ${datos.cantidadEliminada || 0}\n` +
+          `Previas restauradas en Matrícula: ${
+            datos.cantidadPreviasRestauradas || 0
+          }`,
+      );
+    } catch (error) {
+      console.error("Error al eliminar estudiante del período FOTIA:", error);
+
+      setErrorFotia(
+        error.message || "Ocurrió un error al eliminar al estudiante de FOTIA.",
+      );
+    }
+  };
+
   const actualizarInscripcionEnPantalla = (inscripcionActualizada) => {
     setInscripcionesFotia((anteriores) =>
       anteriores.map((inscripcion) =>
@@ -479,33 +554,39 @@ export default function GestionFotia({
               {
                 titulo: "Historial",
                 descripcion: "Consulta de acreditaciones realizadas.",
+                disponible: true,
               },
               {
                 titulo: "Estadísticas",
                 descripcion: "Indicadores institucionales de acreditación.",
+                disponible: false,
               },
             ].map((modulo) => (
               <div
                 key={modulo.titulo}
-                aria-disabled="true"
                 style={{
-                  border: "2px dashed #d6dde5",
+                  border: modulo.disponible
+                    ? "2px solid #a8c8ee"
+                    : "2px dashed #d6dde5",
                   borderRadius: "14px",
                   padding: "20px",
-                  background: "#f7f8fa",
-                  opacity: 0.68,
+                  background: modulo.disponible ? "#ffffff" : "#f7f8fa",
+                  opacity: modulo.disponible ? 1 : 0.68,
                   minHeight: "245px",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
                 }}
               >
                 <h3
                   style={{
                     margin: "0 0 14px",
-                    color: "#7b8794",
+                    color: modulo.disponible ? "#1d3557" : "#7b8794",
                     textAlign: "center",
                     fontSize: "21px",
                   }}
                 >
-                  🔒 {modulo.titulo}
+                  {modulo.disponible ? "📖" : "🔒"} {modulo.titulo}
                 </h3>
 
                 <p
@@ -519,17 +600,39 @@ export default function GestionFotia({
                   {modulo.descripcion}
                 </p>
 
-                <p
-                  style={{
-                    color: "#9aa5b1",
-                    textAlign: "center",
-                    fontSize: "14px",
-                    marginTop: "20px",
-                    fontWeight: "600",
-                  }}
-                >
-                  Disponible en una próxima etapa.
-                </p>
+                {modulo.disponible ? (
+                  <button
+                    type="button"
+                    onClick={abrirHistorialFotia}
+                    style={{
+                      marginTop: "24px",
+                      alignSelf: "center",
+                      padding: "10px 28px",
+                      background: "#1b9a96",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "10px",
+                      cursor: "pointer",
+                      fontWeight: "700",
+                      fontSize: "15px",
+                      boxShadow: "0 3px 10px rgba(0,0,0,0.15)",
+                    }}
+                  >
+                    Entrar
+                  </button>
+                ) : (
+                  <p
+                    style={{
+                      color: "#9aa5b1",
+                      textAlign: "center",
+                      fontSize: "14px",
+                      marginTop: "20px",
+                      fontWeight: "600",
+                    }}
+                  >
+                    Disponible en una próxima etapa.
+                  </p>
+                )}
               </div>
             ))}
           </div>
@@ -890,6 +993,7 @@ export default function GestionFotia({
               docentesFotia={docentesFotia}
               onRetirar={retirarInscripcionFotia}
               onActualizada={actualizarInscripcionEnPantalla}
+              onEliminarEstudiante={eliminarEstudiantePeriodo}
             />
 
             {/*  <TablaFotia
@@ -940,6 +1044,13 @@ export default function GestionFotia({
               ),
             );
           }}
+        />
+      )}
+
+      {vistaActiva === "historial" && (
+        <HistorialAcreditacionesFotia
+          periodoActivo={periodoActivo}
+          onVolver={volverAlInicioFotia}
         />
       )}
     </div>

@@ -20,6 +20,7 @@ import {
   incorporarAsignaturaController,
   actualizarInscripcionController,
   retirarAsignaturaController,
+  eliminarEstudiantePeriodoController,
 
   // Acreditación
   acreditarInscripcionController,
@@ -112,6 +113,14 @@ router.put(
 router.put(
   "/inscripciones/:id/retirar",
   retirarAsignaturaController
+);
+
+// Elimina todos los registros de un estudiante dentro
+// de un período específico de FOTIA.
+// No elimina al estudiante de Matrícula.
+router.delete(
+  "/periodos/:periodoId/estudiantes/:alumnoId",
+  eliminarEstudiantePeriodoController,
 );
 
 // ======================================================

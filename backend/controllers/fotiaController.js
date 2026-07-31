@@ -14,6 +14,7 @@ import {
   incorporarAsignaturaAFotia,
   actualizarInscripcion,
   retirarAsignaturaDeFotia,
+  eliminarEstudianteDelPeriodoFotia,
   listarAcreditaciones,
   acreditarInscripcion,
 } from "../services/fotiaService.js";
@@ -272,6 +273,23 @@ export const retirarAsignaturaController = async (
         "La asignatura fue retirada únicamente de FOTIA y continúa registrada como previa institucional",
       inscripcion,
     });
+  } catch (error) {
+    responderError(res, error);
+  }
+};
+
+export const eliminarEstudiantePeriodoController = async (
+  req,
+  res,
+) => {
+  try {
+    const resultado =
+      await eliminarEstudianteDelPeriodoFotia(
+        req.params.periodoId,
+        req.params.alumnoId,
+      );
+
+    res.json(resultado);
   } catch (error) {
     responderError(res, error);
   }
