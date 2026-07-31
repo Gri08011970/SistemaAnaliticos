@@ -637,8 +637,40 @@ export const actualizarInscripcion = async (inscripcionId, cambios) => {
       }
 
       inscripcion.docenteId = docente._id;
-      inscripcion.docenteNombre = `${docente.apellido} ${docente.nombre}`;
+      inscripcion.docenteNombre =
+        `${docente.apellido} ${docente.nombre}`.trim();
     }
+  }
+
+  if (cambios.asignatura !== undefined) {
+    const asignaturaLimpia = String(cambios.asignatura || "").trim();
+
+    if (!asignaturaLimpia) {
+      throw crearError("La asignatura es obligatoria", 400);
+    }
+
+    if (!esAsignaturaFotiaValida(asignaturaLimpia)) {
+      throw crearError(
+        "La asignatura seleccionada no es válida para FOTIA",
+        400,
+      );
+    }
+
+    inscripcion.asignatura = asignaturaLimpia;
+  }
+
+  if (cambios.anio !== undefined) {
+    inscripcion.anio = String(cambios.anio || "").trim();
+  }
+
+  if (
+    cambios.tipoOrigen !== undefined &&
+    cambios.tipoOrigen !== inscripcion.tipoOrigen
+  ) {
+    throw crearError(
+      "El origen de la asignatura no puede modificarse desde la edición común. Retirá la inscripción y volvé a incorporarla con el origen correcto.",
+      400,
+    );
   }
 
   const datosPermitidos = [
@@ -655,8 +687,6 @@ export const actualizarInscripcion = async (inscripcionId, cambios) => {
     }
   });
 
-  // La acreditación se confirma solamente mediante
-  // acreditarInscripcion().
   if (inscripcion.estado === "Acreditada") {
     throw crearError(
       "Para acreditar una asignatura debe utilizarse la confirmación de acreditación",

@@ -39,6 +39,14 @@ export default function FormularioEditarInscripcionFotia({
       ? "Otro"
       : "";
 
+  const [asignatura, setAsignatura] = useState(
+    inscripcion?.asignatura || "",
+  );
+
+  const [anio, setAnio] = useState(
+    String(inscripcion?.anio || ""),
+  );
+
   const [fechaIncorporacion, setFechaIncorporacion] =
     useState(
       inscripcion?.fechaIncorporacion
@@ -88,6 +96,20 @@ export default function FormularioEditarInscripcionFotia({
         );
       }
 
+      const asignaturaLimpia = asignatura.trim();
+
+      if (!asignaturaLimpia) {
+        throw new Error(
+          "La asignatura es obligatoria.",
+        );
+      }
+
+      if (!anio.trim()) {
+        throw new Error(
+          "El año de la asignatura es obligatorio.",
+        );
+      }
+
       if (!fechaIncorporacion) {
         throw new Error(
           "La fecha de incorporación es obligatoria.",
@@ -115,6 +137,9 @@ export default function FormularioEditarInscripcionFotia({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
+            asignatura: asignaturaLimpia,
+            anio: anio.trim(),
+            tipoOrigen: inscripcion.tipoOrigen,
             fechaIncorporacion,
             docenteId: docenteId || null,
             estado,
@@ -229,6 +254,70 @@ export default function FormularioEditarInscripcionFotia({
           gap: "15px",
         }}
       >
+        <label style={estiloLabel}>
+          <span style={estiloEtiqueta}>
+            Asignatura *
+          </span>
+
+          <input
+            type="text"
+            value={asignatura}
+            onChange={(evento) =>
+              setAsignatura(evento.target.value)
+            }
+            disabled={guardando}
+            placeholder="Ej.: Prácticas del Lenguaje"
+            style={estiloControl}
+          />
+        </label>
+
+        <label style={estiloLabel}>
+          <span style={estiloEtiqueta}>
+            Año de la asignatura *
+          </span>
+
+          <select
+            value={anio}
+            onChange={(evento) =>
+              setAnio(evento.target.value)
+            }
+            disabled={guardando}
+            style={estiloControl}
+          >
+            <option value="">
+              Seleccionar año
+            </option>
+            <option value="1">1.º año</option>
+            <option value="2">2.º año</option>
+            <option value="3">3.º año</option>
+            <option value="4">4.º año</option>
+            <option value="5">5.º año</option>
+            <option value="6">6.º año</option>
+          </select>
+        </label>
+
+        <label style={estiloLabel}>
+          <span style={estiloEtiqueta}>
+            Origen
+          </span>
+
+          <input
+            type="text"
+            value={
+              inscripcion?.tipoOrigen === "Previa"
+                ? "Asignatura previa"
+                : "Asignatura del año en curso"
+            }
+            readOnly
+            style={{
+              ...estiloControl,
+              background: "#eef2f5",
+              color: "#67798a",
+              cursor: "not-allowed",
+            }}
+          />
+        </label>
+
         <label style={estiloLabel}>
           <span style={estiloEtiqueta}>
             Fecha de incorporación *
@@ -402,6 +491,22 @@ export default function FormularioEditarInscripcionFotia({
           />
         </label>
       </div>
+
+      <p
+        style={{
+          margin: "14px 0 0",
+          padding: "10px 12px",
+          borderRadius: "9px",
+          background: "#fff8e8",
+          color: "#805c1c",
+          fontSize: "12px",
+          lineHeight: 1.45,
+        }}
+      >
+        El origen no se modifica desde esta pantalla. Para cambiar una
+        asignatura de “Previa” a “En curso”, o al revés, retirala de FOTIA y
+        volvé a incorporarla correctamente.
+      </p>
 
       {errorGuardado && (
         <p
