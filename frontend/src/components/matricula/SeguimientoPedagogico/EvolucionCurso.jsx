@@ -81,45 +81,11 @@ export default function EvolucionCurso({
 
   if (periodosConDatos.length >= 2) {
     if (diferencia >= 5) {
-      tendencia = `📈 Evolución positiva (+${diferencia} puntos)`;
+      tendencia = `📈 Evolución positiva (+${diferencia} puntos porcentuales)`;
     } else if (diferencia <= -5) {
-      tendencia = `📉 Descenso (${diferencia} puntos)`;
+      tendencia = `📉 Descenso (${diferencia} puntos porcentuales)`;
     } else {
       tendencia = "➡️ Evolución estable";
-    }
-  }
-
-  const mejorPeriodo =
-    periodosConDatos.length > 0
-      ? periodosConDatos.reduce((mejor, actual) =>
-          actual.indice > mejor.indice ? actual : mejor,
-        )
-      : null;
-
-  const periodoMasBajo =
-    periodosConDatos.length > 0
-      ? periodosConDatos.reduce((menor, actual) =>
-          actual.indice < menor.indice ? actual : menor,
-        )
-      : null;
-
-  let mayorRecuperacion = null;
-
-  for (let i = 1; i < periodosConDatos.length; i++) {
-    const anterior = periodosConDatos[i - 1];
-    const actual = periodosConDatos[i];
-    const recuperacion = actual.indice - anterior.indice;
-
-    if (
-      recuperacion > 0 &&
-      (!mayorRecuperacion ||
-        recuperacion > mayorRecuperacion.diferencia)
-    ) {
-      mayorRecuperacion = {
-        desde: anterior,
-        hasta: actual,
-        diferencia: recuperacion,
-      };
     }
   }
 
@@ -163,9 +129,18 @@ export default function EvolucionCurso({
     `);
 
     ventana.document.close();
-    ventana.focus();
-    ventana.print();
-    ventana.close();
+
+    ventana.onload = () => {
+      ventana.focus();
+
+      window.setTimeout(() => {
+        ventana.print();
+      }, 250);
+    };
+
+    ventana.onafterprint = () => {
+      ventana.close();
+    };
   };
 
   return (
@@ -240,7 +215,7 @@ export default function EvolucionCurso({
                 fontSize: "14px",
               }}
             >
-              📊 Evolución del índice pedagógico
+              📊 Evolución del porcentaje de avance pedagógico
             </h4>
 
             {evolucion.map((item) => (
@@ -326,88 +301,6 @@ export default function EvolucionCurso({
               <span>🔴 Menos de 40%</span>
               <span>⚪ Sin registros</span>
             </div>
-          </div>
-
-          {/* INTERPRETACIÓN AUTOMÁTICA */}
-          <div
-            style={{
-              marginTop: "12px",
-              padding: "12px 16px",
-              border: "1px solid #d7e5ec",
-              borderRadius: "12px",
-              background: "#f9fcff",
-              color: "#43506f",
-            }}
-          >
-            <h4
-              style={{
-                margin: "0 0 10px",
-                fontSize: "14px",
-              }}
-            >
-              🧠 Interpretación de la evolución
-            </h4>
-
-            {periodosConDatos.length < 2 ? (
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: "12px",
-                  color: "#667085",
-                }}
-              >
-                Se necesitan registros en al menos dos períodos para
-                analizar la evolución del curso.
-              </p>
-            ) : (
-              <ul
-                style={{
-                  margin: 0,
-                  paddingLeft: "20px",
-                  fontSize: "12px",
-                  lineHeight: "1.6",
-                }}
-              >
-                {mejorPeriodo && (
-                  <li>
-                    🟢 El índice más alto se registró en{" "}
-                    <strong>{mejorPeriodo.etiqueta}</strong>, con{" "}
-                    <strong>{mejorPeriodo.indice}%</strong>.
-                  </li>
-                )}
-
-                {periodoMasBajo && (
-                  <li>
-                    🟡 El índice más bajo se registró en{" "}
-                    <strong>{periodoMasBajo.etiqueta}</strong>, con{" "}
-                    <strong>{periodoMasBajo.indice}%</strong>.
-                  </li>
-                )}
-
-                {mayorRecuperacion && (
-                  <li>
-                    📈 La mayor recuperación fue entre{" "}
-                    <strong>{mayorRecuperacion.desde.etiqueta}</strong>{" "}
-                    y{" "}
-                    <strong>{mayorRecuperacion.hasta.etiqueta}</strong>:{" "}
-                    <strong>
-                      +{mayorRecuperacion.diferencia} puntos
-                    </strong>
-                    .
-                  </li>
-                )}
-
-                <li>
-                  {diferencia > 0
-                    ? `📈 El último período registrado supera al primero por ${diferencia} puntos.`
-                    : diferencia < 0
-                      ? `📉 El último período registrado se encuentra ${Math.abs(
-                          diferencia,
-                        )} puntos por debajo del primero.`
-                      : "➡️ El último período mantiene el mismo índice que el primero."}
-                </li>
-              </ul>
-            )}
           </div>
 
           {/* TARJETAS DE CADA PERÍODO */}

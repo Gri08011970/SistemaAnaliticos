@@ -182,88 +182,7 @@
     border-right-color: var(--border);
   }
 }
-@media print {
-  body * {
-    visibility: hidden;
-  }
 
-  .solo-impresion,
-  .solo-impresion * {
-    visibility: visible;
-  }
-
-  .solo-impresion {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    box-shadow: none !important;
-    border-radius: 0 !important;
-  }
-
-  button {
-    display: none !important;
-  }
-}
-@media print {
-  body * {
-    visibility: hidden;
-  }
-
-  .lista-impresion,
-  .lista-impresion * {
-    visibility: visible;
-  }
-
-  .lista-impresion {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    background: white;
-  }
-
-  button,
-  input,
-  select {
-    display: none !important;
-  }
-}
-@media print {
-
-  body * {
-    visibility: hidden;
-  }
-
-  .area-impresion,
-  .area-impresion * {
-    visibility: visible;
-  }
-
-  .area-impresion {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    padding: 20px;
-  }
-
-  .no-print {
-    display: none !important;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
-  }
-
-  th, td {
-    border: 1px solid #ccc;
-    padding: 6px;
-    text-align: center;
-  }
-}
 /* =========================
    RESPONSIVE GENERAL
 ========================= */
@@ -327,14 +246,31 @@ body {
   select {
     font-size: 14px !important;
   }
-}
-@media print {
-
-  body * {
-    visibility: hidden;
+  
+  @media print {
+  html,
+  body,
+  #root {
+    width: 100% !important;
+    min-height: auto !important;
+    overflow: visible !important;
   }
 
-  #parte-diario,
+  body {
+    margin: 0 !important;
+    background: #ffffff !important;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  button,
+  .no-print {
+    display: none !important;
+  }
+}#parte-diario,
   #parte-diario * {
     visibility: visible;
   }

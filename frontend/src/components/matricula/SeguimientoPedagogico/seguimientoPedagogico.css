@@ -226,14 +226,8 @@
     box-sizing: border-box;
   }
 }
-@media print {
-  .contenedor-tabla-resumen {
-    height: auto !important;
-    max-height: none !important;
-    overflow: visible !important;
-    border: none !important;
-  }
-}
+
+
 .ficha-seguimiento-desktop {
   display: block;
 }
@@ -327,76 +321,8 @@
   margin: 8px 0 0;
   line-height: 1.6;
 }
-/* ============================================================
-   IMPRESIÓN EXCLUSIVA DEL INFORME INSTITUCIONAL
-   ============================================================ */
 
-@media print {
 
-  /* Ocultamos toda la pantalla */
-  body * {
-    visibility: hidden !important;
-  }
-
-  /* Ocultamos expresamente ambas fichas de asignaturas */
-  .ficha-seguimiento-desktop,
-  .ficha-seguimiento-mobile,
-  .tarjeta-materia-seguimiento,
-  .seguimiento-container,
-  .seguimiento-encabezado-responsive,
-  .seguimiento-botones-responsive,
-  .seguimiento-selectores-responsive {
-    display: none !important;
-  }
-
-  /* Dejamos visible solamente el informe */
-  .informe-institucional,
-  .informe-institucional * {
-    visibility: visible !important;
-  }
-
-  .informe-institucional {
-    display: block !important;
-
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-
-    width: 100% !important;
-    max-width: none !important;
-
-    margin: 0 !important;
-    padding: 16mm !important;
-
-    border: none !important;
-    box-shadow: none !important;
-    background: #ffffff !important;
-
-    box-sizing: border-box !important;
-  }
-
-  /* El botón no debe salir en papel */
-  .informe-institucional button,
-  .informe-institucional__acciones,
-  .boton-imprimir-ficha {
-    display: none !important;
-  }
-
-  /* Evitamos cortes feos */
-  .informe-institucional__datos,
-  .informe-institucional__valoracion,
-  .informe-institucional__sintesis-final,
-  .informe-institucional__orientacion-final,
-  .informe-institucional__aclaracion {
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
-
-  @page {
-    size: A4;
-    margin: 12mm;
-  }
-}
 .informe-institucional__control-catalogo {
   display: none !important;
 }

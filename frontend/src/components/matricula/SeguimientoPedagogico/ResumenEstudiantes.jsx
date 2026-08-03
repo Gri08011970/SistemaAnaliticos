@@ -58,50 +58,50 @@ export default function ResumenEstudiantes({
       totalCargados,
       indice,
       estado,
-       categoria,
+      categoria,
     };
   });
 
   const prioritarios = resumenEstudiantes
-  .filter((item) => item.categoria === "prioritarios")
-  .sort((a, b) => {
-    if (b.ted !== a.ted) {
-      return b.ted - a.ted;
-    }
+    .filter((item) => item.categoria === "prioritarios")
+    .sort((a, b) => {
+      if (b.ted !== a.ted) {
+        return b.ted - a.ted;
+      }
 
-    if (b.tep !== a.tep) {
-      return b.tep - a.tep;
-    }
+      if (b.tep !== a.tep) {
+        return b.tep - a.tep;
+      }
 
-    return a.indice - b.indice;
-  });
+      return a.indice - b.indice;
+    });
 
   const seguimiento = resumenEstudiantes
-  .filter((item) => item.categoria === "seguimiento")
-  .sort((a, b) => {
-    if (b.ted !== a.ted) {
-      return b.ted - a.ted;
-    }
+    .filter((item) => item.categoria === "seguimiento")
+    .sort((a, b) => {
+      if (b.ted !== a.ted) {
+        return b.ted - a.ted;
+      }
 
-    if (b.tep !== a.tep) {
-      return b.tep - a.tep;
-    }
+      if (b.tep !== a.tep) {
+        return b.tep - a.tep;
+      }
 
-    return a.indice - b.indice;
-  });
+      return a.indice - b.indice;
+    });
 
   const favorables = resumenEstudiantes
-  .filter((item) => item.categoria === "favorables")
-  .sort((a, b) => b.indice - a.indice);
+    .filter((item) => item.categoria === "favorables")
+    .sort((a, b) => b.indice - a.indice);
 
   const sinRegistros = resumenEstudiantes
-  .filter((item) => item.categoria === "sinRegistros")
-  .sort((a, b) =>
-    `${a.alumno.apellido} ${a.alumno.nombre}`.localeCompare(
-      `${b.alumno.apellido} ${b.alumno.nombre}`,
-      "es",
-    ),
-  );
+    .filter((item) => item.categoria === "sinRegistros")
+    .sort((a, b) =>
+      `${a.alumno.apellido} ${a.alumno.nombre}`.localeCompare(
+        `${b.alumno.apellido} ${b.alumno.nombre}`,
+        "es",
+      ),
+    );
 
   const alternarGrupo = (grupo) => {
     setGruposAbiertos((estadoAnterior) => ({
@@ -241,20 +241,17 @@ export default function ResumenEstudiantes({
                   key={item.alumno._id || item.alumno.dni}
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "1.8fr 65px 1.2fr",
-                    gap: "10px",
+                    gridTemplateColumns:
+                      "minmax(220px, 1.7fr) minmax(240px, 1.3fr)",
+                    gap: "14px",
                     alignItems: "center",
-                    padding: "8px 10px",
+                    padding: "10px 12px",
                     borderBottom: "1px solid #e4e7ec",
                     fontSize: "12px",
                   }}
                 >
                   <strong>
                     {item.alumno.apellido}, {item.alumno.nombre}
-                  </strong>
-
-                  <strong>
-                    {item.totalCargados === 0 ? "—" : `${item.indice}%`}
                   </strong>
 
                   <span>{item.estado}</span>
