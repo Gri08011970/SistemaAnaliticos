@@ -253,6 +253,390 @@ export default function EstadisticasFotia({
 
   const noHayDatos = datos.resumen.areas === 0;
 
+  const imprimirEstadisticasFotia = () => {
+    if (noHayDatos) {
+      window.alert(
+        "Todavía no hay datos del período para imprimir las estadísticas.",
+      );
+      return;
+    }
+
+    const fechaEmision = new Date().toLocaleDateString("es-AR");
+    const nombrePeriodo =
+      periodoActivo?.nombre || "Sin período informado";
+
+    const crearFilas = (items) =>
+      items
+        .map(
+          (item) => `
+            <tr>
+              <td>${item.etiqueta}</td>
+              <td class="valor">${item.valor}</td>
+            </tr>
+          `,
+        )
+        .join("");
+
+    const filasEstados = [
+      { etiqueta: "Incorporadas", valor: datos.resumen.incorporadas },
+      { etiqueta: "En proceso", valor: datos.resumen.enProceso },
+      { etiqueta: "Acreditadas", valor: datos.resumen.acreditadas },
+      { etiqueta: "Suspendidas", valor: datos.resumen.suspendidas },
+      {
+        etiqueta: "Finalizadas sin acreditar",
+        valor: datos.resumen.finalizadasSinAcreditar,
+      },
+    ];
+
+    const filasAcreditacion = datos.acreditacionPorAsignatura
+      .map(
+        (item) => `
+          <tr>
+            <td>${item.etiqueta}</td>
+            <td class="valor">${item.acreditadas}</td>
+            <td class="valor">${item.total}</td>
+            <td class="valor">${item.porcentaje}%</td>
+          </tr>
+        `,
+      )
+      .join("");
+
+    const ventana = window.open("", "_blank");
+
+    if (!ventana) {
+      window.alert(
+        "El navegador bloqueó la ventana de impresión. Habilitá las ventanas emergentes e intentá nuevamente.",
+      );
+      return;
+    }
+
+    ventana.document.write(`
+      <!DOCTYPE html>
+      <html lang="es">
+        <head>
+          <meta charset="UTF-8" />
+          <title>Estadísticas FOTIA</title>
+
+          <style>
+            @page {
+              size: A4 portrait;
+              margin: 12mm;
+            }
+
+            * {
+              box-sizing: border-box;
+            }
+
+            body {
+              margin: 0;
+              font-family: Arial, sans-serif;
+              color: #243b53;
+              background: #ffffff;
+              font-size: 10px;
+            }
+
+            .encabezado {
+              text-align: center;
+              margin-bottom: 12px;
+              padding-bottom: 10px;
+              border-bottom: 2px solid #6f879d;
+            }
+
+            .escuela {
+              margin: 0 0 4px;
+              font-size: 9px;
+              font-weight: 700;
+              text-transform: uppercase;
+              letter-spacing: 0.03em;
+            }
+
+            h1 {
+              margin: 0;
+              color: #1e3a5f;
+              font-size: 20px;
+            }
+
+            .subtitulo {
+              margin: 5px 0 0;
+              color: #607080;
+              font-size: 9px;
+            }
+
+            .datos-generales {
+              display: flex;
+              justify-content: space-between;
+              gap: 12px;
+              margin-bottom: 12px;
+              padding: 7px 9px;
+              border: 1px solid #c6d4de;
+              border-radius: 5px;
+              background: #f7fafc;
+              font-size: 9px;
+            }
+
+            .resumen {
+              display: grid;
+              grid-template-columns: repeat(3, 1fr);
+              gap: 7px;
+              margin-bottom: 14px;
+            }
+
+            .tarjeta {
+              min-height: 58px;
+              padding: 8px;
+              border: 1px solid #bfd3e1;
+              border-radius: 6px;
+              background: #f7fafc;
+              text-align: center;
+              break-inside: avoid;
+              page-break-inside: avoid;
+            }
+
+            .tarjeta strong {
+              display: block;
+              margin-bottom: 4px;
+              color: #1e3a5f;
+              font-size: 18px;
+            }
+
+            .tarjeta span {
+              color: #536779;
+              font-size: 9px;
+              font-weight: 700;
+            }
+
+            .seccion {
+              margin-top: 13px;
+              break-inside: avoid;
+              page-break-inside: avoid;
+            }
+
+            .seccion h2 {
+              margin: 0 0 7px;
+              padding: 7px 9px;
+              border: 1px solid #bfd3e1;
+              border-radius: 5px 5px 0 0;
+              background: #eef5f8;
+              color: #294d6b;
+              font-size: 12px;
+            }
+
+            .dos-columnas {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 10px;
+              align-items: start;
+            }
+
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              table-layout: fixed;
+            }
+
+            thead {
+              display: table-header-group;
+            }
+
+            tr {
+              break-inside: avoid;
+              page-break-inside: avoid;
+            }
+
+            th,
+            td {
+              border: 1px solid #b9c9d5;
+              padding: 6px 7px;
+            }
+
+            th {
+              background: #f2f6f8;
+              color: #294d6b;
+              text-align: left;
+              font-size: 8.5px;
+            }
+
+            td {
+              font-size: 8.5px;
+            }
+
+            td.valor {
+              width: 74px;
+              text-align: center;
+              font-weight: 700;
+              color: #1e3a5f;
+            }
+
+            .pie {
+              margin-top: 15px;
+              padding-top: 8px;
+              border-top: 1px solid #c8d5df;
+              color: #667085;
+              font-size: 8px;
+              text-align: right;
+            }
+          </style>
+        </head>
+
+        <body>
+          <header class="encabezado">
+            <p class="escuela">
+              Escuela de Educación Secundaria N.º 140
+              “Florencio Molina Campos”
+            </p>
+
+            <h1>Estadísticas institucionales FOTIA</h1>
+
+            <p class="subtitulo">
+              Informe ejecutivo del período de fortalecimiento
+            </p>
+          </header>
+
+          <div class="datos-generales">
+            <span>
+              Período:
+              <strong>${nombrePeriodo}</strong>
+            </span>
+
+            <span>
+              Fecha de emisión:
+              <strong>${fechaEmision}</strong>
+            </span>
+          </div>
+
+          <section class="resumen">
+            <div class="tarjeta">
+              <strong>${datos.resumen.estudiantes}</strong>
+              <span>Estudiantes</span>
+            </div>
+
+            <div class="tarjeta">
+              <strong>${datos.resumen.areas}</strong>
+              <span>Áreas incorporadas</span>
+            </div>
+
+            <div class="tarjeta">
+              <strong>${datos.resumen.docentes}</strong>
+              <span>Docentes participantes</span>
+            </div>
+
+            <div class="tarjeta">
+              <strong>${datos.resumen.acreditadas}</strong>
+              <span>Áreas acreditadas</span>
+            </div>
+
+            <div class="tarjeta">
+              <strong>${datos.resumen.enFortalecimiento}</strong>
+              <span>En fortalecimiento</span>
+            </div>
+
+            <div class="tarjeta">
+              <strong>${datos.resumen.porcentajeAcreditacion}%</strong>
+              <span>Porcentaje de acreditación</span>
+            </div>
+          </section>
+
+          <section class="seccion">
+            <h2>Distribución de estados</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Estado</th>
+                  <th>Cantidad</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${crearFilas(filasEstados)}
+              </tbody>
+            </table>
+          </section>
+
+          <div class="dos-columnas">
+            <section class="seccion">
+              <h2>Estudiantes por curso</h2>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Curso</th>
+                    <th>Cantidad</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${crearFilas(datos.porCurso)}
+                </tbody>
+              </table>
+            </section>
+
+            <section class="seccion">
+              <h2>Áreas por asignatura</h2>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Asignatura</th>
+                    <th>Cantidad</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${crearFilas(datos.porAsignatura)}
+                </tbody>
+              </table>
+            </section>
+          </div>
+
+          <section class="seccion">
+            <h2>Intervenciones por docente</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Docente</th>
+                  <th>Áreas asignadas</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${crearFilas(datos.porDocente)}
+              </tbody>
+            </table>
+          </section>
+
+          <section class="seccion">
+            <h2>Acreditación por asignatura</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Asignatura</th>
+                  <th>Acreditadas</th>
+                  <th>Total incorporadas</th>
+                  <th>Porcentaje</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filasAcreditacion}
+              </tbody>
+            </table>
+          </section>
+
+          <footer class="pie">
+            Documento generado por el Sistema de Gestión Institucional.
+          </footer>
+        </body>
+      </html>
+    `);
+
+    ventana.document.close();
+
+    ventana.onload = () => {
+      ventana.focus();
+
+      window.setTimeout(() => {
+        ventana.print();
+      }, 250);
+    };
+
+    ventana.onafterprint = () => {
+      ventana.close();
+    };
+  };
+
   return (
     <section
       style={{
@@ -266,8 +650,11 @@ export default function EstadisticasFotia({
       <div
         style={{
           display: "flex",
-          justifyContent: "flex-start",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: "10px",
           marginBottom: "18px",
+          flexWrap: "wrap",
         }}
       >
         <button
@@ -284,6 +671,26 @@ export default function EstadisticasFotia({
           }}
         >
           ← Volver a FOTIA
+        </button>
+
+        <button
+          type="button"
+          onClick={imprimirEstadisticasFotia}
+          disabled={noHayDatos}
+          style={{
+            padding: "10px 16px",
+            border: "none",
+            borderRadius: "9px",
+            background: noHayDatos ? "#aeb9c2" : "#148c84",
+            color: "#ffffff",
+            fontWeight: "700",
+            cursor: noHayDatos ? "not-allowed" : "pointer",
+            boxShadow: noHayDatos
+              ? "none"
+              : "0 4px 10px rgba(20, 140, 132, 0.18)",
+          }}
+        >
+          🖨️ Imprimir estadísticas
         </button>
       </div>
 
