@@ -39,6 +39,15 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
   const [seguimiento, setSeguimiento] = useState({});
   const [cargandoSeguimiento, setCargandoSeguimiento] = useState(false);
   const [errorSeguimiento, setErrorSeguimiento] = useState("");
+
+  const [datosFotiaAlumno, setDatosFotiaAlumno] = useState({
+    participaFotia: false,
+    asignaturasEnFortalecimiento: [],
+    asignaturasAcreditadas: [],
+    docentesResponsables: [],
+    observaciones: [],
+  });
+
   const [mostrarInformeCompleto, setMostrarInformeCompleto] = useState(false);
 
   useEffect(() => {
@@ -102,6 +111,212 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
   });
 
   useEffect(() => {
+  let componenteActivo = true;
+
+  const estadoVacioFotia = {
+    participaFotia: false,
+    asignaturasEnFortalecimiento: [],
+    asignaturasAcreditadas: [],
+    docentesResponsables: [],
+    observaciones: [],
+  };
+
+  async function obtenerFotiaDelAlumno() {
+    const alumnoId = alumnoSeleccionado?._id;
+
+    if (!alumnoId) {
+      setDatosFotiaAlumno(estadoVacioFotia);
+      return;
+    }
+
+    try {
+      const parametros = new URLSearchParams({
+        alumnoId: String(alumnoId),
+      });
+
+      const [
+        respuestaInscripciones,
+        respuestaAcreditaciones,
+      ] = await Promise.all([
+        fetch(
+          `/api/fotia/inscripciones?${parametros.toString()}`,
+        ),
+        fetch(
+          `/api/fotia/acreditaciones?${parametros.toString()}`,
+        ),
+      ]);
+
+      const inscripciones =
+        await respuestaInscripciones.json();
+
+      const acreditaciones =
+        await respuestaAcreditaciones.json();
+
+      if (!respuestaInscripciones.ok) {
+        throw new Error(
+          inscripciones?.mensaje ||
+            "No se pudieron consultar las inscripciones FOTIA.",
+        );
+      }
+
+      if (!respuestaAcreditaciones.ok) {
+        throw new Error(
+          acreditaciones?.mensaje ||
+            "No se pudieron consultar las acreditaciones FOTIA.",
+        );
+      }
+
+      const listaInscripciones = Array.isArray(inscripciones)
+        ? inscripciones
+        : [];
+
+      const listaAcreditaciones = Array.isArray(acreditaciones)
+        ? acreditaciones
+        : [];
+
+      console.log("FOTIA · alumno consultado:", {
+        alumnoId,
+        nombre:
+          `${alumnoSeleccionado.apellido || ""} ` +
+          `${alumnoSeleccionado.nombre || ""}`,
+      });
+
+      console.log(
+        "FOTIA · inscripciones encontradas:",
+        listaInscripciones,
+      );
+
+      console.log(
+        "FOTIA · acreditaciones encontradas:",
+        listaAcreditaciones,
+      );
+
+      const obtenerValoresUnicos = (valores = []) => [
+        ...new Set(
+          valores
+            .map((valor) => String(valor || "").trim())
+            .filter(Boolean),
+        ),
+      ];
+
+      const inscripcionesActivas =
+        listaInscripciones.filter(
+          (inscripcion) =>
+            inscripcion.activo !== false &&
+            inscripcion.estado !== "Suspendida" &&
+            inscripcion.estado !== "Acreditada" &&
+            inscripcion.estado !==
+              "Finalizada sin acreditar",
+        );
+
+      const asignaturasEnFortalecimiento =
+        obtenerValoresUnicos(
+          inscripcionesActivas.map(
+            (inscripcion) =>
+              inscripcion.asignatura,
+          ),
+        );
+
+      const acreditacionesDesdeInscripciones =
+        listaInscripciones.filter(
+          (inscripcion) =>
+            inscripcion.estado === "Acreditada",
+        );
+
+      const asignaturasAcreditadas =
+        obtenerValoresUnicos([
+          ...acreditacionesDesdeInscripciones.map(
+            (inscripcion) =>
+              inscripcion.asignatura,
+          ),
+
+          ...listaAcreditaciones.map(
+            (acreditacion) =>
+              acreditacion.asignatura,
+          ),
+        ]);
+
+      const docentesResponsables =
+        obtenerValoresUnicos(
+          inscripcionesActivas.map(
+            (inscripcion) => {
+              if (inscripcion.docenteNombre) {
+                return inscripcion.docenteNombre;
+              }
+
+              const docente =
+                inscripcion.docenteId;
+
+              if (
+                docente &&
+                typeof docente === "object"
+              ) {
+                return [
+                  docente.apellido,
+                  docente.nombre,
+                ]
+                  .filter(Boolean)
+                  .join(" ");
+              }
+
+              return "";
+            },
+          ),
+        );
+
+      const observaciones =
+        obtenerValoresUnicos([
+          ...listaInscripciones.map(
+            (inscripcion) =>
+              inscripcion.observaciones,
+          ),
+
+          ...listaAcreditaciones.map(
+            (acreditacion) =>
+              acreditacion.observaciones,
+          ),
+        ]);
+
+      const participaFotia =
+        listaInscripciones.length > 0 ||
+        listaAcreditaciones.length > 0;
+
+      const datosConstruidos = {
+        participaFotia,
+        asignaturasEnFortalecimiento,
+        asignaturasAcreditadas,
+        docentesResponsables,
+        observaciones,
+      };
+
+      console.log(
+        "FOTIA · datos enviados al informe:",
+        datosConstruidos,
+      );
+
+      if (componenteActivo) {
+        setDatosFotiaAlumno(datosConstruidos);
+      }
+    } catch (error) {
+      console.error(
+        "Error al obtener FOTIA para el informe:",
+        error,
+      );
+
+      if (componenteActivo) {
+        setDatosFotiaAlumno(estadoVacioFotia);
+      }
+    } 
+  }
+
+  obtenerFotiaDelAlumno();
+
+  return () => {
+    componenteActivo = false;
+  };
+}, [alumnoSeleccionado]);
+
+  useEffect(() => {
     if (!mostrarInformeCompleto) return undefined;
 
     const posicionAnterior = window.scrollY;
@@ -118,9 +333,7 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
     window.addEventListener("keydown", cerrarConEscape);
 
     requestAnimationFrame(() => {
-      const modal = document.getElementById(
-        "modal-informe-institucional",
-      );
+      const modal = document.getElementById("modal-informe-institucional");
 
       if (modal) {
         modal.scrollTop = 0;
@@ -149,6 +362,7 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
           seguimiento,
           asignaturas,
           periodo: periodoInforme,
+          datosFotia: datosFotiaAlumno,
         })
       : null;
 
@@ -161,9 +375,7 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
 
   const abrirInformeCompleto = () => {
     if (!periodoInforme) {
-      window.alert(
-        "Seleccioná un período para ver el informe completo.",
-      );
+      window.alert("Seleccioná un período para ver el informe completo.");
       return;
     }
 
@@ -179,9 +391,7 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
 
   const imprimirFicha = () => {
     if (!periodoInforme) {
-      window.alert(
-        "Seleccioná un período antes de imprimir el informe.",
-      );
+      window.alert("Seleccioná un período antes de imprimir el informe.");
       return;
     }
 
@@ -832,7 +1042,7 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
             </div>
           </div>
 
-                  {!mostrarInformeCompleto &&
+          {!mostrarInformeCompleto &&
             !cargandoSeguimiento &&
             informeInstitucional && (
               <div aria-hidden="true" style={{ display: "none" }}>

@@ -307,6 +307,7 @@ export function analizarTrayectoria({
   periodo = "final",
   institucion =
     'E.E.S. N° 140 "Florencio Molina Campos"',
+  datosFotia = {},
 } = {}) {
   const alumnoPreparado =
     prepararAlumnoParaAnalisis(
@@ -425,6 +426,8 @@ export function analizarTrayectoria({
           ),
 
         institucion,
+
+        fotia:datosFotia,
       },
     );
 

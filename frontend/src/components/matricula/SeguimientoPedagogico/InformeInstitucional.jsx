@@ -30,6 +30,8 @@
 /**
  * Devuelve un texto seguro.
  */
+import IntervencionesInstitucionales from "./IntervencionesInstitucionales";
+
 function obtenerTextoSeguro(valor, textoAlternativo = "Sin información") {
   if (valor === null || valor === undefined || valor === "") {
     return textoAlternativo;
@@ -65,7 +67,6 @@ export default function InformeInstitucional({
       id="informe-institucional-imprimir"
       className="informe-institucional"
     >
-      
       {/*
        * ======================================================
        * ENCABEZADO
@@ -164,6 +165,10 @@ export default function InformeInstitucional({
        * SECCIONES DEL INFORME
        * ======================================================
        */}
+
+      <IntervencionesInstitucionales
+        {...(informe.intervencionesInstitucionales || {})}
+      />
 
       <section
         className="

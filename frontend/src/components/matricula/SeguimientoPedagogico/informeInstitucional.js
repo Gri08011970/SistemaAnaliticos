@@ -730,48 +730,29 @@ export function generarOrientacionIntervencion({
       .map((elemento) => obtenerNombrePendiente(elemento.pendiente))
       .filter(Boolean);
 
-    const asignaturasActualesConContinuidad =
-  conContinuidad
-    .flatMap(
-      (elemento) =>
-        obtenerListaSegura(
-          elemento?.coincidencias,
-        )
-          .map(
-            (coincidencia) =>
-              coincidencia?.asignaturaActual,
-          ),
-    )
-    .filter(Boolean);
+    const asignaturasActualesConContinuidad = conContinuidad
+      .flatMap((elemento) =>
+        obtenerListaSegura(elemento?.coincidencias).map(
+          (coincidencia) => coincidencia?.asignaturaActual,
+        ),
+      )
+      .filter(Boolean);
 
-const pendientesUnicas = [
-  ...new Set(
-    asignaturasPendientesConContinuidad,
-  ),
-];
+    const pendientesUnicas = [...new Set(asignaturasPendientesConContinuidad)];
 
-const actualesUnicas = [
-  ...new Set(
-    asignaturasActualesConContinuidad,
-  ),
-];
+    const actualesUnicas = [...new Set(asignaturasActualesConContinuidad)];
 
-const pendientesConAnio =
-  pendientesUnicas.map(
-    (texto) =>
-      texto.replace(
-        /\s*\((.*?)\)/,
-        " de $1 año",
-      ),
-  );
+    const pendientesConAnio = pendientesUnicas.map((texto) =>
+      texto.replace(/\s*\((.*?)\)/, " de $1 año"),
+    );
 
-partes.push(
-  `Se recomienda priorizar la recuperación de los saberes correspondientes a las asignaturas pendientes que presentan continuidad disciplinar con la trayectoria actual (${unirExpresiones(
-    pendientesConAnio,
-  )}), articulando dichas acreditaciones con las propuestas de ${unirExpresiones(
-    actualesUnicas,
-  )} del presente ciclo lectivo.`,
-);
+    partes.push(
+      `Se recomienda priorizar la recuperación de los saberes correspondientes a las asignaturas pendientes que presentan continuidad disciplinar con la trayectoria actual (${unirExpresiones(
+        pendientesConAnio,
+      )}), articulando dichas acreditaciones con las propuestas de ${unirExpresiones(
+        actualesUnicas,
+      )} del presente ciclo lectivo.`,
+    );
   } else if (interpretacionPrincipal?.orientacion) {
     partes.push(interpretacionPrincipal.orientacion);
   }
@@ -837,6 +818,20 @@ export function obtenerValoracionInstitucional(categoria) {
   );
 }
 
+function construirInformeEquipoFortalecimiento(datosFotia = {}) {
+  if (
+    !Array.isArray(datosFotia.observaciones) ||
+    datosFotia.observaciones.length === 0
+  ) {
+    return "";
+  }
+
+  return datosFotia.observaciones
+    .map((texto) => String(texto).trim())
+    .filter(Boolean)
+    .join(" ");
+}
+
 /*
  * ============================================================
  * GENERACIÓN DEL INFORME
@@ -862,6 +857,8 @@ export function generarInformeInstitucional(diagnostico, opciones = {}) {
   const valoracionInstitucional = obtenerValoracionInstitucional(categoria);
 
   const fechaGeneracion = opciones.fecha || new Date();
+
+  const datosFotia = opciones.fotia || {};
 
   const fortalezas = ordenarSeccionPorPrioridad(
     enriquecerSeccionInforme(diagnostico.fortalezas),
@@ -984,6 +981,37 @@ export function generarInformeInstitucional(diagnostico, opciones = {}) {
     periodo: opciones.periodo || diagnostico.periodo || null,
 
     institucion: opciones.institucion || null,
+
+    intervencionesInstitucionales: {
+  participaFotia: datosFotia.participaFotia === true,
+
+  asignaturasEnFortalecimiento: Array.isArray(
+    datosFotia.asignaturasEnFortalecimiento,
+  )
+    ? datosFotia.asignaturasEnFortalecimiento
+    : [],
+
+  asignaturasAcreditadas: Array.isArray(
+    datosFotia.asignaturasAcreditadas,
+  )
+    ? datosFotia.asignaturasAcreditadas
+    : [],
+
+  docentesResponsables: Array.isArray(
+    datosFotia.docentesResponsables,
+  )
+    ? datosFotia.docentesResponsables
+    : [],
+
+  observaciones: Array.isArray(
+    datosFotia.observaciones,
+  )
+    ? datosFotia.observaciones
+    : [],
+
+  informeEquipoFortalecimiento:
+    construirInformeEquipoFortalecimiento(datosFotia),
+},
 
     /*
      * Encabezado institucional.
