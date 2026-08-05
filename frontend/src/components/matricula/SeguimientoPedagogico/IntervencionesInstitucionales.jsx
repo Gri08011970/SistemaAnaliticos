@@ -1,3 +1,5 @@
+import { useMemo, useState } from "react";
+
 const obtenerListaLegible = (valores = []) => {
   const lista = [
     ...new Set(
@@ -14,15 +16,148 @@ const obtenerListaLegible = (valores = []) => {
   return `${lista.slice(0, -1).join(", ")} y ${lista.at(-1)}`;
 };
 
-export default function IntervencionesInstitucionales({ 
+const normalizarObservaciones = (observaciones = []) =>
+  observaciones
+    .map((observacion, indice) => {
+      if (typeof observacion === "string") {
+        const texto = observacion.trim();
+        if (!texto) return null;
+
+        return {
+          id: `observacion-${indice}`,
+          asignatura: "Espacio curricular sin informar",
+          docente: "Docente sin informar",
+          texto,
+          estado: "",
+          fecha: "",
+          origen: "",
+        };
+      }
+
+      if (!observacion || typeof observacion !== "object") {
+        return null;
+      }
+
+      const asignatura = String(
+        observacion.asignatura || "Espacio curricular sin informar",
+      ).trim();
+
+      const docente = String(
+        observacion.docente || "Docente sin informar",
+      ).trim();
+
+      const texto = String(observacion.texto || "").trim();
+
+      if (!texto) return null;
+
+      return {
+        id: observacion.id || `${asignatura}-${docente}-${indice}`,
+        asignatura,
+        docente,
+        texto,
+        estado: String(observacion.estado || "").trim(),
+        fecha: String(observacion.fecha || "").trim(),
+        origen: String(observacion.origen || "").trim(),
+      };
+    })
+    .filter(Boolean);
+
+const agruparObservacionesPorAsignatura = (observaciones = []) => {
+  const grupos = new Map();
+
+  observaciones.forEach((observacion) => {
+    const clave = observacion.asignatura.toLocaleLowerCase("es");
+
+    if (!grupos.has(clave)) {
+      grupos.set(clave, {
+        asignatura: observacion.asignatura,
+        docentes: new Set(),
+        observaciones: [],
+      });
+    }
+
+    const grupo = grupos.get(clave);
+
+    if (
+      observacion.docente &&
+      observacion.docente !== "Docente sin informar"
+    ) {
+      grupo.docentes.add(observacion.docente);
+    }
+
+    grupo.observaciones.push(observacion);
+  });
+
+  return [...grupos.values()]
+    .map((grupo) => ({
+      ...grupo,
+      docentes: [...grupo.docentes],
+    }))
+    .sort((grupoA, grupoB) =>
+      grupoA.asignatura.localeCompare(grupoB.asignatura, "es", {
+        sensitivity: "base",
+      }),
+    );
+};
+
+const construirSintesisObservaciones = ({
+  observaciones = [],
+  cantidadEspacios = 0,
+}) => {
+  if (observaciones.length === 0) return "";
+
+  const cantidadRegistros = observaciones.length;
+  const espaciosConObservaciones = new Set(
+    observaciones.map((observacion) =>
+      observacion.asignatura.toLocaleLowerCase("es"),
+    ),
+  ).size;
+
+  const cantidadEspaciosTexto =
+    cantidadEspacios > 0 ? cantidadEspacios : espaciosConObservaciones;
+
+  const referenciaEspacios =
+    cantidadEspaciosTexto === 1
+      ? "un espacio curricular"
+      : `${cantidadEspaciosTexto} espacios curriculares`;
+
+  const referenciaRegistros =
+    cantidadRegistros === 1
+      ? "un registro pedagógico"
+      : `${cantidadRegistros} registros pedagógicos`;
+
+  return (
+    `El estudiante participa en ${referenciaEspacios} de fortalecimiento. ` +
+    `El equipo responsable ha incorporado ${referenciaRegistros} que permiten ` +
+    "documentar los avances observados, las necesidades de acompañamiento y " +
+    "las orientaciones propuestas para la continuidad de su trayectoria educativa."
+  );
+};
+
+const formatearFecha = (fecha) => {
+  if (!fecha) return "";
+
+  const fechaNormalizada = new Date(fecha);
+
+  if (Number.isNaN(fechaNormalizada.getTime())) {
+    return fecha;
+  }
+
+  return fechaNormalizada.toLocaleDateString("es-AR");
+};
+
+export default function IntervencionesInstitucionales({
   participaFotia = false,
   asignaturasEnFortalecimiento = [],
   asignaturasAcreditadas = [],
   docentesResponsables = [],
   observaciones = [],
   informeEquipoFortalecimiento = "",
-  nombrePrograma =  "Programa Institucional de Fortalecimiento de Trayectorias Educativas (FOTIA)",
+  nombrePrograma =
+    "Programa Institucional de Fortalecimiento de Trayectorias Educativas (FOTIA)",
 }) {
+  const [mostrarDetalle, setMostrarDetalle] = useState(false);
+
   const asignaturasActivasTexto = obtenerListaLegible(
     asignaturasEnFortalecimiento,
   );
@@ -31,18 +166,40 @@ export default function IntervencionesInstitucionales({
     asignaturasAcreditadas,
   );
 
-  const docentesTexto = obtenerListaLegible(
-    docentesResponsables,
+  const docentesTexto = obtenerListaLegible(docentesResponsables);
+
+  const observacionesNormalizadas = useMemo(
+    () => normalizarObservaciones(observaciones),
+    [observaciones],
   );
 
-  const observacionesLimpias = observaciones
-    .map((observacion) =>
-      String(observacion || "").trim(),
-    )
-    .filter(Boolean);
-  const informeFortalecimientoLimpio = String(
-  informeEquipoFortalecimiento || "",
-).trim();  
+  const observacionesAgrupadas = useMemo(
+    () => agruparObservacionesPorAsignatura(observacionesNormalizadas),
+    [observacionesNormalizadas],
+  );
+
+  const informeFortalecimientoLimpio =
+    typeof informeEquipoFortalecimiento === "string"
+      ? informeEquipoFortalecimiento.trim()
+      : "";
+
+  const sintesisObservaciones = useMemo(
+    () =>
+      construirSintesisObservaciones({
+        observaciones: observacionesNormalizadas,
+        cantidadEspacios:
+          asignaturasEnFortalecimiento.length +
+          asignaturasAcreditadas.length,
+      }),
+    [
+      observacionesNormalizadas,
+      asignaturasEnFortalecimiento.length,
+      asignaturasAcreditadas.length,
+    ],
+  );
+
+  const informeVisible =
+    sintesisObservaciones || informeFortalecimientoLimpio;
 
   const tieneParticipacion =
     participaFotia ||
@@ -60,7 +217,7 @@ export default function IntervencionesInstitucionales({
 
     const partes = [];
 
-    if (asignaturasEnFortalecimiento.length > 0) { 
+    if (asignaturasEnFortalecimiento.length > 0) {
       partes.push(
         `El estudiante participa actualmente en el ${nombrePrograma}, ` +
           `donde fortalece actualmente ${
@@ -77,9 +234,7 @@ export default function IntervencionesInstitucionales({
             : "."),
       );
     } else {
-      partes.push(
-        `El estudiante participó del ${nombrePrograma}.`,
-      );
+      partes.push(`El estudiante participó del ${nombrePrograma}.`);
     }
 
     if (asignaturasAcreditadas.length === 0) {
@@ -87,22 +242,16 @@ export default function IntervencionesInstitucionales({
         "Al momento de la emisión del presente informe no registra " +
           "acreditaciones dentro del programa.",
       );
-    } else if (
-      asignaturasEnFortalecimiento.length === 0
-    ) {
+    } else if (asignaturasEnFortalecimiento.length === 0) {
       partes.push(
         `Ha acreditado satisfactoriamente ${
-          asignaturasAcreditadas.length === 1
-            ? "el área"
-            : "las áreas"
+          asignaturasAcreditadas.length === 1 ? "el área" : "las áreas"
         } de ${asignaturasAcreditadasTexto}.`,
       );
     } else {
       partes.push(
         `Ha acreditado satisfactoriamente ${
-          asignaturasAcreditadas.length === 1
-            ? "el área"
-            : "las áreas"
+          asignaturasAcreditadas.length === 1 ? "el área" : "las áreas"
         } de ${asignaturasAcreditadasTexto}, y continúa participando en ` +
           "las propuestas de fortalecimiento indicadas.",
       );
@@ -121,12 +270,27 @@ export default function IntervencionesInstitucionales({
         borderRadius: "16px",
         background:
           "linear-gradient(180deg, #f6fbfa 0%, #ffffff 100%)",
-        boxShadow:
-          "0 5px 16px rgba(40, 82, 78, 0.08)",
+        boxShadow: "0 5px 16px rgba(40, 82, 78, 0.08)",
         breakInside: "avoid",
         pageBreakInside: "avoid",
       }}
     >
+      <style>
+        {`
+          @media print {
+            .intervenciones-institucionales__boton-detalle,
+            .intervenciones-institucionales__detalle {
+              display: none !important;
+            }
+
+            .intervenciones-institucionales {
+              break-inside: avoid;
+              page-break-inside: avoid;
+            }
+          }
+        `}
+      </style>
+
       <header
         style={{
           display: "flex",
@@ -222,17 +386,13 @@ export default function IntervencionesInstitucionales({
           <DatoIntervencion
             etiqueta="Áreas en fortalecimiento"
             valor={
-              asignaturasActivasTexto ||
-              "Sin áreas activas informadas"
+              asignaturasActivasTexto || "Sin áreas activas informadas"
             }
           />
 
           <DatoIntervencion
             etiqueta="Docentes responsables"
-            valor={
-              docentesTexto ||
-              "Sin docente informado"
-            }
+            valor={docentesTexto || "Sin docente informado"}
           />
 
           <DatoIntervencion
@@ -245,41 +405,86 @@ export default function IntervencionesInstitucionales({
         </div>
       )}
 
-      {informeFortalecimientoLimpio && (
-  <div
-    style={{
-      marginTop: "16px",
-      padding: "16px 18px",
-      border: "1px solid #d9e3e8",
-      borderRadius: "12px",
-      background: "#f9fcff",
-      breakInside: "avoid",
-      pageBreakInside: "avoid",
-    }}
-  >
-    <h4
-      style={{
-        margin: "0 0 10px",
-        color: "#43506f",
-        fontSize: "15px",
-      }}
-    >
-      📝 Informe del equipo de fortalecimiento
-    </h4>
+      {informeVisible && (
+        <div
+          style={{
+            marginTop: "16px",
+            padding: "16px 18px",
+            border: "1px solid #d9e3e8",
+            borderRadius: "12px",
+            background: "#f9fcff",
+            breakInside: "avoid",
+            pageBreakInside: "avoid",
+          }}
+        >
+          <h4
+            style={{
+              margin: "0 0 10px",
+              color: "#43506f",
+              fontSize: "15px",
+            }}
+          >
+            📝 Informe del equipo de fortalecimiento
+          </h4>
 
-    <p
-      style={{
-        margin: 0,
-        color: "#4b5563",
-        fontSize: "14px",
-        lineHeight: 1.7,
-        textAlign: "justify",
-      }}
-    >
-      {informeFortalecimientoLimpio}
-    </p>
-  </div>
-)}
+          <p
+            style={{
+              margin: 0,
+              color: "#4b5563",
+              fontSize: "14px",
+              lineHeight: 1.7,
+              textAlign: "justify",
+            }}
+          >
+            {informeVisible}
+          </p>
+
+          {observacionesAgrupadas.length > 0 && (
+            <button
+              type="button"
+              className="intervenciones-institucionales__boton-detalle"
+              onClick={() =>
+                setMostrarDetalle((estadoAnterior) => !estadoAnterior)
+              }
+              aria-expanded={mostrarDetalle}
+              style={{
+                width: "100%",
+                marginTop: "14px",
+                padding: "10px 14px",
+                border: "1px solid #b9d5cf",
+                borderRadius: "9px",
+                background: mostrarDetalle ? "#e4f3ef" : "#ffffff",
+                color: "#285e58",
+                fontWeight: "700",
+                cursor: "pointer",
+                textAlign: "center",
+              }}
+            >
+              {mostrarDetalle
+                ? "▲ Ocultar intervenciones por asignatura"
+                : `📚 Ver intervenciones por asignatura (${observacionesAgrupadas.length})`}
+            </button>
+          )}
+
+          {mostrarDetalle && observacionesAgrupadas.length > 0 && (
+            <div
+              className="intervenciones-institucionales__detalle"
+              style={{
+                display: "grid",
+                gap: "12px",
+                marginTop: "14px",
+              }}
+            >
+              {observacionesAgrupadas.map((grupo) => (
+                <DetalleAsignatura
+                  key={grupo.asignatura}
+                  grupo={grupo}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </section>
   );
 }
@@ -319,5 +524,120 @@ function DatoIntervencion({ etiqueta, valor }) {
         {valor}
       </strong>
     </div>
+  );
+}
+
+function DetalleAsignatura({ grupo }) {
+  const docentesTexto =
+    obtenerListaLegible(grupo.docentes) || "Docente sin informar";
+
+  return (
+    <article
+      style={{
+        overflow: "hidden",
+        border: "1px solid #cfddd9",
+        borderRadius: "11px",
+        background: "#ffffff",
+      }}
+    >
+      <div
+        style={{
+          padding: "11px 14px",
+          borderBottom: "1px solid #dbe7e3",
+          background: "#edf7f4",
+        }}
+      >
+        <strong
+          style={{
+            display: "block",
+            color: "#285e58",
+            fontSize: "14px",
+          }}
+        >
+          📘 {grupo.asignatura}
+        </strong>
+
+        <span
+          style={{
+            display: "block",
+            marginTop: "4px",
+            color: "#607080",
+            fontSize: "12px",
+          }}
+        >
+          Docente responsable: {docentesTexto}
+        </span>
+      </div>
+
+      <div style={{ display: "grid" }}>
+        {grupo.observaciones.map((observacion, indice) => {
+          const fechaFormateada = formatearFecha(observacion.fecha);
+
+          return (
+            <div
+              key={observacion.id}
+              style={{
+                padding: "13px 14px",
+                borderTop:
+                  indice === 0 ? "none" : "1px solid #e5ece9",
+              }}
+            >
+              {(observacion.estado || fechaFormateada) && (
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "8px",
+                    marginBottom: "7px",
+                  }}
+                >
+                  {observacion.estado && (
+                    <span
+                      style={{
+                        padding: "3px 8px",
+                        borderRadius: "999px",
+                        background: "#eef4ff",
+                        color: "#365d8d",
+                        fontSize: "11px",
+                        fontWeight: "700",
+                      }}
+                    >
+                      {observacion.estado}
+                    </span>
+                  )}
+
+                  {fechaFormateada && (
+                    <span
+                      style={{
+                        padding: "3px 8px",
+                        borderRadius: "999px",
+                        background: "#f5f6f7",
+                        color: "#667085",
+                        fontSize: "11px",
+                        fontWeight: "700",
+                      }}
+                    >
+                      📅 {fechaFormateada}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              <p
+                style={{
+                  margin: 0,
+                  color: "#4b5563",
+                  fontSize: "13px",
+                  lineHeight: 1.65,
+                  textAlign: "justify",
+                }}
+              >
+                {observacion.texto}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    </article>
   );
 }

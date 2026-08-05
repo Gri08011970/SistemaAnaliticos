@@ -111,210 +111,217 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
   });
 
   useEffect(() => {
-  let componenteActivo = true;
+    let componenteActivo = true;
 
-  const estadoVacioFotia = {
-    participaFotia: false,
-    asignaturasEnFortalecimiento: [],
-    asignaturasAcreditadas: [],
-    docentesResponsables: [],
-    observaciones: [],
-  };
+    const estadoVacioFotia = {
+      participaFotia: false,
+      asignaturasEnFortalecimiento: [],
+      asignaturasAcreditadas: [],
+      docentesResponsables: [],
+      observaciones: [],
+    };
 
-  async function obtenerFotiaDelAlumno() {
-    const alumnoId = alumnoSeleccionado?._id;
+    async function obtenerFotiaDelAlumno() {
+      const alumnoId = alumnoSeleccionado?._id;
 
-    if (!alumnoId) {
-      setDatosFotiaAlumno(estadoVacioFotia);
-      return;
-    }
-
-    try {
-      const parametros = new URLSearchParams({
-        alumnoId: String(alumnoId),
-      });
-
-      const [
-        respuestaInscripciones,
-        respuestaAcreditaciones,
-      ] = await Promise.all([
-        fetch(
-          `/api/fotia/inscripciones?${parametros.toString()}`,
-        ),
-        fetch(
-          `/api/fotia/acreditaciones?${parametros.toString()}`,
-        ),
-      ]);
-
-      const inscripciones =
-        await respuestaInscripciones.json();
-
-      const acreditaciones =
-        await respuestaAcreditaciones.json();
-
-      if (!respuestaInscripciones.ok) {
-        throw new Error(
-          inscripciones?.mensaje ||
-            "No se pudieron consultar las inscripciones FOTIA.",
-        );
+      if (!alumnoId) {
+        setDatosFotiaAlumno(estadoVacioFotia);
+        return;
       }
 
-      if (!respuestaAcreditaciones.ok) {
-        throw new Error(
-          acreditaciones?.mensaje ||
-            "No se pudieron consultar las acreditaciones FOTIA.",
-        );
-      }
+      try {
+        const parametros = new URLSearchParams({
+          alumnoId: String(alumnoId),
+        });
 
-      const listaInscripciones = Array.isArray(inscripciones)
-        ? inscripciones
-        : [];
+        const [respuestaInscripciones, respuestaAcreditaciones] =
+          await Promise.all([
+            fetch(`/api/fotia/inscripciones?${parametros.toString()}`),
+            fetch(`/api/fotia/acreditaciones?${parametros.toString()}`),
+          ]);
 
-      const listaAcreditaciones = Array.isArray(acreditaciones)
-        ? acreditaciones
-        : [];
+        const inscripciones = await respuestaInscripciones.json();
 
-      console.log("FOTIA · alumno consultado:", {
-        alumnoId,
-        nombre:
-          `${alumnoSeleccionado.apellido || ""} ` +
-          `${alumnoSeleccionado.nombre || ""}`,
-      });
+        const acreditaciones = await respuestaAcreditaciones.json();
 
-      console.log(
-        "FOTIA · inscripciones encontradas:",
-        listaInscripciones,
-      );
+        if (!respuestaInscripciones.ok) {
+          throw new Error(
+            inscripciones?.mensaje ||
+              "No se pudieron consultar las inscripciones FOTIA.",
+          );
+        }
 
-      console.log(
-        "FOTIA · acreditaciones encontradas:",
-        listaAcreditaciones,
-      );
+        if (!respuestaAcreditaciones.ok) {
+          throw new Error(
+            acreditaciones?.mensaje ||
+              "No se pudieron consultar las acreditaciones FOTIA.",
+          );
+        }
 
-      const obtenerValoresUnicos = (valores = []) => [
-        ...new Set(
-          valores
-            .map((valor) => String(valor || "").trim())
-            .filter(Boolean),
-        ),
-      ];
+        const listaInscripciones = Array.isArray(inscripciones)
+          ? inscripciones
+          : [];
 
-      const inscripcionesActivas =
-        listaInscripciones.filter(
+        const listaAcreditaciones = Array.isArray(acreditaciones)
+          ? acreditaciones
+          : [];
+
+        console.log("FOTIA · alumno consultado:", {
+          alumnoId,
+          nombre:
+            `${alumnoSeleccionado.apellido || ""} ` +
+            `${alumnoSeleccionado.nombre || ""}`,
+        });
+
+        console.log("FOTIA · inscripciones encontradas:", listaInscripciones);
+
+        console.log("FOTIA · acreditaciones encontradas:", listaAcreditaciones);
+
+        const obtenerValoresUnicos = (valores = []) => [
+          ...new Set(
+            valores.map((valor) => String(valor || "").trim()).filter(Boolean),
+          ),
+        ];
+
+        const inscripcionesActivas = listaInscripciones.filter(
           (inscripcion) =>
             inscripcion.activo !== false &&
             inscripcion.estado !== "Suspendida" &&
             inscripcion.estado !== "Acreditada" &&
-            inscripcion.estado !==
-              "Finalizada sin acreditar",
+            inscripcion.estado !== "Finalizada sin acreditar",
         );
 
-      const asignaturasEnFortalecimiento =
-        obtenerValoresUnicos(
-          inscripcionesActivas.map(
-            (inscripcion) =>
-              inscripcion.asignatura,
-          ),
+        const asignaturasEnFortalecimiento = obtenerValoresUnicos(
+          inscripcionesActivas.map((inscripcion) => inscripcion.asignatura),
         );
 
-      const acreditacionesDesdeInscripciones =
-        listaInscripciones.filter(
-          (inscripcion) =>
-            inscripcion.estado === "Acreditada",
+        const acreditacionesDesdeInscripciones = listaInscripciones.filter(
+          (inscripcion) => inscripcion.estado === "Acreditada",
         );
 
-      const asignaturasAcreditadas =
-        obtenerValoresUnicos([
+        const asignaturasAcreditadas = obtenerValoresUnicos([
           ...acreditacionesDesdeInscripciones.map(
-            (inscripcion) =>
-              inscripcion.asignatura,
+            (inscripcion) => inscripcion.asignatura,
           ),
 
-          ...listaAcreditaciones.map(
-            (acreditacion) =>
-              acreditacion.asignatura,
-          ),
+          ...listaAcreditaciones.map((acreditacion) => acreditacion.asignatura),
         ]);
 
-      const docentesResponsables =
-        obtenerValoresUnicos(
-          inscripcionesActivas.map(
-            (inscripcion) => {
-              if (inscripcion.docenteNombre) {
-                return inscripcion.docenteNombre;
-              }
+        const docentesResponsables = obtenerValoresUnicos(
+          inscripcionesActivas.map((inscripcion) => {
+            if (inscripcion.docenteNombre) {
+              return inscripcion.docenteNombre;
+            }
 
-              const docente =
-                inscripcion.docenteId;
+            const docente = inscripcion.docenteId;
 
-              if (
-                docente &&
-                typeof docente === "object"
-              ) {
-                return [
-                  docente.apellido,
-                  docente.nombre,
-                ]
-                  .filter(Boolean)
-                  .join(" ");
-              }
+            if (docente && typeof docente === "object") {
+              return [docente.apellido, docente.nombre]
+                .filter(Boolean)
+                .join(" ");
+            }
 
-              return "";
-            },
-          ),
+            return "";
+          }),
         );
 
-      const observaciones =
-        obtenerValoresUnicos([
-          ...listaInscripciones.map(
-            (inscripcion) =>
-              inscripcion.observaciones,
-          ),
+        const obtenerNombreDocente = (registro) => {
+          if (registro.docenteNombre) {
+            return String(registro.docenteNombre).trim();
+          }
 
-          ...listaAcreditaciones.map(
-            (acreditacion) =>
-              acreditacion.observaciones,
-          ),
-        ]);
+          const docente = registro.docenteId;
 
-      const participaFotia =
-        listaInscripciones.length > 0 ||
-        listaAcreditaciones.length > 0;
+          if (docente && typeof docente === "object") {
+            return [docente.apellido, docente.nombre]
+              .filter(Boolean)
+              .join(" ")
+              .trim();
+          }
 
-      const datosConstruidos = {
-        participaFotia,
-        asignaturasEnFortalecimiento,
-        asignaturasAcreditadas,
-        docentesResponsables,
-        observaciones,
-      };
+          return "";
+        };
 
-      console.log(
-        "FOTIA · datos enviados al informe:",
-        datosConstruidos,
-      );
+        const observacionesSinDepurar = [
+          ...listaInscripciones.map((inscripcion) => ({
+            asignatura: String(inscripcion.asignatura || "").trim(),
 
-      if (componenteActivo) {
-        setDatosFotiaAlumno(datosConstruidos);
+            docente: obtenerNombreDocente(inscripcion),
+
+            texto: String(inscripcion.observaciones || "").trim(),
+
+            estado: String(inscripcion.estado || "").trim(),
+
+            fecha: inscripcion.fechaIncorporacion || "",
+
+            origen: "Inscripción",
+          })),
+
+          ...listaAcreditaciones.map((acreditacion) => ({
+            asignatura: String(acreditacion.asignatura || "").trim(),
+
+            docente: obtenerNombreDocente(acreditacion),
+
+            texto: String(acreditacion.observaciones || "").trim(),
+
+            estado: "Acreditada",
+
+            fecha: acreditacion.fechaAcreditacion || "",
+
+            origen: "Acreditación",
+          })),
+        ];
+
+        const observaciones = Array.from(
+          new Map(
+            observacionesSinDepurar
+              .filter((observacion) => observacion.texto.length > 0)
+              .map((observacion) => {
+                const clave = [
+                  observacion.asignatura,
+                  observacion.docente,
+                  observacion.texto,
+                  observacion.estado,
+                ]
+                  .join("|")
+                  .toLowerCase();
+
+                return [clave, observacion];
+              }),
+          ).values(),
+        );
+
+        const participaFotia =
+          listaInscripciones.length > 0 || listaAcreditaciones.length > 0;
+
+        const datosConstruidos = {
+          participaFotia,
+          asignaturasEnFortalecimiento,
+          asignaturasAcreditadas,
+          docentesResponsables,
+          observaciones,
+        };
+
+        console.log("FOTIA · datos enviados al informe:", datosConstruidos);
+
+        if (componenteActivo) {
+          setDatosFotiaAlumno(datosConstruidos);
+        }
+      } catch (error) {
+        console.error("Error al obtener FOTIA para el informe:", error);
+
+        if (componenteActivo) {
+          setDatosFotiaAlumno(estadoVacioFotia);
+        }
       }
-    } catch (error) {
-      console.error(
-        "Error al obtener FOTIA para el informe:",
-        error,
-      );
+    }
 
-      if (componenteActivo) {
-        setDatosFotiaAlumno(estadoVacioFotia);
-      }
-    } 
-  }
+    obtenerFotiaDelAlumno();
 
-  obtenerFotiaDelAlumno();
-
-  return () => {
-    componenteActivo = false;
-  };
-}, [alumnoSeleccionado]);
+    return () => {
+      componenteActivo = false;
+    };
+  }, [alumnoSeleccionado]);
 
   useEffect(() => {
     if (!mostrarInformeCompleto) return undefined;
