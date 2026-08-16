@@ -21,13 +21,19 @@ const usuarioSchema = new mongoose.Schema(
 
     rol: {
       type: String,
-      enum: ["admin", "consulta", "estudiante"],
+      enum: ["admin", "consulta", "estudiante", "docente"],
       default: "consulta",
     },
 
     alumnoId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "MatriculaAlumno",
+      default: null,
+    },
+
+    docenteId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "FotiaDocente",
       default: null,
     },
 
@@ -46,7 +52,4 @@ const usuarioSchema = new mongoose.Schema(
   },
 );
 
-export default mongoose.model(
-  "Usuario",
-  usuarioSchema,
-);
+export default mongoose.model("Usuario", usuarioSchema);

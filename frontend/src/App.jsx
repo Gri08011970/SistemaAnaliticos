@@ -13,15 +13,29 @@ import PortadaInstitucional from "./components/PortadaInstitucional";
 import DomicilioTelefono from "./components/DomicilioTelefono";
 import AutorizadosRetirar from "./components/AutorizadosRetirar";
 import ParteDiarioMatricula from "./components/ParteDiarioMatricula";
+import PortalEstudianteFotia from "./components/matricula/fotia/PortalEstudianteFotia";
+import PortalDocenteFotia from "./components/matricula/fotia/PortalDocenteFotia"; 
 
 export default function App() {
   const rolUsuario = localStorage.getItem("rolUsuario") || "consulta";
+
   const esAdmin = rolUsuario === "admin";
+  const esEstudiante = rolUsuario === "estudiante";
+  const esDocente =
+  rolUsuario === "docente";
+  const docenteIdUsuario =
+  localStorage.getItem("docenteIdUsuario");
+
+  const alumnoIdUsuario = localStorage.getItem("alumnoIdUsuario") || "";
+
   const nombreUsuario = localStorage.getItem("nombreUsuario") || "Usuario";
+
   const ultimoAcceso = localStorage.getItem("ultimoAcceso");
+
   const [logueado, setLogueado] = useState(() => {
     return localStorage.getItem("rolUsuario") !== null;
   });
+
   const [dniBusqueda, setDniBusqueda] = useState("");
   const [apellidoBusqueda, setApellidoBusqueda] = useState("");
   const [estadoFiltro, setEstadoFiltro] = useState("Todos");
@@ -248,6 +262,48 @@ export default function App() {
     return <Login setLogueado={setLogueado} />;
   }
 
+  if (esEstudiante) {
+  return (
+    <PortalEstudianteFotia
+      alumnoId={alumnoIdUsuario}
+      nombreUsuario={nombreUsuario}
+      cerrarSesion={() => {
+        localStorage.removeItem("rolUsuario");
+        localStorage.removeItem("usuario");
+        localStorage.removeItem("nombreUsuario");
+        localStorage.removeItem("ultimoAcceso");
+        localStorage.removeItem("alumnoIdUsuario");
+        localStorage.removeItem("tokenUsuario");
+        localStorage.removeItem("docenteIdUsuario");
+
+        setLogueado(false);
+        setMostrarPortada(true);
+      }}
+    />
+  );
+}
+
+if (esDocente) {
+  return (
+    <PortalDocenteFotia
+      docenteId={docenteIdUsuario}
+      nombreUsuario={nombreUsuario}
+      cerrarSesion={() => {
+        localStorage.removeItem("rolUsuario");
+        localStorage.removeItem("usuario");
+        localStorage.removeItem("nombreUsuario");
+        localStorage.removeItem("ultimoAcceso");
+        localStorage.removeItem("alumnoIdUsuario");
+        localStorage.removeItem("docenteIdUsuario");
+        localStorage.removeItem("tokenUsuario");
+
+        setLogueado(false);
+        setMostrarPortada(true);
+      }}
+    />
+  );
+}
+
   return (
     <div
       style={{
@@ -263,9 +319,19 @@ export default function App() {
           <strong>{nombreUsuario}</strong>
 
           <span
-            style={rolUsuario === "admin" ? insigniaAdmin : insigniaConsulta}
+            style={
+              rolUsuario === "admin"
+                ? insigniaAdmin
+                : rolUsuario === "estudiante"
+                  ? insigniaEstudiante
+                  : insigniaConsulta
+            }
           >
-            {rolUsuario === "admin" ? "Administrador" : "Consulta"}
+            {rolUsuario === "admin"
+              ? "Administrador"
+              : rolUsuario === "estudiante"
+                ? "Estudiante"
+                : "Consulta"}
           </span>
 
           {ultimoAcceso && (
@@ -484,23 +550,23 @@ export default function App() {
           )}
 
         {(seccionActiva === "matricula" || seccionActiva === "parteDiario") && (
-  <div
-    style={{
-      display: "flex",
-      justifyContent: "flex-start",
-      marginTop: "-10px",
-      marginBottom: "18px",
-    }}
-  >
-    <button
-      className="boton-sistema boton-volver"
-      onClick={() => setSeccionActiva("inicio")}
-      style={botonVolver}
-    >
-      ← Inicio
-    </button>
-  </div>
-)}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-start",
+              marginTop: "-10px",
+              marginBottom: "18px",
+            }}
+          >
+            <button
+              className="boton-sistema boton-volver"
+              onClick={() => setSeccionActiva("inicio")}
+              style={botonVolver}
+            >
+              ← Inicio
+            </button>
+          </div>
+        )}
 
         {seccionActiva === "parteDiario" && (
           <ParteDiarioMatricula
@@ -630,6 +696,9 @@ export default function App() {
                 onClick={() => {
                   localStorage.removeItem("rolUsuario");
                   localStorage.removeItem("usuario");
+                  localStorage.removeItem("nombreUsuario");
+                  localStorage.removeItem("ultimoAcceso");
+                  localStorage.removeItem("alumnoIdUsuario");
                   setMostrarDespedida(false);
                   setLogueado(false);
                   setMostrarPortada(true);
@@ -645,7 +714,7 @@ export default function App() {
   );
 }
 
-const botonMenu = { 
+const botonMenu = {
   backgroundColor: "#19766f",
   color: "white",
   border: "none",
@@ -666,7 +735,7 @@ const botonVolver = {
   minHeight: "38px",
   padding: "10px 16px",
   borderRadius: "10px",
-  cursor: "pointer", 
+  cursor: "pointer",
   fontWeight: "bold",
   fontSize: "13px",
   transition: "all 0.25s ease",
@@ -847,6 +916,15 @@ const insigniaAdmin = {
 const insigniaConsulta = {
   backgroundColor: "#dbeafe",
   color: "#1d4ed8",
+  padding: "3px 8px",
+  borderRadius: "999px",
+  fontWeight: "bold",
+  width: "fit-content",
+};
+
+const insigniaEstudiante = {
+  backgroundColor: "#f3e8ff",
+  color: "#6b21a8",
   padding: "3px 8px",
   borderRadius: "999px",
   fontWeight: "bold",

@@ -1,6 +1,11 @@
 import express from "express";
 
 import {
+  verificarToken,
+  soloEstudiante,
+} from "../middleware/authMiddleware.js";
+
+import {
   // Períodos
   obtenerPeriodosController,
   obtenerPeriodoController,
@@ -17,6 +22,7 @@ import {
   obtenerAcreditacionesController,
   obtenerInscripcionesController,
   obtenerInscripcionController,
+  obtenerMisAsignaturasEstudianteController,
   incorporarAsignaturaController,
   actualizarInscripcionController,
   retirarAsignaturaController,
@@ -24,6 +30,9 @@ import {
 
   // Acreditación
   acreditarInscripcionController,
+
+ 
+
 } from "../controllers/fotiaController.js";
 
 const router = express.Router();
@@ -74,6 +83,17 @@ router.post(
 router.put(
   "/docentes/:id",
   actualizarDocenteController
+);
+
+// ======================================================
+// PORTAL ESTUDIANTE
+// ======================================================
+
+router.get(
+  "/mi-espacio/asignaturas",
+  verificarToken,
+  soloEstudiante,
+  obtenerMisAsignaturasEstudianteController,
 );
 
 // ======================================================

@@ -11,7 +11,7 @@ import {
 
   listarInscripciones,
   obtenerInscripcionPorId,
-  incorporarAsignaturaAFotia,
+  incorporarAsignaturaAFotia, 
   actualizarInscripcion,
   retirarAsignaturaDeFotia,
   eliminarEstudianteDelPeriodoFotia,
@@ -199,6 +199,38 @@ export const obtenerInscripcionesController = async (
     });
 
     res.json(inscripciones);
+  } catch (error) {
+    responderError(res, error);
+  }
+};
+
+// =====================================================
+// PORTAL ESTUDIANTE - MIS ASIGNATURAS
+// =====================================================
+
+export const obtenerMisAsignaturasEstudianteController = async (
+  req,
+  res,
+) => {
+  try {
+    const alumnoId = req.usuario?.alumnoId;
+
+    if (!alumnoId) {
+      return res.status(403).json({
+        mensaje:
+          "La cuenta del estudiante no está vinculada con Matrícula.",
+      });
+    }
+
+    const inscripciones = await listarInscripciones({
+      alumnoId,
+      activo: true,
+    });
+
+    res.json({
+      cantidad: inscripciones.length,
+      inscripciones,
+    });
   } catch (error) {
     responderError(res, error);
   }

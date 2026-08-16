@@ -1,47 +1,60 @@
-import { useState } from "react"
-import loginFondo from "../assets/escuela140/login_fondo11.png"
+import { useState } from "react";
+import loginFondo from "../assets/escuela140/login_fondo11.png";
 
 export default function Login({ setLogueado }) {
-  const [usuario, setUsuario] = useState("")
-  const [contrasena, setContrasena] = useState("")
-  const [error, setError] = useState("")
+  const [usuario, setUsuario] = useState("");
+  const [contrasena, setContrasena] = useState("");
+  const [error, setError] = useState("");
 
   async function ingresar() {
     try {
       const respuesta = await fetch("/login", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           usuario,
-          password: contrasena
-        })
-      })
+          password: contrasena,
+        }),
+      });
 
-      const datos = await respuesta.json()
+      const datos = await respuesta.json();
 
       if (!respuesta.ok) {
-        setError(datos.mensaje || "Usuario o contraseña incorrectos")
-        return
+        setError(datos.mensaje || "Usuario o contraseña incorrectos");
+        return;
       }
 
-      localStorage.setItem("rolUsuario", datos.rol)
-      localStorage.setItem("usuario", datos.usuario)
-      localStorage.setItem("nombreUsuario", datos.nombre)
-      localStorage.setItem("ultimoAcceso", datos.ultimoAcceso)
+      localStorage.setItem("rolUsuario", datos.rol);
+      localStorage.setItem("usuario", datos.usuario);
+      localStorage.setItem("nombreUsuario", datos.nombre);
+      localStorage.setItem("ultimoAcceso", datos.ultimoAcceso);
+      localStorage.setItem("tokenUsuario", datos.token);
 
-      setLogueado(true)
-      setError("")
+      if (datos.alumnoId) {
+        localStorage.setItem("alumnoIdUsuario", datos.alumnoId);
+      } else {
+        localStorage.removeItem("alumnoIdUsuario");
+      }
+
+      if (datos.docenteId) {
+        localStorage.setItem("docenteIdUsuario", datos.docenteId);
+      } else {
+        localStorage.removeItem("docenteIdUsuario");
+      }
+
+      setLogueado(true);
+      setError("");
     } catch (error) {
-      console.log(error)
-      setError("Error al conectar con el servidor")
+      console.log(error);
+      setError("Error al conectar con el servidor");
     }
   }
 
   return (
-    <div  className="login-contenedor" style={contenedor}>
-      <div  className="login-tarjeta" style={tarjeta}>
+    <div className="login-contenedor" style={contenedor}>
+      <div className="login-tarjeta" style={tarjeta}>
         <h1 style={titulo}>Bienvenidos</h1>
         <p style={subtitulo}>E.E.S. N° 140</p>
 
@@ -68,7 +81,7 @@ export default function Login({ setLogueado }) {
         </button>
       </div>
     </div>
-  )
+  );
 }
 
 const contenedor = {
@@ -82,8 +95,8 @@ const contenedor = {
   justifyContent: "flex-end",
   paddingRight: "7%",
   paddingLeft: "5%",
-  fontFamily: "Arial"
-}
+  fontFamily: "Arial",
+};
 
 const tarjeta = {
   backgroundColor: "rgba(255,255,255,0.96)",
@@ -95,31 +108,31 @@ const tarjeta = {
   flexDirection: "column",
   gap: "15px",
   border: "2px solid #c7dde3",
-  backdropFilter: "blur(4px)" 
-}
+  backdropFilter: "blur(4px)",
+};
 
 const titulo = {
   color: "#1e3a5f",
   marginBottom: "0",
   fontSize: "27px",
   lineHeight: "1.1",
-  textAlign: "center"
-}
+  textAlign: "center",
+};
 
 const subtitulo = {
   color: "#0f766e",
   marginTop: "0",
   textAlign: "center",
-  fontWeight: "bold"
-}
+  fontWeight: "bold",
+};
 
 const input = {
   padding: "13px",
   borderRadius: "12px",
   border: "1px solid #b9cbd1",
   fontSize: "15px",
-  outlineColor: "#0f766e"
-}
+  outlineColor: "#0f766e",
+};
 
 const boton = {
   backgroundColor: "#0f766e",
@@ -129,11 +142,11 @@ const boton = {
   borderRadius: "999px",
   cursor: "pointer",
   fontWeight: "bold",
-  boxShadow: "0 4px 10px rgba(0,0,0,0.15)"
-}
+  boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
+};
 
 const errorTexto = {
   color: "#c62828",
   fontWeight: "bold",
-  textAlign: "center"
-}
+  textAlign: "center",
+};
