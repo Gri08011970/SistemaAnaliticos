@@ -1,4 +1,4 @@
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 
 const usuarioSchema = new mongoose.Schema(
   {
@@ -6,38 +6,47 @@ const usuarioSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      trim: true
+      trim: true,
     },
 
     password: {
       type: String,
-      required: true
+      required: true,
     },
 
     nombre: {
       type: String,
-      required: true
+      required: true,
     },
 
     rol: {
       type: String,
-      enum: ["admin", "consulta"],
-      default: "consulta"
+      enum: ["admin", "consulta", "estudiante"],
+      default: "consulta",
+    },
+
+    alumnoId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "MatriculaAlumno",
+      default: null,
     },
 
     ultimoAcceso: {
       type: Date,
-      default: null
+      default: null,
     },
 
     activo: {
       type: Boolean,
-      default: true
-    }
+      default: true,
+    },
   },
   {
-    timestamps: true
-  }
-)
+    timestamps: true,
+  },
+);
 
-export default mongoose.model("Usuario", usuarioSchema)
+export default mongoose.model(
+  "Usuario",
+  usuarioSchema,
+);

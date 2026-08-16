@@ -8,6 +8,7 @@ export default function AutorizadosRetirar({ volverInicio, esAdmin }) {
   const [cursoSeleccionado, setCursoSeleccionado] = useState("")
   const [borradores, setBorradores] = useState({})
   const [alumnosDesplegados, setAlumnosDesplegados] = useState({})
+  const [registroEditandoId, setRegistroEditandoId] = useState(null)
 
   useEffect(() => {
     obtenerRegistros()
@@ -129,6 +130,106 @@ export default function AutorizadosRetirar({ volverInicio, esAdmin }) {
       : registro.vinculo || ""
   }
 
+
+  function esMarcaSinAutorizados(registro) {
+    const nombre = String(registro?.adultoAutorizado || "")
+      .trim()
+      .toUpperCase()
+
+    const vinculo = String(registro?.vinculo || "")
+      .trim()
+      .toUpperCase()
+
+    const dni = String(registro?.dniAdultoResponsable || "")
+      .replace(/\D/g, "")
+
+    return (
+      nombre === "NADIE" ||
+      nombre === "SIN AUTORIZADOS" ||
+      nombre === "SIN PERSONAS AUTORIZADAS" ||
+      vinculo === "NADIE" ||
+      (nombre === "" && /^0+$/.test(dni))
+    )
+  }
+
+  function limpiarBorradorAlumno(alumnoId) {
+    setBorradores((previo) => ({
+      ...previo,
+      [alumnoId]: {
+        adultoAutorizado: "",
+        vinculo: "Hno/a",
+        vinculoOtro: "",
+        dniAdultoResponsable: ""
+      }
+    }))
+
+    setRegistroEditandoId(null)
+  }
+
+  function iniciarEdicion(alumno, registro) {
+    if (!esAdmin) return
+
+    setBorradores((previo) => ({
+      ...previo,
+      [alumno._id]: {
+        adultoAutorizado: registro.adultoAutorizado || "",
+        vinculo: registro.vinculo || "Hno/a",
+        vinculoOtro: registro.vinculoOtro || "",
+        dniAdultoResponsable: registro.dniAdultoResponsable || ""
+      }
+    }))
+
+    setRegistroEditandoId(registro._id)
+  }
+
+  function cancelarEdicion(alumnoId) {
+    limpiarBorradorAlumno(alumnoId)
+  }
+
+  async function marcarSinAutorizados(alumno) {
+    if (!esAdmin) {
+      alert("Solo el administrador puede guardar cambios.")
+      return
+    }
+
+    const registrosAlumno = registrosPorAlumno[alumno._id] || []
+    const autorizadosReales = registrosAlumno.filter(
+      (registro) => !esMarcaSinAutorizados(registro)
+    )
+
+    if (autorizadosReales.length > 0) {
+      alert(
+        "Este estudiante ya posee personas autorizadas. Eliminá esos registros antes de marcar que no autoriza a nadie."
+      )
+      return
+    }
+
+    const marcaExistente = registrosAlumno.find(esMarcaSinAutorizados)
+
+    if (marcaExistente) {
+      alert("El estudiante ya está marcado sin personas autorizadas.")
+      return
+    }
+
+    try {
+      await axios.post("/api/autorizados", {
+        alumnoId: alumno._id,
+        curso: alumno.curso || "",
+        apellidoNombre: nombreCompletoAlumno(alumno),
+        dniAlumno: alumno.dni || "",
+        adultoAutorizado: "NADIE",
+        vinculo: "NADIE",
+        vinculoOtro: "",
+        dniAdultoResponsable: "00"
+      })
+
+      await obtenerRegistros()
+    } catch (error) {
+      console.log(error)
+      alert("Error al marcar que no posee personas autorizadas.")
+    }
+  }
+
   async function guardarAlumno(alumno) {
     if (!esAdmin) {
       alert("Solo el administrador puede guardar cambios.")
@@ -154,22 +255,30 @@ export default function AutorizadosRetirar({ volverInicio, esAdmin }) {
     }
 
     try {
-      await axios.post("/api/autorizados", datos)
+      if (registroEditandoId) {
+        await axios.put(`/api/autorizados/${registroEditandoId}`, datos)
+      } else {
+        const registrosAlumno = registrosPorAlumno[alumno._id] || []
+        const marcaSinAutorizados = registrosAlumno.find(
+          esMarcaSinAutorizados
+        )
 
-      setBorradores((previo) => ({
-        ...previo,
-        [alumno._id]: {
-          adultoAutorizado: "",
-          vinculo: "Hno/a",
-          vinculoOtro: "",
-          dniAdultoResponsable: ""
+        if (marcaSinAutorizados) {
+          await axios.delete(`/api/autorizados/${marcaSinAutorizados._id}`)
         }
-      }))
 
-      obtenerRegistros()
+        await axios.post("/api/autorizados", datos)
+      }
+
+      limpiarBorradorAlumno(alumno._id)
+      await obtenerRegistros()
     } catch (error) {
       console.log(error)
-      alert("Error al guardar el registro")
+      alert(
+        registroEditandoId
+          ? "Error al actualizar el autorizado"
+          : "Error al guardar el registro"
+      )
     }
   }
 
@@ -195,7 +304,13 @@ export default function AutorizadosRetirar({ volverInicio, esAdmin }) {
 
     const filas = alumnosParaImprimir
       .map((alumno) => {
-        const autorizadosAlumno = registrosPorAlumno[alumno._id] || []
+        const registrosAlumno = registrosPorAlumno[alumno._id] || []
+        const marcaSinAutorizados = registrosAlumno.some(
+          esMarcaSinAutorizados
+        )
+        const autorizadosAlumno = registrosAlumno.filter(
+          (registro) => !esMarcaSinAutorizados(registro)
+        )
 
         const autorizadosHTML =
           autorizadosAlumno.length > 0
@@ -210,7 +325,9 @@ export default function AutorizadosRetirar({ volverInicio, esAdmin }) {
                   `
                 )
                 .join("")
-            : `<span class="sin-datos">Sin autorizados cargados</span>`
+            : marcaSinAutorizados
+              ? `<span class="sin-autorizados">SIN AUTORIZADOS</span>`
+              : `<span class="sin-datos">Sin información cargada</span>`
 
         return `
           <tr>
@@ -286,6 +403,16 @@ export default function AutorizadosRetirar({ volverInicio, esAdmin }) {
             .sin-datos {
               color: #777;
               font-style: italic;
+            }
+
+            .sin-autorizados {
+              display: inline-block;
+              padding: 5px 9px;
+              border: 1px solid #d9a5a5;
+              border-radius: 999px;
+              background: #f7dddd;
+              color: #8b2e2e;
+              font-weight: 700;
             }
           </style>
         </head>
@@ -425,7 +552,7 @@ export default function AutorizadosRetirar({ volverInicio, esAdmin }) {
 
         {cursoSeleccionado && (
           <div style={progreso}>
-            Curso {cursoSeleccionado}: {completosCurso} de {totalCurso} con autorizados
+            Curso {cursoSeleccionado}: {completosCurso} de {totalCurso} con información registrada
           </div>
         )}
       </div>
@@ -483,6 +610,17 @@ export default function AutorizadosRetirar({ volverInicio, esAdmin }) {
               alumnosDelCurso.map((alumno) => {
                 const borrador = obtenerBorrador(alumno)
                 const registrosAlumno = registrosPorAlumno[alumno._id] || []
+                const marcaSinAutorizados = registrosAlumno.find(
+                  esMarcaSinAutorizados
+                )
+                const autorizadosReales = registrosAlumno.filter(
+                  (registro) => !esMarcaSinAutorizados(registro)
+                )
+                const estaEditando =
+                  registroEditandoId &&
+                  registrosAlumno.some(
+                    (registro) => registro._id === registroEditandoId
+                  )
 
                 return (
                   <tr key={alumno._id} className="fila-tabla">
@@ -549,27 +687,92 @@ export default function AutorizadosRetirar({ volverInicio, esAdmin }) {
                     </td>
 
                     <td style={celda}>
-                      <button
-                        className="boton-accion"
-                        style={{
-                          ...botonGuardarFila,
-                          opacity: esAdmin ? 1 : 0.45,
-                          cursor: esAdmin ? "pointer" : "not-allowed"
-                        }}
-                        disabled={!esAdmin}
-                        onClick={() => guardarAlumno(alumno)}
-                        title="Guardar autorizado"
-                      >
-                        💾
-                      </button>
+                      <div style={accionesFila}>
+                        <button
+                          className="boton-accion"
+                          style={{
+                            ...botonGuardarFila,
+                            opacity: esAdmin ? 1 : 0.45,
+                            cursor: esAdmin ? "pointer" : "not-allowed"
+                          }}
+                          disabled={!esAdmin}
+                          onClick={() => guardarAlumno(alumno)}
+                          title={
+                            estaEditando
+                              ? "Guardar cambios"
+                              : "Guardar autorizado"
+                          }
+                        >
+                          {estaEditando ? "💾 Guardar" : "💾"}
+                        </button>
+
+                        {estaEditando && (
+                          <button
+                            type="button"
+                            style={botonCancelarEdicion}
+                            onClick={() => cancelarEdicion(alumno._id)}
+                            title="Cancelar edición"
+                          >
+                            ✖
+                          </button>
+                        )}
+
+                        {!estaEditando &&
+                          autorizadosReales.length === 0 &&
+                          !marcaSinAutorizados && (
+                            <button
+                              type="button"
+                              style={{
+                                ...botonSinAutorizados,
+                                opacity: esAdmin ? 1 : 0.45,
+                                cursor: esAdmin
+                                  ? "pointer"
+                                  : "not-allowed"
+                              }}
+                              disabled={!esAdmin}
+                              onClick={() =>
+                                marcarSinAutorizados(alumno)
+                              }
+                              title="Marcar que no autoriza a ninguna persona"
+                            >
+                              🚫 Nadie
+                            </button>
+                          )}
+                      </div>
                     </td>
 
                     <td style={celdaCargados}>
                       {registrosAlumno.length === 0 && (
-                        <span style={sinAutorizados}>—</span>
+                        <span style={sinInformacion}>
+                          Sin información cargada
+                        </span>
                       )}
 
-                      {registrosAlumno.length > 0 && (
+                      {marcaSinAutorizados &&
+                        autorizadosReales.length === 0 && (
+                          <div style={estadoSinAutorizados}>
+                            <span>
+                             🚫  Sin autorizados
+                            </span>
+
+                            {esAdmin && (
+                              <button
+                                type="button"
+                                style={botonQuitarMarca}
+                                onClick={() =>
+                                  eliminarRegistro(
+                                    marcaSinAutorizados._id
+                                  )
+                                }
+                                title="Quitar esta marca"
+                              >
+                                🗑️
+                              </button>
+                            )}
+                          </div>
+                        )}
+
+                      {autorizadosReales.length > 0 && (
                         <>
                           <button
                             style={botonDesplegar}
@@ -577,15 +780,15 @@ export default function AutorizadosRetirar({ volverInicio, esAdmin }) {
                             title="Ver autorizados cargados"
                           >
                             {alumnosDesplegados[alumno._id] ? "▲" : "▼"}{" "}
-                            {registrosAlumno.length}{" "}
-                            {registrosAlumno.length === 1
+                            {autorizadosReales.length}{" "}
+                            {autorizadosReales.length === 1
                               ? "autorizado"
                               : "autorizados"}
                           </button>
 
                           {alumnosDesplegados[alumno._id] && (
                             <div style={contenedorAutorizados}>
-                              {registrosAlumno.map((registro) => (
+                              {autorizadosReales.map((registro) => (
                                 <div key={registro._id} style={tarjetaAutorizado}>
                                   <div style={nombreAutorizado}>
                                     {registro.adultoAutorizado}
@@ -602,13 +805,30 @@ export default function AutorizadosRetirar({ volverInicio, esAdmin }) {
                                   </div>
 
                                   {esAdmin && (
-                                    <button
-                                      style={botonEliminarMini}
-                                      onClick={() => eliminarRegistro(registro._id)}
-                                      title="Eliminar autorizado"
-                                    >
-                                      🗑️ Eliminar
-                                    </button>
+                                    <div style={accionesTarjeta}>
+                                      <button
+                                        style={botonEditarMini}
+                                        onClick={() =>
+                                          iniciarEdicion(
+                                            alumno,
+                                            registro
+                                          )
+                                        }
+                                        title="Editar autorizado"
+                                      >
+                                        ✏️ Editar
+                                      </button>
+
+                                      <button
+                                        style={botonEliminarMini}
+                                        onClick={() =>
+                                          eliminarRegistro(registro._id)
+                                        }
+                                        title="Eliminar autorizado"
+                                      >
+                                        🗑️ Eliminar
+                                      </button>
+                                    </div>
                                   )}
                                 </div>
                               ))}
@@ -798,9 +1018,85 @@ const nombreAutorizado = {
   marginBottom: "4px"
 }
 
-const sinAutorizados = {
+const sinInformacion = {
   color: "#777",
   fontStyle: "italic"
+}
+
+const accionesFila = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: "6px",
+  flexWrap: "wrap"
+}
+
+const botonCancelarEdicion = {
+  backgroundColor: "#eef1f4",
+  color: "#52616b",
+  border: "none",
+  borderRadius: "9px",
+  cursor: "pointer",
+  padding: "6px 8px"
+}
+
+const botonSinAutorizados = {
+  backgroundColor: "#f8e4e4",
+  color: "#8b2e2e",
+  border: "1px solid #e4baba",
+  borderRadius: "999px",
+  padding: "5px 9px",
+  fontSize: "12px",
+  lineHeight: 1.15,
+  fontWeight: "700"
+}
+
+const estadoSinAutorizados = {
+  position: "relative",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: "6px",
+  width: "100%",
+  minHeight: "34px",
+  boxSizing: "border-box",
+  padding: "6px 10px",
+  border: "1px solid #e4baba",
+  borderRadius: "999px",
+  backgroundColor: "#f8e4e4",
+  color: "#8b2e2e",
+  fontSize: "13px",
+  lineHeight: 1.15,
+  fontWeight: "700",
+  textAlign: "center"
+}
+
+const botonQuitarMarca = {
+  position: "absolute",
+  right: "8px",
+  flexShrink: 0,
+  backgroundColor: "transparent",
+  color: "#8b2e2e",
+  border: "none",
+  cursor: "pointer",
+  padding: "2px",
+  opacity: 0.7
+}
+
+const accionesTarjeta = {
+  display: "flex",
+  gap: "6px",
+  flexWrap: "wrap",
+  marginTop: "6px"
+}
+
+const botonEditarMini = {
+  backgroundColor: "#e5eef9",
+  color: "#24527a",
+  border: "none",
+  borderRadius: "999px",
+  cursor: "pointer",
+  padding: "5px 8px"
 }
 
 const botonEliminarMini = {

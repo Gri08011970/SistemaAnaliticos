@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState} from "react";
 
 import SeguimientoPedagogico from "./SeguimientoPedagogico/SeguimientoPedagogico";
 import GestionFotia from "./fotia/GestionFotia";
@@ -11,8 +11,9 @@ import ListadoLegajosMatricula from "./ListadoLegajosMatricula";
 import RecursantesMatricula from "./RecursantesMatricula";
 import TurnosCursosMatricula from "./TurnosCursosMatricula";
 import TarjetaModulo from "./TarjetaModulo";
+import PlanillaReinscripcion from "./PlanillaReinscripcion";
 
-export default function HerramientasGestionMatricula({
+export default function HerramientasGestionMatricula({ 
   esAdmin,
   alumnosMatricula,
 
@@ -174,6 +175,13 @@ export default function HerramientasGestionMatricula({
               descripcion="Acceso a cursos del turno mañana y del turno tarde."
               onEntrar={() => setSeccionActiva("cursos")}
               colorBorde="#b7ddd7"
+            />
+
+            <TarjetaModulo
+              titulo="📋 Planilla Integral de Reinscripción"
+              descripcion="Generación de planillas institucionales para verificar y actualizar los datos de cada curso."
+              onEntrar={() => setSeccionActiva("reinscripcion")}
+              colorBorde="#d2b7df"
             />
           </div>
         </>
@@ -370,7 +378,7 @@ export default function HerramientasGestionMatricula({
             setMostrarTurnoTarde={setMostrarTurnoTarde}
             fotosPreceptores={fotosPreceptores}
             contarAlumnos={contarAlumnos}
-            setCursoSeleccionado={setCursoSeleccionado}
+            setCursoSeleccionado={setCursoSeleccionado} 
             estilos={{
               contenedorTurnos,
               bloqueTurno,
@@ -379,6 +387,22 @@ export default function HerramientasGestionMatricula({
               tarjetaCurso,
               textoCantidad,
               botonCurso,
+            }}
+          />
+        </div>
+      )}
+
+      {seccionActiva === "reinscripcion" && (
+        <div style={{ width: "100%" }}>
+          <PlanillaReinscripcion
+            volver={volverATablero}
+            alumnosMatricula={alumnosMatricula}
+            seleccionarCurso={(curso, turno) => {
+              console.log(
+                "Curso seleccionado para reinscripción:",
+                curso,
+                turno,
+              );
             }}
           />
         </div>

@@ -598,7 +598,7 @@ app.use((req, res) => {
       "../frontend/dist/index.html" 
     )
   )
-})
+}) 
 
 // ======================
 // INICIAR SERVIDOR
