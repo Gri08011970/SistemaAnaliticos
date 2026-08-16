@@ -3,6 +3,7 @@ import express from "express";
 import {
   verificarToken,
   soloEstudiante,
+  soloDocente,
 } from "../middleware/authMiddleware.js";
 
 import {
@@ -31,9 +32,15 @@ import {
   // Acreditación
   acreditarInscripcionController,
 
- 
-
 } from "../controllers/fotiaController.js";
+
+import {
+  obtenerMisEspaciosDocenteController,
+  obtenerOCrearAulaDocenteController,
+  guardarMensajeDocenteController,
+  crearUnidadController,
+  cambiarPublicacionAulaController,
+} from "../controllers/fotiaContenidoController.js";
 
 const router = express.Router();
 
@@ -94,6 +101,50 @@ router.get(
   verificarToken,
   soloEstudiante,
   obtenerMisAsignaturasEstudianteController,
+);
+
+// ======================================================
+// PORTAL DOCENTE FOTIA
+// ======================================================
+
+// Mis espacios asignados
+router.get(
+  "/mi-espacio-docente",
+  verificarToken,
+  soloDocente,
+  obtenerMisEspaciosDocenteController,
+);
+
+// Obtener o crear el aula de un espacio
+router.post(
+  "/mi-espacio-docente/aula",
+  verificarToken,
+  soloDocente,
+  obtenerOCrearAulaDocenteController,
+);
+
+// Guardar mensaje escrito / referencia de audio
+router.put(
+  "/mi-espacio-docente/aulas/:contenidoId/mensaje",
+  verificarToken,
+  soloDocente,
+  guardarMensajeDocenteController,
+);
+
+// Crear una unidad o tema
+router.post(
+  "/mi-espacio-docente/aulas/:contenidoId/unidades",
+  verificarToken,
+  soloDocente,
+  crearUnidadController,
+);
+
+// Publicar o volver a borrador
+router.put(
+  "/mi-espacio-docente/aulas/:contenidoId/publicacion",
+  verificarToken,
+  soloDocente,
+  cambiarPublicacionAulaController,
 );
 
 // ======================================================

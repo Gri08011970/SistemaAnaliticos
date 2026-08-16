@@ -29,6 +29,7 @@ export const verificarToken = (
       usuario: datos.usuario,
       rol: datos.rol,
       alumnoId: datos.alumnoId || null,
+      docenteId: datos.docenteId || null,
     };
 
     next();
@@ -56,6 +57,28 @@ export const soloEstudiante = (
     return res.status(403).json({
       mensaje:
         "La cuenta no está vinculada a un estudiante de Matrícula.",
+    });
+  }
+
+  next();
+};
+
+export const soloDocente = (
+  req,
+  res,
+  next,
+) => {
+  if (req.usuario?.rol !== "docente") {
+    return res.status(403).json({
+      mensaje:
+        "Esta sección es exclusiva para docentes.",
+    });
+  }
+
+  if (!req.usuario.docenteId) {
+    return res.status(403).json({
+      mensaje:
+        "La cuenta no está vinculada a un docente de FOTIA.",
     });
   }
 
