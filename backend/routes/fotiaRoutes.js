@@ -1,4 +1,5 @@
 import express from "express";
+import uploadFotia from "../middleware/uploadFotiaMiddleware.js";
 
 import {
   verificarToken,
@@ -25,12 +26,14 @@ import {
   obtenerInscripcionController,
   obtenerMisAsignaturasEstudianteController,
   incorporarAsignaturaController,
-  actualizarInscripcionController,
+   actualizarInscripcionController,
   retirarAsignaturaController,
+  
   eliminarEstudiantePeriodoController,
 
   // Acreditación
   acreditarInscripcionController,
+  
 
 } from "../controllers/fotiaController.js";
 
@@ -39,6 +42,13 @@ import {
   obtenerOCrearAulaDocenteController,
   guardarMensajeDocenteController,
   crearUnidadController,
+  actualizarUnidadController,
+  agregarMaterialUnidadController,
+   actualizarMaterialUnidadController,
+  retirarMaterialUnidadController,
+  subirArchivoFotiaController,
+  obtenerAulaPublicadaEstudianteController,
+  
   cambiarPublicacionAulaController,
 } from "../controllers/fotiaContenidoController.js";
 
@@ -92,15 +102,23 @@ router.put(
   actualizarDocenteController
 );
 
+
 // ======================================================
 // PORTAL ESTUDIANTE
 // ======================================================
 
-router.get(
+router.get( 
   "/mi-espacio/asignaturas",
   verificarToken,
   soloEstudiante,
   obtenerMisAsignaturasEstudianteController,
+);
+
+router.get(
+  "/mi-espacio/aulas/:inscripcionId",
+  verificarToken,
+  soloEstudiante,
+  obtenerAulaPublicadaEstudianteController,
 );
 
 // ======================================================
@@ -139,12 +157,48 @@ router.post(
   crearUnidadController,
 );
 
+router.put(
+  "/mi-espacio-docente/aulas/:contenidoId/unidades/:unidadId",
+  verificarToken,
+  soloDocente,
+  actualizarUnidadController,
+);
+
 // Publicar o volver a borrador
 router.put(
   "/mi-espacio-docente/aulas/:contenidoId/publicacion",
   verificarToken,
   soloDocente,
   cambiarPublicacionAulaController,
+);
+
+router.post(
+  "/mi-espacio-docente/aulas/:contenidoId/unidades/:unidadId/materiales",
+  verificarToken,
+  soloDocente,
+  agregarMaterialUnidadController,
+);
+
+router.put(
+  "/mi-espacio-docente/aulas/:contenidoId/unidades/:unidadId/materiales/:materialId",
+  verificarToken,
+  soloDocente,
+  actualizarMaterialUnidadController,
+);
+
+router.delete(
+  "/mi-espacio-docente/aulas/:contenidoId/unidades/:unidadId/materiales/:materialId",
+  verificarToken,
+  soloDocente,
+  retirarMaterialUnidadController,
+);
+
+router.post(
+  "/mi-espacio-docente/archivos",
+  verificarToken,
+  soloDocente,
+  uploadFotia.single("archivo"),
+  subirArchivoFotiaController,
 );
 
 // ======================================================

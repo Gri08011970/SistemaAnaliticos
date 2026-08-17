@@ -13,6 +13,7 @@ import SeguimientoPedagogico from "./models/SeguimientoPedagogico.js";
 import fotiaRoutes from "./routes/fotiaRoutes.js";
 import jwt from "jsonwebtoken";
 
+
 dotenv.config();
 
 const app = express();
@@ -23,6 +24,16 @@ const __dirname = path.dirname(__filename);
 app.use(cors());
 app.use(express.json());
 app.use("/api/fotia", fotiaRoutes);
+app.use(
+  "/uploads/fotia",
+  express.static(
+    path.join(
+      process.cwd(),
+      "uploads",
+      "fotia",
+    ),
+  ),
+);
 
 mongoose
   .connect(process.env.MONGO_URI)

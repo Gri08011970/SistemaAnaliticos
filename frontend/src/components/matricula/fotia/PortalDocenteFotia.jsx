@@ -16,7 +16,7 @@ export default function PortalDocenteFotia({ nombreUsuario, cerrarSesion }) {
       },
     })
       .then(async (respuesta) => {
-        const datos = await respuesta.json();
+        const datos = await respuesta.json(); 
 
         if (!respuesta.ok) {
           throw new Error(
@@ -50,18 +50,20 @@ export default function PortalDocenteFotia({ nombreUsuario, cerrarSesion }) {
     );
   }
 
-  function obtenerPeriodo(periodo) {
-    if (!periodo) {
-      return "Sin período informado";
-    }
+ function obtenerPeriodo(periodo) {
+  if (!periodo) return "Sin período";
 
-    if (periodo.nombre && periodo.cicloLectivo) {
-      return `${periodo.nombre} - ${periodo.cicloLectivo}`;
-    }
+  const nombre = periodo.nombre || "";
+  const ciclo = String(periodo.cicloLectivo || "");
 
-    return periodo.nombre || periodo.cicloLectivo || "Sin período informado";
+  // Si el nombre ya contiene el ciclo lectivo,
+  // evitamos mostrar el año dos veces.
+  if (ciclo && nombre.includes(ciclo)) {
+    return nombre;
   }
 
+  return ciclo ? `${nombre} ${ciclo}`.trim() : nombre;
+}
   return (
     <div style={pagina}>
       <div style={contenedor}>
@@ -69,7 +71,7 @@ export default function PortalDocenteFotia({ nombreUsuario, cerrarSesion }) {
           <div>
             <div style={etiqueta}>PORTAL DOCENTE</div>
 
-            <h1 style={titulo}>👩‍🏫 Mi espacio FOTIA</h1>
+            <h1 style={titulo}>📚 Mi espacio FOTIA</h1>
 
             <p style={subtitulo}>
               Gestión pedagógica de los espacios de fortalecimiento.
@@ -88,7 +90,7 @@ export default function PortalDocenteFotia({ nombreUsuario, cerrarSesion }) {
         </header>
 
         <section style={bienvenida}>
-          <div style={iconoBienvenida}>👩‍🏫</div>
+          <div style={iconoBienvenida}> 📚</div>
 
           <div>
             <h2 style={tituloBienvenida}>Bienvenido/a a tu espacio docente</h2>
@@ -146,62 +148,82 @@ export default function PortalDocenteFotia({ nombreUsuario, cerrarSesion }) {
             </div>
           )}
 
-          {!cargando && !error && espacios.length > 0 && (
-            <div style={grillaEspacios}>
-              {espacios.map((espacio, indice) => (
-                <article
-                  key={`${espacio.asignatura}-${espacio.curso}-${indice}`}
-                  style={tarjetaEspacio}
-                >
-                  <div style={cabeceraTarjeta}>
-                    <div style={iconoAsignatura}>📘</div>
+        {!cargando && !error && espacios.length > 0 && (
+  <div style={grillaEspacios}>
+    {espacios.map((espacio, indice) => (
+      <article
+        key={`${espacio.asignatura}-${espacio.curso}-${indice}`}
+        style={tarjetaEspacio}
+      >
+        <div style={cabeceraTarjeta}>
+          <div style={iconoAsignatura}>📘</div>
 
-                    <div>
-                      <div style={etiquetaMateria}>
-                        ESPACIO DE FORTALECIMIENTO
-                      </div>
-
-                      <h3 style={nombreAsignatura}>{espacio.asignatura}</h3>
-                    </div>
-                  </div>
-
-                  <div style={datosEspacio}>
-                    <div style={filaDato}>
-                      <span style={etiquetaDato}>🏫 Curso</span>
-
-                      <strong style={valorDato}>
-                        {espacio.curso || "Sin curso"}
-                      </strong>
-                    </div>
-
-                    <div style={filaDato}>
-                      <span style={etiquetaDato}>👥 Estudiantes</span>
-
-                      <strong style={valorDato}>
-                        {espacio.cantidadEstudiantes}
-                      </strong>
-                    </div>
-
-                    <div style={filaDato}>
-                      <span style={etiquetaDato}>📅 Período</span>
-
-                      <strong style={valorDato}>
-                        {obtenerPeriodo(espacio.periodoId)}
-                      </strong>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    style={botonGestionar}
-                    onClick={() => setEspacioSeleccionado(espacio)}
-                  >
-                    Gestionar aula →
-                  </button>
-                </article>
-              ))}
+          <div style={{ flex: 1 }}>
+            <div style={etiquetaMateria}>
+              ESPACIO DE FORTALECIMIENTO
             </div>
-          )}
+
+            <h3 style={nombreAsignatura}>
+              {espacio.asignatura}
+            </h3>
+          </div>
+        </div>
+
+        <div style={datosCompactos}>
+          <div style={datoCompacto}>
+            <span style={iconoDato}></span>
+
+            <div>
+              <div style={etiquetaDatoCompacto}>
+                Curso
+              </div>
+
+              <strong style={valorDatoCompacto}>
+                {espacio.curso || "Sin curso"}
+              </strong>
+            </div>
+          </div>
+
+          <div style={datoCompacto}>
+            <span style={iconoDato}></span>
+
+            <div>
+              <div style={etiquetaDatoCompacto}>
+                Estudiantes
+              </div>
+
+              <strong style={valorDatoCompacto}>
+                {espacio.cantidadEstudiantes}
+              </strong>
+            </div>
+          </div>
+        </div>
+
+        <div style={periodoCompacto}>
+          <span style={iconoDato}>📅</span>
+
+          <div>
+            <div style={etiquetaDatoCompacto}>
+              Período
+            </div>
+
+            <strong style={valorPeriodoCompacto}>
+              {obtenerPeriodo(espacio.periodoId)}
+            </strong>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          style={botonGestionar}
+          onClick={() => setEspacioSeleccionado(espacio)}
+        >
+          Gestionar aula →
+        </button>
+      </article>
+    ))}
+  </div>
+)}
         </section>
       </div>
     </div>
@@ -444,31 +466,6 @@ const nombreAsignatura = {
   fontSize: "22px",
 };
 
-const datosEspacio = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "10px",
-  marginBottom: "18px",
-};
-
-const filaDato = {
-  display: "flex",
-  justifyContent: "space-between",
-  gap: "14px",
-  paddingBottom: "9px",
-  borderBottom: "1px solid #edf2f4",
-};
-
-const etiquetaDato = {
-  color: "#6b7f8b",
-  fontSize: "13px",
-};
-
-const valorDato = {
-  color: "#304d63",
-  textAlign: "right",
-};
-
 const botonGestionar = {
   width: "100%",
   border: "none",
@@ -479,4 +476,51 @@ const botonGestionar = {
   cursor: "pointer",
   fontWeight: "700",
   boxShadow: "0 4px 10px rgba(15,118,110,0.18)",
+};
+const datosCompactos = {
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: "12px",
+  marginBottom: "12px",
+};
+
+const datoCompacto = {
+  display: "flex",
+  alignItems: "center",
+  gap: "9px",
+  padding: "10px 12px",
+  background: "#f7fbfc",
+  borderRadius: "12px",
+};
+
+const periodoCompacto = {
+  display: "flex",
+  alignItems: "center",
+  gap: "9px",
+  padding: "10px 12px",
+  marginBottom: "14px",
+  background: "#f7fbfc",
+  borderRadius: "12px",
+};
+
+const iconoDato = {
+  fontSize: "16px",
+  flexShrink: 0,
+};
+
+const etiquetaDatoCompacto = {
+  fontSize: "11px",
+  color: "#71838e",
+  marginBottom: "2px",
+};
+
+const valorDatoCompacto = {
+  color: "#173f68",
+  fontSize: "15px",
+};
+
+const valorPeriodoCompacto = {
+  color: "#173f68",
+  fontSize: "14px",
+  lineHeight: 1.3,
 };
