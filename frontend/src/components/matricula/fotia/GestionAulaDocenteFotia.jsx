@@ -203,6 +203,15 @@ export default function GestionAulaDocenteFotia({ espacio, volver }) {
     }
   }
 
+  function esUrlYoutube(url = "") {
+    const urlNormalizada = String(url || "").toLowerCase();
+
+    return (
+      urlNormalizada.includes("youtube.com/") ||
+      urlNormalizada.includes("youtu.be/")
+    );
+  }
+
   async function guardarMaterial(unidadId) {
     if (!contenido?._id) {
       setErrorMaterial("No se pudo identificar el aula.");
@@ -234,6 +243,18 @@ export default function GestionAulaDocenteFotia({ espacio, volver }) {
       return;
     }
 
+    if (contenido?.publicado) {
+      const confirmar = window.confirm(
+        "⚠️ Esta aula está publicada.\n\n" +
+          "Si guardás este material, tus estudiantes podrán verlo inmediatamente.\n\n" +
+          "¿Querés continuar?",
+      );
+
+      if (!confirmar) {
+        return;
+      }
+    }
+
     try {
       setGuardandoMaterial(true);
       setErrorMaterial("");
@@ -242,6 +263,7 @@ export default function GestionAulaDocenteFotia({ espacio, volver }) {
 
       let urlFinal = urlMaterial.trim();
       let nombreArchivoFinal = "";
+      let tipoFinal = tipoMaterial;
 
       // ==========================================
       // SI EL DOCENTE ELIGIÓ UN ARCHIVO LOCAL
@@ -277,6 +299,14 @@ export default function GestionAulaDocenteFotia({ espacio, volver }) {
           datosArchivo.archivo?.nombreOriginal || archivoMaterial.name || "";
       }
 
+      if (
+        origenMaterial === "url" &&
+        tipoMaterial === "enlace" &&
+        esUrlYoutube(urlFinal)
+      ) {
+        tipoFinal = "video";
+      }
+
       // ==========================================
       // GUARDAR EL RECURSO EN LA UNIDAD
       // ==========================================
@@ -290,7 +320,7 @@ export default function GestionAulaDocenteFotia({ espacio, volver }) {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            tipo: tipoMaterial,
+            tipo: tipoFinal,
             titulo: tituloMaterial.trim(),
             descripcion: descripcionMaterial.trim(),
             url: urlFinal,
@@ -350,11 +380,29 @@ export default function GestionAulaDocenteFotia({ espacio, volver }) {
       return;
     }
 
+    if (contenido?.publicado) {
+      const confirmar = window.confirm(
+        "⚠️ Esta aula está publicada.\n\n" +
+          "Los cambios que hagas en este material serán visibles inmediatamente para tus estudiantes.\n\n" +
+          "¿Querés guardar los cambios?",
+      );
+
+      if (!confirmar) {
+        return;
+      }
+    }
+
     try {
       setGuardandoEdicionMaterial(true);
       setErrorEdicionMaterial("");
 
       const token = localStorage.getItem("tokenUsuario");
+      const urlFinalEdicion = urlMaterialEditando.trim();
+
+      const tipoFinalEdicion =
+        tipoMaterialEditando === "enlace" && esUrlYoutube(urlFinalEdicion)
+          ? "video"
+          : tipoMaterialEditando;
 
       const respuesta = await fetch(
         `/api/fotia/mi-espacio-docente/aulas/${contenido._id}/unidades/${unidadId}/materiales/${materialId}`,
@@ -365,10 +413,10 @@ export default function GestionAulaDocenteFotia({ espacio, volver }) {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            tipo: tipoMaterialEditando,
+            tipo: tipoFinalEdicion,
             titulo: tituloMaterialEditando.trim(),
             descripcion: descripcionMaterialEditando.trim(),
-            url: urlMaterialEditando.trim(),
+            url: urlFinalEdicion,
             imprimible: imprimibleMaterialEditando,
           }),
         },
@@ -396,9 +444,21 @@ export default function GestionAulaDocenteFotia({ espacio, volver }) {
   }
 
   async function retirarMaterial(unidadId, materialId) {
+    if (contenido?.publicado) {
+      const confirmar = window.confirm(
+        "⚠️ Esta aula está publicada.\n\n" +
+          "Si retirás este recurso, tus estudiantes ya no lo verán.\n\n" +
+          "¿Querés continuar?",
+      );
+
+      if (!confirmar) {
+        return;
+      }
+    }
+
     const confirmar = window.confirm(
-       "¿Querés retirar este recurso del aula?\n\n" +
-    "Los estudiantes dejarán de verlo, pero el resto del aula continuará publicado.",
+      "¿Querés retirar este recurso del aula?\n\n" +
+        "Los estudiantes dejarán de verlo, pero el resto del aula continuará publicado.",
     );
 
     if (!confirmar) {
@@ -667,9 +727,7 @@ export default function GestionAulaDocenteFotia({ espacio, volver }) {
     }
   }
 
-  
-
-  function descargarRecurso(url, nombreArchivo = "archivo") { 
+  function descargarRecurso(url, nombreArchivo = "archivo") {
     if (!url) return;
 
     const enlace = document.createElement("a");
@@ -1494,18 +1552,22 @@ export default function GestionAulaDocenteFotia({ espacio, volver }) {
                                         )}
 
                                         {["imagen", "pdf"].includes(
-                                          tipoMaterial,
+                                          tipoMaterialEditando,
                                         ) && (
                                           <label style={opcionImprimible}>
                                             <input
                                               type="checkbox"
-                                              checked={materialImprimible}
+                                              checked={
+                                                imprimibleMaterialEditando
+                                              }
                                               onChange={(evento) =>
-                                                setMaterialImprimible(
+                                                setImprimibleMaterialEditando(
                                                   evento.target.checked,
                                                 )
                                               }
-                                              disabled={guardandoMaterial}
+                                              disabled={
+                                                guardandoEdicionMaterial
+                                              }
                                             />
 
                                             <span>
@@ -1887,7 +1949,7 @@ export default function GestionAulaDocenteFotia({ espacio, volver }) {
                                             }
                                             style={botonEliminarMaterial}
                                           >
-                                              🚫 Retirar
+                                            🚫 Retirar
                                           </button>
                                         </div>
                                       </>
@@ -2164,7 +2226,7 @@ export default function GestionAulaDocenteFotia({ espacio, volver }) {
                                           }
                                           style={botonEliminarMaterial}
                                         >
-                                            🚫 Retirar
+                                          🚫 Retirar
                                         </button>
                                       </div>
                                     </>
@@ -2803,8 +2865,6 @@ const textoPublicacion = {
   color: "#667984",
 };
 
-
-
 const estadoCarga = {
   background: "#ffffff",
   border: "1px solid #c9dce3",
@@ -3058,7 +3118,6 @@ const botonEditarUnidad = {
   fontWeight: "700",
   flexShrink: 0,
 };
-
 
 const formularioMaterial = {
   marginTop: "14px",
@@ -3388,7 +3447,7 @@ const miniaturaImagenMaterial = {
 };
 
 const contenedorAudioMaterial = {
-  margin: "12px 0",
+  margin: "12px 0", 
   padding: "12px",
   borderRadius: "12px",
   background: "#f7fbfc",

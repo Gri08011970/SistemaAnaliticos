@@ -84,3 +84,17 @@ export const soloDocente = (
 
   next();
 };
+export const soloAdmin = (
+  req,
+  res,
+  next,
+) => {
+  if (req.usuario?.rol !== "admin") {
+    return res.status(403).json({
+      mensaje:
+        "Esta sección es exclusiva para administradores.",
+    });
+  }
+
+  next();
+};

@@ -11,6 +11,7 @@ import DomicilioTelefono from "./models/DomicilioTelefono.js";
 import AutorizadoRetiro from "./models/AutorizadoRetiro.js";
 import SeguimientoPedagogico from "./models/SeguimientoPedagogico.js";
 import fotiaRoutes from "./routes/fotiaRoutes.js";
+import usuarioRoutes from "./routes/usuarioRoutes.js";
 import jwt from "jsonwebtoken";
 
 
@@ -19,11 +20,12 @@ dotenv.config();
 const app = express();
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = path.dirname(__filename); 
 
 app.use(cors());
 app.use(express.json());
 app.use("/api/fotia", fotiaRoutes);
+app.use("/api/usuarios", usuarioRoutes);
 app.use(
   "/uploads/fotia",
   express.static(
@@ -74,18 +76,33 @@ async function crearUsuariosIniciales() {
     }
   }
 }
-
 app.post("/login", async (req, res) => {
   try {
     const { usuario, password } = req.body;
 
-    console.log("BASE ACTUAL:", mongoose.connection.name);
-    console.log("COLECCION USUARIO:", Usuario.collection.name);
+    if (!usuario?.trim() || !password?.trim()) {
+      return res.status(400).json({
+        mensaje: "Ingresá usuario y contraseña",
+      });
+    }
 
     const usuarioEncontrado = await Usuario.findOne({
       usuario: usuario.trim().toLowerCase(),
       activo: true,
     });
+
+    if (
+      !usuarioEncontrado ||
+      usuarioEncontrado.password !== password.trim()
+    ) {
+      return res.status(401).json({
+        mensaje: "Usuario o contraseña incorrectos",
+      });
+    }
+
+    // ==========================================
+    // CREAR TOKEN SOLO DESPUÉS DE VALIDAR
+    // ==========================================
 
     const token = jwt.sign(
       {
@@ -98,6 +115,7 @@ app.post("/login", async (req, res) => {
         alumnoId: usuarioEncontrado.alumnoId
           ? usuarioEncontrado.alumnoId.toString()
           : null,
+
         docenteId: usuarioEncontrado.docenteId
           ? usuarioEncontrado.docenteId.toString()
           : null,
@@ -108,39 +126,11 @@ app.post("/login", async (req, res) => {
       },
     );
 
-    console.log("===== PRUEBA LOGIN =====");
-    console.log("Usuario recibido:", usuario.trim().toLowerCase());
-    console.log(
-      "Usuario encontrado:",
-      usuarioEncontrado
-        ? {
-            usuario: usuarioEncontrado.usuario,
-            nombre: usuarioEncontrado.nombre,
-            rol: usuarioEncontrado.rol,
-            alumnoId: usuarioEncontrado.alumnoId,
-            docenteId: usuarioEncontrado.docenteId,
-            activo: usuarioEncontrado.activo,
-          }
-        : null,
-    );
-    console.log(
-      "Contraseña coincide:",
-      usuarioEncontrado
-        ? usuarioEncontrado.password === password.trim()
-        : false,
-    );
-    console.log("========================");
-
-    if (!usuarioEncontrado || usuarioEncontrado.password !== password.trim()) {
-      return res.status(401).json({
-        mensaje: "Usuario o contraseña incorrectos",
-      });
-    }
-
     usuarioEncontrado.ultimoAcceso = new Date();
+
     await usuarioEncontrado.save();
 
-    res.json({
+    return res.json({
       usuario: usuarioEncontrado.usuario,
       nombre: usuarioEncontrado.nombre,
       rol: usuarioEncontrado.rol,
@@ -148,7 +138,7 @@ app.post("/login", async (req, res) => {
       alumnoId: usuarioEncontrado.alumnoId
         ? String(usuarioEncontrado.alumnoId)
         : null,
-        
+
       docenteId: usuarioEncontrado.docenteId
         ? String(usuarioEncontrado.docenteId)
         : null,
@@ -158,13 +148,14 @@ app.post("/login", async (req, res) => {
       token,
     });
   } catch (error) {
-    console.log(error);
+    console.error("Error al iniciar sesión:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       mensaje: "Error al iniciar sesión",
     });
   }
 });
+
 // ======================
 // RUTAS API
 // ======================

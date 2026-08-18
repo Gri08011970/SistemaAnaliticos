@@ -46,6 +46,21 @@ const usuarioSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+
+    debeCambiarPassword: {
+      type: Boolean,
+      default: false,
+    },
+
+    passwordActualizadaEn: {
+      type: Date,
+      default: null,
+    },
+
+    generadoAutomaticamente: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

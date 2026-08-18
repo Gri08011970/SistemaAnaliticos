@@ -71,16 +71,25 @@ export default function PortalEstudianteFotia({
   }
 
   function obtenerPeriodo(periodo) {
-    if (!periodo) {
-      return "Sin período informado";
-    }
-
-    if (periodo.nombre && periodo.cicloLectivo) {
-      return `${periodo.nombre} - ${periodo.cicloLectivo}`;
-    }
-
-    return periodo.nombre || periodo.cicloLectivo || "Sin período informado";
+  if (!periodo) {
+    return "Sin período informado";
   }
+
+  const nombrePeriodo = periodo.nombre || "";
+  const ciclo = String(periodo.cicloLectivo || "");
+
+  if (nombrePeriodo && ciclo) {
+    return nombrePeriodo.includes(ciclo)
+      ? nombrePeriodo
+      : `${nombrePeriodo} - ${ciclo}`;
+  }
+
+  return (
+    nombrePeriodo ||
+    ciclo ||
+    "Sin período informado"
+  );
+}
 
   function obtenerEstado(inscripcion) {
     return inscripcion.estado || "Incorporada";

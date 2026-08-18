@@ -6,7 +6,7 @@ import TablaEstudiantes from "./components/TablaEstudiantes";
 import Estadisticas from "./components/Estadisticas";
 import FormularioNuevo from "./components/FormularioNuevo";
 import PlanillaElevacion from "./components/PlanillaElevacion";
-import ImportarExcel from "./components/ImportarExcel";
+import ImportarExcel from "./components/ImportarExcel"; 
 import Login from "./components/Login";
 import Matricula from "./components/Matricula";
 import PortadaInstitucional from "./components/PortadaInstitucional";
@@ -14,17 +14,18 @@ import DomicilioTelefono from "./components/DomicilioTelefono";
 import AutorizadosRetirar from "./components/AutorizadosRetirar";
 import ParteDiarioMatricula from "./components/ParteDiarioMatricula";
 import PortalEstudianteFotia from "./components/matricula/fotia/PortalEstudianteFotia";
-import PortalDocenteFotia from "./components/matricula/fotia/PortalDocenteFotia"; 
+import PortalDocenteFotia from "./components/matricula/fotia/PortalDocenteFotia";
+import GestionAccesos from "./components/usuarios/GestionAccesos";
 
 export default function App() {
   const rolUsuario = localStorage.getItem("rolUsuario") || "consulta";
 
   const esAdmin = rolUsuario === "admin";
+  console.log("ROL ACTUAL:", rolUsuario);
+  console.log("ES ADMIN:", esAdmin);
   const esEstudiante = rolUsuario === "estudiante";
-  const esDocente =
-  rolUsuario === "docente";
-  const docenteIdUsuario =
-  localStorage.getItem("docenteIdUsuario");
+  const esDocente = rolUsuario === "docente";
+  const docenteIdUsuario = localStorage.getItem("docenteIdUsuario"); 
 
   const alumnoIdUsuario = localStorage.getItem("alumnoIdUsuario") || "";
 
@@ -263,46 +264,46 @@ export default function App() {
   }
 
   if (esEstudiante) {
-  return (
-    <PortalEstudianteFotia
-      alumnoId={alumnoIdUsuario}
-      nombreUsuario={nombreUsuario}
-      cerrarSesion={() => {
-        localStorage.removeItem("rolUsuario");
-        localStorage.removeItem("usuario");
-        localStorage.removeItem("nombreUsuario");
-        localStorage.removeItem("ultimoAcceso");
-        localStorage.removeItem("alumnoIdUsuario");
-        localStorage.removeItem("tokenUsuario");
-        localStorage.removeItem("docenteIdUsuario");
+    return (
+      <PortalEstudianteFotia
+        alumnoId={alumnoIdUsuario}
+        nombreUsuario={nombreUsuario}
+        cerrarSesion={() => {
+          localStorage.removeItem("rolUsuario");
+          localStorage.removeItem("usuario");
+          localStorage.removeItem("nombreUsuario");
+          localStorage.removeItem("ultimoAcceso");
+          localStorage.removeItem("alumnoIdUsuario");
+          localStorage.removeItem("tokenUsuario");
+          localStorage.removeItem("docenteIdUsuario");
 
-        setLogueado(false);
-        setMostrarPortada(true);
-      }}
-    />
-  );
-}
+          setLogueado(false);
+          setMostrarPortada(true);
+        }}
+      />
+    );
+  }
 
-if (esDocente) {
-  return (
-    <PortalDocenteFotia
-      docenteId={docenteIdUsuario}
-      nombreUsuario={nombreUsuario}
-      cerrarSesion={() => {
-        localStorage.removeItem("rolUsuario");
-        localStorage.removeItem("usuario");
-        localStorage.removeItem("nombreUsuario");
-        localStorage.removeItem("ultimoAcceso");
-        localStorage.removeItem("alumnoIdUsuario");
-        localStorage.removeItem("docenteIdUsuario");
-        localStorage.removeItem("tokenUsuario");
+  if (esDocente) {
+    return (
+      <PortalDocenteFotia
+        docenteId={docenteIdUsuario}
+        nombreUsuario={nombreUsuario}
+        cerrarSesion={() => {
+          localStorage.removeItem("rolUsuario");
+          localStorage.removeItem("usuario");
+          localStorage.removeItem("nombreUsuario");
+          localStorage.removeItem("ultimoAcceso");
+          localStorage.removeItem("alumnoIdUsuario");
+          localStorage.removeItem("docenteIdUsuario");
+          localStorage.removeItem("tokenUsuario");
 
-        setLogueado(false);
-        setMostrarPortada(true);
-      }}
-    />
-  );
-}
+          setLogueado(false);
+          setMostrarPortada(true);
+        }}
+      />
+    );
+  }
 
   return (
     <div
@@ -360,7 +361,8 @@ if (esDocente) {
       >
         {seccionActiva !== "inicio" &&
           seccionActiva !== "parteDiario" &&
-          seccionActiva !== "documentacion" && (
+          seccionActiva !== "documentacion" && 
+          seccionActiva !== "gestionAccesos" && (
             <>
               <h1 style={{ color: "#1e3a5f", marginBottom: "5px" }}>
                 {seccionActiva === "matricula"
@@ -463,6 +465,25 @@ if (esDocente) {
                 Entrar
               </button>
             </div>
+
+            {esAdmin && (
+              <div style={tarjetaInicio} className="tarjeta-inicio">
+                <h3>🔐 Gestión de accesos</h3>
+
+                <p>
+                  Usuarios, roles y cuentas habilitadas para ingresar al
+                  sistema.
+                </p>
+
+                <button
+                  className="boton-sistema boton-principal"
+                  style={botonMenu}
+                  onClick={() => setSeccionActiva("gestionAccesos")}
+                >
+                  Entrar
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -472,6 +493,7 @@ if (esDocente) {
           seccionActiva !== "documentacion" &&
           seccionActiva !== "domicilioTelefono" &&
           seccionActiva !== "autorizadosRetirar" &&
+          seccionActiva !== "gestionAccesos" &&
           seccionActiva !== "formulario" && (
             <>
               <Busqueda
@@ -610,6 +632,10 @@ if (esDocente) {
             volverInicio={() => setSeccionActiva("inicio")}
             esAdmin={esAdmin}
           />
+        )}
+
+        {seccionActiva === "gestionAccesos" && esAdmin && (
+          <GestionAccesos volver={() => setSeccionActiva("inicio")} />
         )}
 
         {seccionActiva === "formulario" && (

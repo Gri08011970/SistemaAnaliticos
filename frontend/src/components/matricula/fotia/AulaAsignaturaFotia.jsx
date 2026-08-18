@@ -12,12 +12,16 @@ export default function AulaAsignaturaFotia({ inscripcion, volver }) {
       }`.trim()
     : "Sin docente asignado";
 
+  const nombrePeriodo = inscripcion?.periodoId?.nombre || "";
+
+  const cicloPeriodo = String(inscripcion?.periodoId?.cicloLectivo || "");
+
   const periodo = inscripcion?.periodoId
-    ? `${inscripcion.periodoId.nombre || ""} ${
-        inscripcion.periodoId.cicloLectivo
-          ? `- ${inscripcion.periodoId.cicloLectivo}`
-          : ""
-      }`.trim()
+    ? cicloPeriodo && nombrePeriodo.includes(cicloPeriodo)
+      ? nombrePeriodo
+      : cicloPeriodo
+        ? `${nombrePeriodo} - ${cicloPeriodo}`.trim()
+        : nombrePeriodo || "Sin período informado"
     : "Sin período informado";
 
   useEffect(() => {
@@ -94,6 +98,51 @@ export default function AulaAsignaturaFotia({ inscripcion, volver }) {
     } catch {
       return null;
     }
+  }
+
+  if (cargandoAula) {
+    return (
+      <div style={pagina}>
+        <div style={contenedor}>
+          <button type="button" onClick={volver} style={botonVolver}>
+            ← Volver a Mis asignaturas
+          </button>
+
+          <div style={estadoAulaInformativo}>⏳ Cargando aula...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (errorAula || !aula) {
+    return (
+      <div style={pagina}>
+        <div style={contenedor}>
+          <button type="button" onClick={volver} style={botonVolver}>
+            ← Volver a Mis asignaturas
+          </button>
+
+          <section style={aulaNoDisponible}>
+            <div style={iconoAulaNoDisponible}>📚</div>
+
+            <h2 style={tituloAulaNoDisponible}>Aula todavía no disponible</h2>
+
+            <p style={textoAulaNoDisponible}>
+              El contenido de esta asignatura todavía no fue publicado por tu
+              docente.
+            </p>
+
+            <button
+              type="button"
+              onClick={volver}
+              style={botonRecursoEstudiante}
+            >
+              Volver a Mis asignaturas
+            </button>
+          </section>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -260,7 +309,7 @@ export default function AulaAsignaturaFotia({ inscripcion, volver }) {
                     style={{
                       display: "grid",
                       gridTemplateColumns:
-                        "repeat(auto-fit, minmax(250px, 1fr))",
+                         "repeat(auto-fit, minmax(min(100%, 250px), 1fr))",
                       gap: "16px",
                     }}
                   >
@@ -272,6 +321,8 @@ export default function AulaAsignaturaFotia({ inscripcion, volver }) {
                           borderRadius: "14px",
                           padding: "18px",
                           background: "#ffffff",
+                          minWidth: 0,
+                          overflow: "hidden",
                         }}
                       >
                         <div
@@ -292,6 +343,8 @@ export default function AulaAsignaturaFotia({ inscripcion, volver }) {
                             margin: "0 0 8px",
                             color: "#063b70",
                             fontSize: "17px",
+                            overflowWrap: "anywhere",
+
                           }}
                         >
                           {recurso.titulo}
@@ -325,72 +378,173 @@ export default function AulaAsignaturaFotia({ inscripcion, volver }) {
                               }}
                             />
 
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const ventana = window.open("", "_blank");
-
-                                if (!ventana) return;
-
-                                ventana.document.write(`
-          <!DOCTYPE html>
-          <html>
-            <head>
-              <meta charset="UTF-8" />
-              <title>${recurso.titulo}</title>
-              <style>
-                body {
-                  margin: 0;
-                  padding: 24px;
-                  text-align: center;
-                  font-family: Arial, sans-serif;
-                  background: #ffffff;
-                }
-
-                img {
-                  max-width: 100%;
-                  max-height: 90vh;
-                  object-fit: contain;
-                }
-              </style>
-            </head>
-
-            <body>
-              <h2>${recurso.titulo}</h2>
-              <img src="${recurso.url}" alt="${recurso.titulo}" />
-            </body>
-          </html>
-        `);
-
-                                ventana.document.close();
+                            <div
+                              style={{
+                                display: "flex",
+                                gap: "8px",
+                                flexWrap: "wrap",
                               }}
-                              style={botonRecursoEstudiante}
                             >
-                              🖼️ Ver imagen
-                            </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const ventana = window.open("", "_blank");
+
+                                  if (!ventana) return;
+
+                                  ventana.document.write(`
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <meta charset="UTF-8" />
+                <title>${recurso.titulo}</title>
+
+                <style>
+                  body {
+                    margin: 0;
+                    padding: 24px;
+                    text-align: center;
+                    font-family: Arial, sans-serif;
+                    background: #ffffff;
+                  }
+
+                  img {
+                    max-width: 100%;
+                    max-height: 90vh;
+                    object-fit: contain;
+                  }
+                </style>
+              </head>
+
+              <body>
+                <h2>${recurso.titulo}</h2>
+
+                <img
+                  src="${recurso.url}"
+                  alt="${recurso.titulo}"
+                />
+              </body>
+            </html>
+          `);
+
+                                  ventana.document.close();
+                                }}
+                                style={botonRecursoEstudiante}
+                              >
+                                🖼️ Ver imagen
+                              </button>
+
+                              <a
+                                href={recurso.url}
+                                download={
+                                  recurso.nombreArchivo || recurso.titulo
+                                }
+                                style={botonSecundarioEstudiante}
+                              >
+                                ⬇️ Descargar
+                              </a>
+
+                              {recurso.imprimible && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const ventana = window.open("", "_blank");
+
+                                    if (!ventana) return;
+
+                                    ventana.document.write(`
+              <!DOCTYPE html>
+              <html>
+                <head>
+                  <meta charset="UTF-8" />
+                  <title>${recurso.titulo}</title>
+
+                  <style>
+                    body {
+                      margin: 0;
+                      padding: 20px;
+                      text-align: center;
+                    }
+
+                    img {
+                      max-width: 100%;
+                      max-height: 95vh;
+                      object-fit: contain;
+                    }
+
+                    @media print {
+                      body {
+                        padding: 0;
+                      }
+                    }
+                  </style>
+                </head>
+
+                <body>
+                  <img
+                    src="${recurso.url}"
+                    alt="${recurso.titulo}"
+                    onload="
+                      setTimeout(() => {
+                        window.print();
+                      }, 300);
+                    "
+                  />
+                </body>
+              </html>
+            `);
+
+                                    ventana.document.close();
+                                  }}
+                                  style={botonSecundarioEstudiante}
+                                >
+                                  🖨️ Imprimir
+                                </button>
+                              )}
+                            </div>
                           </>
                         )}
 
                         {/* AUDIO */}
                         {recurso.tipo === "audio" && recurso.url && (
-                          <div
-                            style={{
-                              marginTop: "8px",
-                              padding: "12px",
-                              borderRadius: "12px",
-                              background: "#f6fafb",
-                            }}
-                          >
-                            <audio
-                              controls
-                              src={recurso.url}
-                              style={{ width: "100%" }}
+                          <>
+                            <div
+                              style={{
+                                marginTop: "8px",
+                                padding: "12px",
+                                borderRadius: "12px",
+                                background: "#f6fafb",
+                              }}
                             >
-                              Tu navegador no puede reproducir este audio.
-                            </audio>
-                          </div>
-                        )}
+                              <audio
+                                controls
+                                src={recurso.url}
+                                style={{ width: "100%" }}
+                              >
+                                Tu navegador no puede reproducir este audio.
+                              </audio>
+                            </div>
 
+                            <div
+                              style={{
+                                display: "flex",
+                                gap: "8px",
+                                flexWrap: "wrap",
+                                marginTop: "10px",
+                              }}
+                            >
+                              <a
+                                href={recurso.url}
+                                download={
+                                  recurso.nombreArchivo || recurso.titulo
+                                }
+                                style={botonSecundarioEstudiante}
+                              >
+                                ⬇️ Descargar audio
+                              </a>
+                            </div>
+                          </>
+                        )}
                         {/* VIDEO SUBIDO */}
                         {recurso.tipo === "video" &&
                           recurso.url &&
@@ -602,16 +756,50 @@ export default function AulaAsignaturaFotia({ inscripcion, volver }) {
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    const ventana = window.open(
-                                      recurso.url,
-                                      "_blank",
-                                    );
+                                    const ventana = window.open("", "_blank");
 
-                                    if (ventana) {
-                                      ventana.addEventListener("load", () => {
-                                        ventana.print();
-                                      });
+                                    if (!ventana) {
+                                      window.alert(
+                                        "El navegador bloqueó la ventana de impresión. Habilitá las ventanas emergentes e intentá nuevamente.",
+                                      );
+                                      return;
                                     }
+
+                                    ventana.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="UTF-8" />
+            <title>${recurso.titulo}</title>
+            <style>
+              html, body {
+                margin: 0;
+                width: 100%;
+                height: 100%;
+              }
+
+              iframe {
+                width: 100%;
+                height: 100%;
+                border: none;
+              }
+            </style>
+          </head>
+
+          <body>
+            <iframe
+              src="${recurso.url}"
+              onload="
+                setTimeout(() => {
+                  window.print();
+                }, 500);
+              "
+            ></iframe>
+          </body>
+        </html>
+      `);
+
+                                    ventana.document.close();
                                   }}
                                   style={botonSecundarioEstudiante}
                                 >
@@ -696,7 +884,7 @@ export default function AulaAsignaturaFotia({ inscripcion, volver }) {
         )}
       </div>
     </div>
-  );
+  ); 
 }
 
 const pagina = {
@@ -823,4 +1011,41 @@ const botonSecundarioEstudiante = {
   fontWeight: "700",
   fontSize: "13px",
   cursor: "pointer",
+};
+const estadoAulaInformativo = {
+  background: "#ffffff",
+  border: "1px solid #c9dce3",
+  borderRadius: "16px",
+  padding: "24px",
+  textAlign: "center",
+  color: "#607d8b",
+  fontWeight: "700",
+};
+
+const aulaNoDisponible = {
+  background: "#ffffff",
+  border: "2px solid #c9dce3",
+  borderRadius: "20px",
+  padding: "36px 24px",
+  textAlign: "center",
+  maxWidth: "650px",
+  margin: "40px auto 0",
+};
+
+const iconoAulaNoDisponible = {
+  fontSize: "44px",
+  marginBottom: "12px",
+};
+
+const tituloAulaNoDisponible = {
+  margin: "0 0 10px",
+  color: "#173f68",
+  fontSize: "24px",
+};
+
+const textoAulaNoDisponible = {
+  margin: "0 auto 20px",
+  maxWidth: "480px",
+  color: "#607d8b",
+  lineHeight: 1.6,
 };
