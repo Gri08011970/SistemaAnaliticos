@@ -652,3 +652,52 @@ export const cambiarEstadoPublicacionAula =
 
     return contenido;
   };
+  // =====================================================
+// CONSULTA INSTITUCIONAL - AULAS PUBLICADAS
+// =====================================================
+
+export const listarAulasPublicadasConsulta =
+  async () => {
+    const aulas =
+      await FotiaContenido.find({
+        publicado: true,
+        activo: true,
+      })
+        .populate(
+          "periodoId",
+          "nombre cicloLectivo fechaInicio fechaFin estado",
+        )
+        .populate(
+          "docenteId",
+          "apellido nombre cargo areas activo",
+        )
+        .sort({
+          curso: 1,
+          asignatura: 1,
+        });
+
+    return aulas.map((aula) => {
+      const aulaSegura =
+        aula.toObject();
+
+      aulaSegura.unidades = (
+        aulaSegura.unidades || []
+      )
+        .filter(
+          (unidad) =>
+            unidad.activo !== false,
+        )
+        .map((unidad) => ({
+          ...unidad,
+
+          recursos: (
+            unidad.recursos || []
+          ).filter(
+            (recurso) =>
+              recurso.activo !== false,
+          ),
+        }));
+
+      return aulaSegura;
+    });
+  };

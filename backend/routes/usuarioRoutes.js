@@ -1,6 +1,9 @@
 import express from "express";
 
-import { obtenerUsuariosController } from "../controllers/usuarioController.js";
+import {
+  obtenerUsuariosController,
+  crearUsuarioController,
+} from "../controllers/usuarioController.js";
 
 import {
   verificarToken,
@@ -9,15 +12,18 @@ import {
 
 const router = express.Router();
 
-// ======================================================
-// LISTAR USUARIOS
-// ======================================================
-
 router.get(
   "/",
   verificarToken,
   soloAdmin,
   obtenerUsuariosController,
+);
+
+router.post(
+  "/",
+  verificarToken,
+  soloAdmin,
+  crearUsuarioController,
 );
 
 export default router;

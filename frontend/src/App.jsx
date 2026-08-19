@@ -6,7 +6,7 @@ import TablaEstudiantes from "./components/TablaEstudiantes";
 import Estadisticas from "./components/Estadisticas";
 import FormularioNuevo from "./components/FormularioNuevo";
 import PlanillaElevacion from "./components/PlanillaElevacion";
-import ImportarExcel from "./components/ImportarExcel"; 
+import ImportarExcel from "./components/ImportarExcel";
 import Login from "./components/Login";
 import Matricula from "./components/Matricula";
 import PortadaInstitucional from "./components/PortadaInstitucional";
@@ -16,6 +16,7 @@ import ParteDiarioMatricula from "./components/ParteDiarioMatricula";
 import PortalEstudianteFotia from "./components/matricula/fotia/PortalEstudianteFotia";
 import PortalDocenteFotia from "./components/matricula/fotia/PortalDocenteFotia";
 import GestionAccesos from "./components/usuarios/GestionAccesos";
+import ConsultaAulasFotia from "./components/matricula/fotia/ConsultaAulasFotia";
 
 export default function App() {
   const rolUsuario = localStorage.getItem("rolUsuario") || "consulta";
@@ -25,7 +26,7 @@ export default function App() {
   console.log("ES ADMIN:", esAdmin);
   const esEstudiante = rolUsuario === "estudiante";
   const esDocente = rolUsuario === "docente";
-  const docenteIdUsuario = localStorage.getItem("docenteIdUsuario"); 
+  const docenteIdUsuario = localStorage.getItem("docenteIdUsuario");
 
   const alumnoIdUsuario = localStorage.getItem("alumnoIdUsuario") || "";
 
@@ -277,6 +278,7 @@ export default function App() {
           localStorage.removeItem("tokenUsuario");
           localStorage.removeItem("docenteIdUsuario");
 
+          setSeccionActiva("inicio");
           setLogueado(false);
           setMostrarPortada(true);
         }}
@@ -361,8 +363,9 @@ export default function App() {
       >
         {seccionActiva !== "inicio" &&
           seccionActiva !== "parteDiario" &&
-          seccionActiva !== "documentacion" && 
-          seccionActiva !== "gestionAccesos" && (
+          seccionActiva !== "documentacion" &&
+          seccionActiva !== "gestionAccesos" && 
+          seccionActiva !== "consultaAulasFotia" && (
             <>
               <h1 style={{ color: "#1e3a5f", marginBottom: "5px" }}>
                 {seccionActiva === "matricula"
@@ -466,6 +469,25 @@ export default function App() {
               </button>
             </div>
 
+            {(rolUsuario === "consulta" || rolUsuario === "admin") && (
+              <div style={tarjetaInicio} className="tarjeta-inicio">
+                <h3>👁 Aulas FOTIA publicadas</h3>
+
+                <p>
+                  Consulta institucional de aulas, docentes, asignaturas y
+                  materiales publicados.
+                </p>
+
+                <button
+                  className="boton-sistema boton-principal"
+                  style={botonMenu}
+                  onClick={() => setSeccionActiva("consultaAulasFotia")}
+                >
+                  Entrar
+                </button>
+              </div>
+            )}
+
             {esAdmin && (
               <div style={tarjetaInicio} className="tarjeta-inicio">
                 <h3>🔐 Gestión de accesos</h3>
@@ -494,6 +516,7 @@ export default function App() {
           seccionActiva !== "domicilioTelefono" &&
           seccionActiva !== "autorizadosRetirar" &&
           seccionActiva !== "gestionAccesos" &&
+          seccionActiva !== "consultaAulasFotia" &&
           seccionActiva !== "formulario" && (
             <>
               <Busqueda
@@ -683,11 +706,14 @@ export default function App() {
 
         {seccionActiva === "estadisticas" && (
           <Estadisticas estudiantes={estudiantes} />
-        )}
+        )} 
 
         {seccionActiva === "matricula" && <Matricula />}
       </div>
-
+      {seccionActiva === "consultaAulasFotia" &&
+        (rolUsuario === "consulta" || rolUsuario === "admin") && (
+          <ConsultaAulasFotia volver={() => setSeccionActiva("inicio")} />
+        )}
       {mostrarDespedida && (
         <div style={fondoModal}>
           <div style={modalDespedida}>

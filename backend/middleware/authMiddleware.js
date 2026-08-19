@@ -84,6 +84,7 @@ export const soloDocente = (
 
   next();
 };
+
 export const soloAdmin = (
   req,
   res,
@@ -93,6 +94,34 @@ export const soloAdmin = (
     return res.status(403).json({
       mensaje:
         "Esta sección es exclusiva para administradores.",
+    });
+  }
+
+  next();
+};
+
+// =====================================================
+// ACCESO DE CONSULTA A AULAS FOTIA
+// =====================================================
+
+export const soloAdminOConsulta = (
+  req,
+  res,
+  next,
+) => {
+  const rolesPermitidos = [
+    "admin",
+    "consulta",
+  ];
+
+  if (
+    !rolesPermitidos.includes(
+      req.usuario?.rol,
+    )
+  ) {
+    return res.status(403).json({
+      mensaje:
+        "No tenés permiso para consultar las aulas FOTIA.",
     });
   }
 

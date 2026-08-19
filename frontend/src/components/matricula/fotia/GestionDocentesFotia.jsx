@@ -1,4 +1,22 @@
 import { useState } from "react";
+import { obtenerAsignaturasPorCurso } from "../SeguimientoPedagogico/seguimientoConstants";
+
+const CURSOS_REFERENCIA = [
+  "1°1°",
+  "2°1°",
+  "3°1°",
+  "4°1°",
+  "5°1°",
+  "6°1°",
+];
+
+const ASIGNATURAS_INSTITUCIONALES = Array.from(
+  new Set(
+    CURSOS_REFERENCIA.flatMap((curso) =>
+      obtenerAsignaturasPorCurso(curso),
+    ),
+  ),
+);
 
 const FORMULARIO_INICIAL = {
   apellido: "",
@@ -65,6 +83,27 @@ export default function GestionDocentesFotia({
       ...formularioAnterior,
       areas: formularioAnterior.areas.filter((area) => area !== areaAEliminar),
     }));
+  };
+
+  const alternarAreaInstitucional = (area) => {
+    setFormulario((formularioAnterior) => {
+      const yaSeleccionada = formularioAnterior.areas.some(
+        (areaActual) =>
+          areaActual.toLowerCase() === area.toLowerCase(),
+      );
+
+      return {
+        ...formularioAnterior,
+        areas: yaSeleccionada
+          ? formularioAnterior.areas.filter(
+              (areaActual) =>
+                areaActual.toLowerCase() !== area.toLowerCase(),
+            )
+          : [...formularioAnterior.areas, area],
+      };
+    });
+
+    setMensajeError("");
   };
 
   const manejarTeclaArea = (evento) => {
@@ -502,124 +541,210 @@ export default function GestionDocentesFotia({
             background: "#ffffff",
           }}
         >
-          <label htmlFor="fotia-docente-area" style={estiloLabel}>
-            Áreas de desempeño
-          </label>
+          <div style={{ marginBottom: "14px" }}>
+            <span style={estiloLabel}>Áreas / asignaturas de desempeño</span>
 
-          <p
-            style={{
-              margin: "0 0 12px",
-              color: "#748594",
-              fontSize: "13px",
-              lineHeight: 1.5,
-            }}
-          >
-            Escriba un área y presione Enter o el botón Agregar. Puede registrar
-            más de una.
-          </p>
+            <p
+              style={{
+                margin: "0",
+                color: "#748594",
+                fontSize: "13px",
+                lineHeight: 1.5,
+              }}
+            >
+              Seleccioná una o varias asignaturas institucionales. Estas áreas
+              servirán para identificar rápidamente qué docentes pueden acompañar
+              cada espacio de FOTIA, pero no limitarán las asignaciones posteriores.
+            </p>
+          </div>
 
           <div
             style={{
-              display: "flex",
-              alignItems: "stretch",
-              gap: "10px",
-              flexWrap: "wrap",
+              display: "grid",
+              gridTemplateColumns:
+                "repeat(auto-fit, minmax(min(100%, 220px), 1fr))",
+              gap: "9px",
             }}
           >
-            <input
-              id="fotia-docente-area"
-              type="text"
-              value={nuevaArea}
-              onChange={(evento) => setNuevaArea(evento.target.value)}
-              onKeyDown={manejarTeclaArea}
-              placeholder="Ej.: Matemática"
-              style={{
-                ...estiloInput,
-                flex: "1 1 280px",
-              }}
-            />
+            {ASIGNATURAS_INSTITUCIONALES.map((area) => {
+              const seleccionada = formulario.areas.some(
+                (areaActual) =>
+                  areaActual.toLowerCase() === area.toLowerCase(),
+              );
 
-            <button
-              type="button"
-              onClick={agregarArea}
+              return (
+                <button
+                  key={area}
+                  type="button"
+                  onClick={() => alternarAreaInstitucional(area)}
+                  aria-pressed={seleccionada}
+                  style={{
+                    padding: "10px 12px",
+                    border: seleccionada
+                      ? "2px solid #148c84"
+                      : "1px solid #c7dbe5",
+                    borderRadius: "10px",
+                    background: seleccionada ? "#e9f8f4" : "#ffffff",
+                    color: seleccionada ? "#14776f" : "#496477",
+                    fontWeight: seleccionada ? "800" : "600",
+                    cursor: "pointer",
+                    textAlign: "left",
+                    lineHeight: 1.35,
+                    boxShadow: seleccionada
+                      ? "0 3px 8px rgba(20,140,132,.10)"
+                      : "none",
+                  }}
+                >
+                  {seleccionada ? "✓ " : ""}
+                  {area}
+                </button>
+              );
+            })}
+          </div>
+
+          <div
+            style={{
+              marginTop: "18px",
+              paddingTop: "16px",
+              borderTop: "1px solid #dbe9e7",
+            }}
+          >
+            <label htmlFor="fotia-docente-area" style={estiloLabel}>
+              Otra área o asignatura
+            </label>
+
+            <p
               style={{
-                padding: "10px 18px",
-                minWidth: "150px",
-                border: "1px solid #7bc4b6",
-                borderRadius: "9px",
-                background: "#e9f8f4",
-                color: "#148c84",
-                fontWeight: "800",
-                cursor: "pointer",
-                whiteSpace: "nowrap",
+                margin: "0 0 10px",
+                color: "#748594",
+                fontSize: "13px",
+                lineHeight: 1.5,
               }}
             >
-              ＋ Agregar
-            </button>
+              Si necesitás registrar un espacio que todavía no figura en la
+              lista institucional, podés escribirlo manualmente.
+            </p>
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "stretch",
+                gap: "10px",
+                flexWrap: "wrap",
+              }}
+            >
+              <input
+                id="fotia-docente-area"
+                type="text"
+                value={nuevaArea}
+                onChange={(evento) => setNuevaArea(evento.target.value)}
+                onKeyDown={manejarTeclaArea}
+                placeholder="Ej.: Taller interdisciplinario"
+                style={{
+                  ...estiloInput,
+                  flex: "1 1 280px",
+                }}
+              />
+
+              <button
+                type="button"
+                onClick={agregarArea}
+                style={{
+                  padding: "10px 18px",
+                  minWidth: "150px",
+                  border: "1px solid #7bc4b6",
+                  borderRadius: "9px",
+                  background: "#e9f8f4",
+                  color: "#148c84",
+                  fontWeight: "800",
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                ＋ Agregar
+              </button>
+            </div>
           </div>
 
           {formulario.areas.length > 0 ? (
             <div
               style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "9px",
-                marginTop: "16px",
+                marginTop: "18px",
+                paddingTop: "16px",
+                borderTop: "1px solid #dbe9e7",
               }}
             >
-              {formulario.areas.map((area) => (
-                <span
-                  key={area}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    padding: "7px 9px 7px 12px",
-                    border: "1px solid #b7e1d8",
-                    borderRadius: "999px",
-                    background: "#e9f8f4",
-                    color: "#14776f",
-                    fontSize: "14px",
-                    fontWeight: "700",
-                  }}
-                >
-                  {area}
+              <p
+                style={{
+                  margin: "0 0 10px",
+                  color: "#365b7d",
+                  fontSize: "13px",
+                  fontWeight: "800",
+                }}
+              >
+                Seleccionadas ({formulario.areas.length})
+              </p>
 
-                  <button
-                    type="button"
-                    onClick={() => quitarArea(area)}
-                    aria-label={`Quitar área ${area}`}
-                    title={`Quitar ${area}`}
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "9px",
+                }}
+              >
+                {formulario.areas.map((area) => (
+                  <span
+                    key={area}
                     style={{
-                      width: "22px",
-                      height: "22px",
-                      display: "grid",
-                      placeItems: "center",
-                      padding: 0,
-                      border: "none",
-                      borderRadius: "50%",
-                      background: "#ffffff",
-                      color: "#64877f",
-                      cursor: "pointer",
-                      fontWeight: "900",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      padding: "7px 9px 7px 12px",
+                      border: "1px solid #b7e1d8",
+                      borderRadius: "999px",
+                      background: "#e9f8f4",
+                      color: "#14776f",
+                      fontSize: "14px",
+                      fontWeight: "700",
                     }}
                   >
-                    ×
-                  </button>
-                </span>
-              ))}
+                    {area}
+
+                    <button
+                      type="button"
+                      onClick={() => quitarArea(area)}
+                      aria-label={`Quitar área ${area}`}
+                      title={`Quitar ${area}`}
+                      style={{
+                        width: "22px",
+                        height: "22px",
+                        display: "grid",
+                        placeItems: "center",
+                        padding: 0,
+                        border: "none",
+                        borderRadius: "50%",
+                        background: "#ffffff",
+                        color: "#64877f",
+                        cursor: "pointer",
+                        fontWeight: "900",
+                      }}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
             </div>
           ) : (
             <p
               style={{
-                margin: "14px 0 0",
+                margin: "16px 0 0",
                 color: "#8a98a4",
                 fontSize: "13px",
                 fontStyle: "italic",
               }}
             >
-              Agregue una o más áreas para identificar las asignaturas que podrá
-              acompañar en FOTIA.
+              Todavía no seleccionaste áreas de desempeño.
             </p>
           )}
         </div>

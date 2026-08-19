@@ -4,6 +4,7 @@ import TarjetaAsignaturaFotia from "./TarjetaAsignaturaFotia";
 export default function TarjetaEstudianteFotia({
   estudiante,
   docentesFotia = [],
+  esAdmin = false,
   onRetirar,
   onActualizada,
   onEliminarEstudiante,
@@ -141,7 +142,9 @@ export default function TarjetaEstudianteFotia({
             {cantidadIncorporadas > 0 && (
               <Indicador
                 texto={`${cantidadIncorporadas} ${
-                  cantidadIncorporadas === 1 ? "incorporada" : "incorporadas"
+                  cantidadIncorporadas === 1
+                    ? "incorporada"
+                    : "incorporadas"
                 }`}
                 icono="🟡"
                 fondo="#fff8e8"
@@ -163,7 +166,9 @@ export default function TarjetaEstudianteFotia({
             {cantidadAcreditadas > 0 && (
               <Indicador
                 texto={`${cantidadAcreditadas} ${
-                  cantidadAcreditadas === 1 ? "acreditada" : "acreditadas"
+                  cantidadAcreditadas === 1
+                    ? "acreditada"
+                    : "acreditadas"
                 }`}
                 icono="🟢"
                 fondo="#eef8f5"
@@ -171,6 +176,7 @@ export default function TarjetaEstudianteFotia({
                 borde="#b7ddd3"
               />
             )}
+
             <span
               style={{
                 minWidth: "118px",
@@ -185,21 +191,32 @@ export default function TarjetaEstudianteFotia({
           </div>
         </div>
       </button>
-      <button
-        type="button"
-        onClick={() => onEliminarEstudiante?.(estudiante)}
-        style={{
-          padding: "8px 13px",
-          border: "1px solid #e1bcbc",
-          borderRadius: "8px",
-          background: "#fff1f1",
-          color: "#a64949",
-          fontWeight: "700",
-          cursor: "pointer",
-        }}
-      >
-        🗑️ Eliminar de FOTIA
-      </button>
+
+      {esAdmin && (
+        <div
+          style={{
+            padding: "0 18px 14px",
+            display: "flex",
+            justifyContent: "flex-end",
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => onEliminarEstudiante?.(estudiante)}
+            style={{
+              padding: "8px 13px",
+              border: "1px solid #e1bcbc",
+              borderRadius: "8px",
+              background: "#fff1f1",
+              color: "#a64949",
+              fontWeight: "700",
+              cursor: "pointer",
+            }}
+          >
+            🗑️ Eliminar de FOTIA
+          </button>
+        </div>
+      )}
 
       {expandida && (
         <div
@@ -216,11 +233,12 @@ export default function TarjetaEstudianteFotia({
               gap: "12px",
             }}
           >
-            {estudiante.asignaturas.map((asignatura) => (
+            {asignaturas.map((asignatura) => (
               <TarjetaAsignaturaFotia
                 key={asignatura._id || asignatura.materiaPendienteId}
                 asignatura={asignatura}
                 docentesFotia={docentesFotia}
+                esAdmin={esAdmin}
                 onRetirar={onRetirar}
                 onActualizada={onActualizada}
               />

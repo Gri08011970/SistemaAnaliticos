@@ -56,6 +56,7 @@ const formatearFecha = (fecha) => {
 export default function TarjetaAsignaturaFotia({
   asignatura,
   docentesFotia = [],
+  esAdmin = false,
   onRetirar,
   onActualizada,
 }) {
@@ -123,7 +124,9 @@ export default function TarjetaAsignaturaFotia({
               fontSize: "14px",
             }}
           >
-            {asignatura.anio ? `${asignatura.anio} año` : "Año sin informar"}
+            {asignatura.anio
+              ? `${asignatura.anio} año`
+              : "Año sin informar"}
           </p>
         </div>
 
@@ -149,7 +152,7 @@ export default function TarjetaAsignaturaFotia({
         </span>
       </div>
 
-            <div
+      <div
         style={{
           display: "grid",
           gridTemplateColumns:
@@ -190,7 +193,7 @@ export default function TarjetaAsignaturaFotia({
         )}
       </div>
 
-      {asignatura.estado !== "Acreditada" && (
+      {esAdmin && asignatura.estado !== "Acreditada" && (
         <div
           style={{
             display: "flex",
@@ -259,7 +262,7 @@ export default function TarjetaAsignaturaFotia({
         </div>
       )}
 
-      {modoEdicion && (
+      {esAdmin && modoEdicion && (
         <FormularioEditarInscripcionFotia
           inscripcion={asignatura}
           docentesFotia={docentesFotia}
@@ -270,7 +273,8 @@ export default function TarjetaAsignaturaFotia({
           }}
         />
       )}
-      {modoAcreditacion && (
+
+      {esAdmin && modoAcreditacion && (
         <FormularioAcreditacionFotia
           inscripcion={asignatura}
           docentesFotia={docentesFotia}

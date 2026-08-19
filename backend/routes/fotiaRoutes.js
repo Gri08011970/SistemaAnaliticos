@@ -5,12 +5,14 @@ import {
   verificarToken,
   soloEstudiante,
   soloDocente,
+  soloAdmin, 
+  soloAdminOConsulta,
 } from "../middleware/authMiddleware.js";
 
 import {
   // Períodos
   obtenerPeriodosController,
-  obtenerPeriodoController,
+  obtenerPeriodoController, 
   crearPeriodoController,
   actualizarPeriodoController,
 
@@ -26,15 +28,13 @@ import {
   obtenerInscripcionController,
   obtenerMisAsignaturasEstudianteController,
   incorporarAsignaturaController,
-   actualizarInscripcionController,
+  actualizarInscripcionController,
   retirarAsignaturaController,
-  
+
   eliminarEstudiantePeriodoController,
 
   // Acreditación
   acreditarInscripcionController,
-  
-
 } from "../controllers/fotiaController.js";
 
 import {
@@ -44,12 +44,15 @@ import {
   crearUnidadController,
   actualizarUnidadController,
   agregarMaterialUnidadController,
-   actualizarMaterialUnidadController,
+  actualizarMaterialUnidadController,
   retirarMaterialUnidadController,
   subirArchivoFotiaController,
   obtenerAulaPublicadaEstudianteController,
-  
+
   cambiarPublicacionAulaController,
+
+  // Consulta institucional
+  obtenerAulasPublicadasConsultaController,
 } from "../controllers/fotiaContenidoController.js";
 
 const router = express.Router();
@@ -60,22 +63,26 @@ const router = express.Router();
 
 router.get(
   "/periodos",
-  obtenerPeriodosController
+  obtenerPeriodosController,
 );
 
 router.get(
   "/periodos/:id",
-  obtenerPeriodoController
+  obtenerPeriodoController,
 );
 
 router.post(
   "/periodos",
-  crearPeriodoController
+  verificarToken,
+  soloAdmin,
+  crearPeriodoController,
 );
 
 router.put(
   "/periodos/:id",
-  actualizarPeriodoController
+  verificarToken,
+  soloAdmin,
+  actualizarPeriodoController,
 );
 
 // ======================================================
@@ -84,30 +91,32 @@ router.put(
 
 router.get(
   "/docentes",
-  obtenerDocentesController
+  obtenerDocentesController,
 );
 
 router.get(
   "/docentes/:id",
-  obtenerDocenteController
+  obtenerDocenteController,
 );
 
 router.post(
   "/docentes",
-  crearDocenteController
+  verificarToken,
+  soloAdmin,
+  crearDocenteController,
 );
 
 router.put(
   "/docentes/:id",
-  actualizarDocenteController
+  verificarToken,
+  soloAdmin,
+  actualizarDocenteController,
 );
-
-
 // ======================================================
 // PORTAL ESTUDIANTE
 // ======================================================
 
-router.get( 
+router.get(
   "/mi-espacio/asignaturas",
   verificarToken,
   soloEstudiante,
@@ -202,8 +211,62 @@ router.post(
 );
 
 // ======================================================
+// CONSULTA INSTITUCIONAL - AULAS FOTIA PUBLICADAS
+// ======================================================
+
+router.get(
+  "/consulta/aulas",
+  verificarToken,
+  soloAdminOConsulta,
+  obtenerAulasPublicadasConsultaController,
+);
+
+// ======================================================
 // INSCRIPCIONES AL FORTALECIMIENTO
 // ======================================================
+
+router.get(
+  "/inscripciones",
+  obtenerInscripcionesController,
+);
+
+router.get(
+  "/inscripciones/:id",
+  obtenerInscripcionController,
+);
+
+router.post(
+  "/inscripciones",
+  verificarToken,
+  soloAdmin,
+  incorporarAsignaturaController,
+);
+
+router.put(
+  "/inscripciones/:id",
+  verificarToken,
+  soloAdmin,
+  actualizarInscripcionController,
+);
+
+// Retira la asignatura solamente del fortalecimiento.
+// NO elimina la previa institucional.
+router.put(
+  "/inscripciones/:id/retirar",
+  verificarToken,
+  soloAdmin,
+  retirarAsignaturaController,
+);
+
+// Elimina todos los registros de un estudiante dentro
+// de un período específico de FOTIA.
+// No elimina al estudiante de Matrícula.
+router.delete(
+  "/periodos/:periodoId/estudiantes/:alumnoId",
+  verificarToken,
+  soloAdmin,
+  eliminarEstudiantePeriodoController,
+);
 
 // ======================================================
 // ACREDITACIONES
@@ -213,50 +276,18 @@ router.get(
   "/acreditaciones",
   obtenerAcreditacionesController,
 );
-router.get(
-  "/inscripciones",
-  obtenerInscripcionesController
-);
-
-router.get(
-  "/inscripciones/:id",
-  obtenerInscripcionController
-);
-
-router.post(
-  "/inscripciones",
-  incorporarAsignaturaController
-);
-
-router.put(
-  "/inscripciones/:id",
-  actualizarInscripcionController
-);
-
-// Retira la asignatura solamente del fortalecimiento.
-// NO elimina la previa institucional.
-router.put(
-  "/inscripciones/:id/retirar",
-  retirarAsignaturaController
-);
-
-// Elimina todos los registros de un estudiante dentro
-// de un período específico de FOTIA.
-// No elimina al estudiante de Matrícula.
-router.delete(
-  "/periodos/:periodoId/estudiantes/:alumnoId",
-  eliminarEstudiantePeriodoController,
-);
 
 // ======================================================
-// ACREDITACIÓN
+// ACREDITACIÓN 
 // ======================================================
 
 // Esta es la ÚNICA ruta que elimina la previa
 // de materiasPendientes.
 router.post(
   "/inscripciones/:id/acreditar",
-  acreditarInscripcionController
+  verificarToken,
+  soloAdmin,
+  acreditarInscripcionController,
 );
 
 export default router;

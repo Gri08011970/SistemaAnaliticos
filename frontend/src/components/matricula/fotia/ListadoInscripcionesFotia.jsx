@@ -88,6 +88,7 @@ const formatearFechaImpresion = (fecha) => {
 export default function ListadoInscripcionesFotia({
   inscripciones = [],
   docentesFotia = [],
+  esAdmin = false,
   onRetirar,
   onActualizada,
   onEliminarEstudiante,
@@ -1074,6 +1075,7 @@ export default function ListadoInscripcionesFotia({
               <TarjetaEstudianteFotia
                 estudiante={estudiante}
                 docentesFotia={docentesFotia}
+                esAdmin={esAdmin}
                 onRetirar={onRetirar}
                 onActualizada={onActualizada}
                 onEliminarEstudiante={onEliminarEstudiante}
@@ -1274,6 +1276,7 @@ export default function ListadoInscripcionesFotia({
                             <TarjetaEstudianteFotia
                               estudiante={estudiante}
                               docentesFotia={docentesFotia}
+                              esAdmin={esAdmin}
                               onRetirar={onRetirar}
                               onActualizada={onActualizada}
                               onEliminarEstudiante={onEliminarEstudiante}

@@ -86,7 +86,7 @@ export default function IncorporarEstudianteFotia({
 
   const [otroMotivoIncorporacion, setOtroMotivoIncorporacion] = useState("");
 
-  const [docenteId, setDocenteId] = useState("");
+  const [docentesPorMateria, setDocentesPorMateria] = useState({});
 
   const [observaciones, setObservaciones] = useState("");
 
@@ -159,7 +159,7 @@ export default function IncorporarEstudianteFotia({
     setMateriasSeleccionadas([]);
     setMotivoIncorporacion(MOTIVO_INICIAL);
     setOtroMotivoIncorporacion("");
-    setDocenteId("");
+    setDocentesPorMateria({});
     setObservaciones("");
     setErrorGuardado("");
     setBusqueda("");
@@ -170,7 +170,7 @@ export default function IncorporarEstudianteFotia({
     setMateriasSeleccionadas([]);
     setMotivoIncorporacion(MOTIVO_INICIAL);
     setOtroMotivoIncorporacion("");
-    setDocenteId("");
+    setDocentesPorMateria({});
     setObservaciones("");
     setErrorGuardado("");
     setBusqueda("");
@@ -193,11 +193,21 @@ export default function IncorporarEstudianteFotia({
   const cambiarSeleccionMateria = (materia) => {
     const materiaId = obtenerIdMateria(materia);
 
-    setMateriasSeleccionadas((anteriores) =>
-      anteriores.includes(materiaId)
-        ? anteriores.filter((id) => id !== materiaId)
-        : [...anteriores, materiaId],
-    );
+    setMateriasSeleccionadas((anteriores) => {
+      const yaSeleccionada = anteriores.includes(materiaId);
+
+      if (yaSeleccionada) {
+        setDocentesPorMateria((anterioresDocentes) => {
+          const copia = { ...anterioresDocentes };
+          delete copia[materiaId];
+          return copia;
+        });
+
+        return anteriores.filter((id) => id !== materiaId);
+      }
+
+      return [...anteriores, materiaId];
+    });
   };
 
   const seleccionarTodasLasMaterias = () => {
@@ -206,6 +216,7 @@ export default function IncorporarEstudianteFotia({
 
   const limpiarMateriasSeleccionadas = () => {
     setMateriasSeleccionadas([]);
+    setDocentesPorMateria({});
   };
 
   const incorporarAFotia = async () => {
@@ -278,7 +289,8 @@ export default function IncorporarEstudianteFotia({
 
             anio: materia.anio || "",
 
-            docenteId: docenteId || null,
+            docenteId:
+              docentesPorMateria[obtenerIdMateria(materia)] || null,
             fechaIncorporacion,
             motivoIncorporacion: motivoFinal,
             observaciones: observaciones.trim(),
@@ -306,7 +318,7 @@ export default function IncorporarEstudianteFotia({
       setMateriasSeleccionadas([]);
       setMotivoIncorporacion(MOTIVO_INICIAL);
       setOtroMotivoIncorporacion("");
-      setDocenteId("");
+      setDocentesPorMateria({});
       setObservaciones("");
       setBusqueda("");
       setErrorGuardado("");
@@ -605,6 +617,122 @@ export default function IncorporarEstudianteFotia({
             onSeleccionarTodas={seleccionarTodasLasMaterias}
             onLimpiarSeleccion={limpiarMateriasSeleccionadas}
           />
+
+          {materiasSeleccionadas.length > 0 && (
+            <div
+              style={{
+                marginTop: "20px",
+                padding: "18px",
+                border: "1px solid #b7ddd3",
+                borderRadius: "13px",
+                background: "#f4fbf8",
+              }}
+            >
+              <h4
+                style={{
+                  margin: "0 0 6px",
+                  color: "#23436d",
+                  fontSize: "18px",
+                }}
+              >
+                👩‍🏫 Docente responsable por asignatura
+              </h4>
+
+              <p
+                style={{
+                  margin: "0 0 16px",
+                  color: "#607080",
+                  lineHeight: 1.45,
+                }}
+              >
+                Podés asignar un docente diferente a cada materia. Si todavía
+                no está definido, dejala como “Sin docente asignado” y podrás
+                completarlo después.
+              </p>
+
+              <div style={{ display: "grid", gap: "12px" }}>
+                {todasLasMateriasDisponibles
+                  .filter((materia) =>
+                    materiasSeleccionadas.includes(obtenerIdMateria(materia)),
+                  )
+                  .map((materia) => {
+                    const materiaId = obtenerIdMateria(materia);
+
+                    return (
+                      <div
+                        key={materiaId}
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns:
+                            "repeat(auto-fit, minmax(min(100%, 240px), 1fr))",
+                          gap: "12px",
+                          alignItems: "center",
+                          padding: "12px",
+                          border: "1px solid #cfe3dd",
+                          borderRadius: "10px",
+                          background: "#ffffff",
+                        }}
+                      >
+                        <div>
+                          <strong
+                            style={{
+                              display: "block",
+                              color: "#23436d",
+                              fontSize: "15px",
+                            }}
+                          >
+                            📚 {materia.asignatura}
+                          </strong>
+
+                          <span
+                            style={{
+                              display: "block",
+                              marginTop: "4px",
+                              color: "#6b7f92",
+                              fontSize: "12px",
+                            }}
+                          >
+                            {materia.tipoOrigen || "Previa"}
+                            {materia.anio ? ` · ${materia.anio} año` : ""}
+                          </span>
+                        </div>
+
+                        <label
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "6px",
+                          }}
+                        >
+                          <span style={estiloEtiqueta}>Docente responsable</span>
+
+                          <select
+                            value={docentesPorMateria[materiaId] || ""}
+                            onChange={(evento) =>
+                              setDocentesPorMateria((anteriores) => ({
+                                ...anteriores,
+                                [materiaId]: evento.target.value,
+                              }))
+                            }
+                            style={estiloControl}
+                          >
+                            <option value="">Sin docente asignado</option>
+
+                            {docentesFotia
+                              .filter((docente) => docente.activo !== false)
+                              .map((docente) => (
+                                <option key={docente._id} value={docente._id}>
+                                  {docente.apellido} {docente.nombre}
+                                </option>
+                              ))}
+                          </select>
+                        </label>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          )}
           <div
             style={{
               marginTop: "20px",
@@ -636,8 +764,8 @@ export default function IncorporarEstudianteFotia({
                   lineHeight: 1.4,
                 }}
               >
-                Registrá el motivo, la fecha y el docente responsable del
-                fortalecimiento.
+                Registrá la fecha y el motivo general de la incorporación. El
+                docente responsable se asigna por cada materia seleccionada.
               </p>
               {errorGuardado && (
                 <p
@@ -683,31 +811,7 @@ export default function IncorporarEstudianteFotia({
                 />
               </label>
 
-              <label
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "7px",
-                }}
-              >
-                <span style={estiloEtiqueta}>Docente responsable</span>
 
-                <select
-                  value={docenteId}
-                  onChange={(evento) => setDocenteId(evento.target.value)}
-                  style={estiloControl}
-                >
-                  <option value="">Sin docente asignado</option>
-
-                  {docentesFotia
-                    .filter((docente) => docente.activo !== false)
-                    .map((docente) => (
-                      <option key={docente._id} value={docente._id}>
-                        {docente.apellido} {docente.nombre}
-                      </option>
-                    ))}
-                </select>
-              </label>
 
               <label
                 style={{

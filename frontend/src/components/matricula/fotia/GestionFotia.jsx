@@ -9,6 +9,7 @@ import EstadisticasFotia from "./EstadisticasFotia";
 export default function GestionFotia({
   alumnosMatricula = [],
   alumnosParaExamen = [],
+ esAdmin = false,
 }) {
   const [vistaActiva, setVistaActiva] = useState("inicio");
 
@@ -424,7 +425,7 @@ export default function GestionFotia({
                   fontSize: "21px",
                 }}
               >
-                👩‍🏫 Docentes responsables
+                 Docentes responsables
               </h3>
 
               <p
@@ -620,7 +621,7 @@ export default function GestionFotia({
                 : "Todavía no hay un período activo de FOTIA."}
             </div>
 
-            {!periodoActivo && !mostrarFormularioPeriodo && (
+            {esAdmin && !periodoActivo && !mostrarFormularioPeriodo && (
               <div
                 style={{
                   margin: "20px 0 28px",
@@ -647,7 +648,7 @@ export default function GestionFotia({
               </div>
             )}
 
-            {mostrarFormularioPeriodo && (
+            {esAdmin && mostrarFormularioPeriodo && (
               <FormularioPeriodoFotia
                 onCancelar={cancelarFormularioPeriodo}
                 onPeriodoCreado={periodoCreado}
@@ -811,6 +812,7 @@ export default function GestionFotia({
                     Utilizá “Incorporar estudiante” para seleccionar quiénes
                     participarán y qué áreas se trabajarán.
                   </span>
+                  {esAdmin && (
                   <button
                     type="button"
                     onClick={() => setMostrarIncorporacion(true)}
@@ -830,10 +832,11 @@ export default function GestionFotia({
                   >
                     ➕ Incorporar estudiante
                   </button>
+                  )}
                 </div>
               )}
 
-            {mostrarIncorporacion && periodoActivo && (
+            {esAdmin && mostrarIncorporacion && periodoActivo && (
               <IncorporarEstudianteFotia
                 alumnosMatricula={fuenteAlumnos}
                 docentesFotia={docentesFotia}
@@ -849,8 +852,8 @@ export default function GestionFotia({
                 }}
               />
             )}
-
-            {periodoActivo &&
+          {esAdmin &&
+            periodoActivo &&
               !mostrarIncorporacion &&
               inscripcionesFotia.length > 0 && (
                 <div
@@ -884,6 +887,7 @@ export default function GestionFotia({
             <ListadoInscripcionesFotia
               inscripciones={inscripcionesFotia}
               docentesFotia={docentesFotia}
+              esAdmin={esAdmin}
               onRetirar={retirarInscripcionFotia}
               onActualizada={actualizarInscripcionEnPantalla}
               onEliminarEstudiante={eliminarEstudiantePeriodo}

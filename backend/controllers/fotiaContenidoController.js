@@ -10,6 +10,7 @@ import {
   cambiarPublicacionAula,
   obtenerAulaPublicadaEstudiante,
   cambiarEstadoPublicacionAula,
+  listarAulasPublicadasConsulta,
 } from "../services/fotiaContenidoService.js";
 
 export const obtenerAulaPublicadaEstudianteController =
@@ -52,7 +53,6 @@ export const obtenerAulaPublicadaEstudianteController =
     }
   };
 
-
 // =====================================================
 // UTILIDAD INTERNA
 // =====================================================
@@ -60,7 +60,7 @@ export const obtenerAulaPublicadaEstudianteController =
 const responderError = (res, error) => {
   console.error(
     "Error en contenido FOTIA:",
-    error
+    error,
   );
 
   res.status(error.status || 500).json({
@@ -69,7 +69,6 @@ const responderError = (res, error) => {
       "Ocurrió un error inesperado en el aula FOTIA",
   });
 };
-
 
 // =====================================================
 // PORTAL DOCENTE - MIS ESPACIOS
@@ -94,7 +93,6 @@ export const obtenerMisEspaciosDocenteController =
       responderError(res, error);
     }
   };
-
 
 // =====================================================
 // OBTENER O CREAR AULA
@@ -130,51 +128,59 @@ export const obtenerOCrearAulaDocenteController =
     }
   };
 
-export const cambiarPublicacionAulaController = async (req, res) => {
-  try {
-    const { contenidoId } = req.params;
-    const { publicado } = req.body;
+// =====================================================
+// CAMBIAR PUBLICACIÓN DEL AULA
+// =====================================================
 
-    if (typeof publicado !== "boolean") {
-      return res.status(400).json({
-        mensaje: "El estado de publicación no es válido.",
+export const cambiarPublicacionAulaController =
+  async (req, res) => {
+    try {
+      const { contenidoId } = req.params;
+      const { publicado } = req.body;
+
+      if (typeof publicado !== "boolean") {
+        return res.status(400).json({
+          mensaje:
+            "El estado de publicación no es válido.",
+        });
+      }
+
+      const docenteId =
+        req.usuario?.docenteId;
+
+      if (!docenteId) {
+        return res.status(403).json({
+          mensaje:
+            "No se pudo identificar al docente.",
+        });
+      }
+
+      const contenido =
+        await cambiarPublicacionAula({
+          contenidoId,
+          docenteId,
+          publicado,
+        });
+
+      return res.json({
+        mensaje: publicado
+          ? "Aula publicada correctamente."
+          : "Aula devuelta a borrador.",
+        contenido,
+      });
+    } catch (error) {
+      console.error(
+        "Error al cambiar publicación del aula:",
+        error,
+      );
+
+      return res.status(500).json({
+        mensaje:
+          error.message ||
+          "No se pudo cambiar la publicación del aula.",
       });
     }
-
-    const docenteId = req.usuario?.docenteId;
-
-    if (!docenteId) {
-      return res.status(403).json({
-        mensaje: "No se pudo identificar al docente.",
-      });
-    }
-
-    const contenido = await cambiarPublicacionAula({
-      contenidoId,
-      docenteId,
-      publicado,
-    });
-
-    return res.json({
-      mensaje: publicado
-        ? "Aula publicada correctamente."
-        : "Aula devuelta a borrador.",
-      contenido,
-    });
-  } catch (error) {
-    console.error(
-      "Error al cambiar publicación del aula:",
-      error,
-    );
-
-    return res.status(500).json({
-      mensaje:
-        error.message ||
-        "No se pudo cambiar la publicación del aula.",
-    });
-  }
-};
-
+  };
 
 // =====================================================
 // MENSAJE DEL DOCENTE
@@ -194,7 +200,8 @@ export const guardarMensajeDocenteController =
 
       const contenido =
         await guardarMensajeDocente({
-          contenidoId: req.params.contenidoId,
+          contenidoId:
+            req.params.contenidoId,
           docenteId,
           texto,
           audioUrl,
@@ -210,7 +217,6 @@ export const guardarMensajeDocenteController =
       responderError(res, error);
     }
   };
-
 
 // =====================================================
 // CREAR UNIDAD
@@ -229,7 +235,8 @@ export const crearUnidadController =
 
       const contenido =
         await crearUnidad({
-          contenidoId: req.params.contenidoId,
+          contenidoId:
+            req.params.contenidoId,
           docenteId,
           titulo,
           descripcion,
@@ -244,7 +251,6 @@ export const crearUnidadController =
       responderError(res, error);
     }
   };
-
 
 // =====================================================
 // ACTUALIZAR UNIDAD
@@ -282,7 +288,7 @@ export const actualizarUnidadController =
     }
   };
 
-  // =====================================================
+// =====================================================
 // AGREGAR MATERIAL A UNA UNIDAD
 // =====================================================
 
@@ -326,7 +332,11 @@ export const agregarMaterialUnidadController =
     }
   };
 
-  export const subirArchivoFotiaController =
+// =====================================================
+// SUBIR ARCHIVO
+// =====================================================
+
+export const subirArchivoFotiaController =
   async (req, res) => {
     try {
       if (!req.file) {
@@ -357,7 +367,7 @@ export const agregarMaterialUnidadController =
     }
   };
 
-  // =====================================================
+// =====================================================
 // ACTUALIZAR MATERIAL
 // =====================================================
 
@@ -401,7 +411,6 @@ export const actualizarMaterialUnidadController =
     }
   };
 
-
 // =====================================================
 // RETIRAR MATERIAL
 // =====================================================
@@ -437,3 +446,51 @@ export const retirarMaterialUnidadController =
 // PUBLICAR / DESPUBLICAR AULA
 // =====================================================
 
+export const cambiarEstadoPublicacionAulaController =
+  async (req, res) => {
+    try {
+      const docenteId =
+        req.usuario?.docenteId;
+
+      const {
+        publicado,
+      } = req.body;
+
+      const contenido =
+        await cambiarEstadoPublicacionAula({
+          contenidoId:
+            req.params.contenidoId,
+          docenteId,
+          publicado,
+        });
+
+      res.json({
+        mensaje:
+          publicado
+            ? "Aula publicada correctamente"
+            : "Aula devuelta a borrador correctamente",
+        contenido,
+      });
+    } catch (error) {
+      responderError(res, error);
+    }
+  };
+
+// =====================================================
+// CONSULTA INSTITUCIONAL - AULAS PUBLICADAS
+// =====================================================
+
+export const obtenerAulasPublicadasConsultaController =
+  async (req, res) => {
+    try {
+      const aulas =
+        await listarAulasPublicadasConsulta();
+
+      return res.json({
+        cantidad: aulas.length,
+        aulas,
+      });
+    } catch (error) {
+      responderError(res, error);
+    }
+  };
