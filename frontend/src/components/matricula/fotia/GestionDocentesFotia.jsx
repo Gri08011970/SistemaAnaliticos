@@ -319,7 +319,7 @@ export default function GestionDocentesFotia({
           marginBottom: "24px",
         }}
       >
-        ← Volver al menú FOTIA
+        ← Volver al menú FOTIA-FORTE
       </button>
 
       <div style={{ textAlign: "center", marginBottom: "28px" }}>
