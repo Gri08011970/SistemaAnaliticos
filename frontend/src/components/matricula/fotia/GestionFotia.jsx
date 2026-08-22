@@ -9,7 +9,7 @@ import EstadisticasFotia from "./EstadisticasFotia";
 export default function GestionFotia({
   alumnosMatricula = [],
   alumnosParaExamen = [],
- esAdmin = false,
+  esAdmin = false,
 }) {
   const [vistaActiva, setVistaActiva] = useState("inicio");
 
@@ -32,8 +32,7 @@ export default function GestionFotia({
     () =>
       inscripcionesFotia.filter(
         (inscripcion) =>
-          inscripcion.activo !== false &&
-          inscripcion.estado !== "Suspendida",
+          inscripcion.activo !== false && inscripcion.estado !== "Suspendida",
       ),
     [inscripcionesFotia],
   );
@@ -42,11 +41,7 @@ export default function GestionFotia({
     const estudiantes = new Set(
       inscripcionesActivas
         .map((inscripcion) =>
-          String(
-            inscripcion.alumnoId?._id ||
-              inscripcion.alumnoId ||
-              "",
-          ),
+          String(inscripcion.alumnoId?._id || inscripcion.alumnoId || ""),
         )
         .filter(Boolean),
     );
@@ -54,18 +49,13 @@ export default function GestionFotia({
     return estudiantes.size;
   }, [inscripcionesActivas]);
 
-  const totalAsignaturasFortalecimiento =
-    inscripcionesActivas.length;
+  const totalAsignaturasFortalecimiento = inscripcionesActivas.length;
 
   const totalDocentesParticipantes = useMemo(() => {
     const docentes = new Set(
       inscripcionesActivas
         .map((inscripcion) =>
-          String(
-            inscripcion.docenteId?._id ||
-              inscripcion.docenteId ||
-              "",
-          ),
+          String(inscripcion.docenteId?._id || inscripcion.docenteId || ""),
         )
         .filter(Boolean),
     );
@@ -76,8 +66,7 @@ export default function GestionFotia({
   const totalAcreditaciones = useMemo(
     () =>
       inscripcionesFotia.filter(
-        (inscripcion) =>
-          inscripcion.estado === "Acreditada",
+        (inscripcion) => inscripcion.estado === "Acreditada",
       ).length,
     [inscripcionesFotia],
   );
@@ -187,18 +176,18 @@ export default function GestionFotia({
 
     try {
       const respuesta = await fetch(
-  `/api/fotia/inscripciones/${inscripcion._id}/retirar`,
-  {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${localStorage.getItem("tokenUsuario")}`,
-    },
-    body: JSON.stringify({
-      observacion: "Retirada desde la gestión del período FOTIA",
-    }),
-  },
-);
+        `/api/fotia/inscripciones/${inscripcion._id}/retirar`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("tokenUsuario")}`,
+          },
+          body: JSON.stringify({
+            observacion: "Retirada desde la gestión del período FOTIA",
+          }),
+        },
+      );
 
       const datos = await respuesta.json();
 
@@ -258,13 +247,13 @@ export default function GestionFotia({
       setErrorFotia("");
 
       const respuesta = await fetch(
-       `/api/fotia/periodos/${periodoId}/estudiantes/${alumnoId}` ,
+        `/api/fotia/periodos/${periodoId}/estudiantes/${alumnoId}`,
         {
           method: "DELETE",
-           headers: {
-           Authorization: `Bearer ${localStorage.getItem("tokenUsuario")}`,
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("tokenUsuario")}`,
+          },
         },
-       },
       );
 
       const datos = await respuesta.json();
@@ -307,6 +296,8 @@ export default function GestionFotia({
     );
   };
 
+  const [periodoEnEdicion, setPeriodoEnEdicion] = useState(null);
+
   return (
     <div
       style={{
@@ -329,7 +320,7 @@ export default function GestionFotia({
               fontSize: "clamp(24px, 3vw, 28px)",
             }}
           >
-            📘 FOTIA
+            📘 FOTIA - FORTE
           </h2>
 
           <p
@@ -429,7 +420,7 @@ export default function GestionFotia({
                   fontSize: "21px",
                 }}
               >
-                 Docentes responsables
+                Docentes responsables
               </h3>
 
               <p
@@ -464,6 +455,61 @@ export default function GestionFotia({
               </button>
             </div>
 
+            <div
+              style={{
+                border: "2px solid #8fb5d9",
+                borderRadius: "14px",
+                padding: "20px",
+                background: "#ffffff",
+                boxShadow: "0 4px 10px rgba(0,0,0,.06)",
+                display: "flex",
+                flexDirection: "column",
+                minHeight: "245px",
+              }}
+            >
+              <h3
+                style={{
+                  margin: "0 0 14px",
+                  color: "#23436d",
+                  textAlign: "center",
+                  fontSize: "21px",
+                }}
+              >
+                📅 Períodos
+              </h3>
+
+              <p
+                style={{
+                  color: "#666",
+                  lineHeight: 1.55,
+                  textAlign: "center",
+                  margin: 0,
+                }}
+              >
+                Crear, consultar y administrar períodos de FOTIA-FORTE.
+              </p>
+
+              <button
+                type="button"
+                onClick={() => setVistaActiva("periodos")}
+                style={{
+                  marginTop: "auto",
+                  alignSelf: "center",
+                  padding: "10px 18px",
+                  border: "none",
+                  borderRadius: "10px",
+                  background: "#148c84",
+                  color: "#fff",
+                  fontWeight: "700",
+                  cursor: "pointer",
+                  minWidth: "118px",
+                  boxShadow: "0 4px 10px rgba(20,140,132,.18)",
+                }}
+              >
+                Entrar
+              </button>
+            </div>
+
             {[
               {
                 titulo: "Historial",
@@ -474,7 +520,8 @@ export default function GestionFotia({
               {
                 titulo: "Estadísticas",
                 icono: "📊",
-                descripcion: "Indicadores institucionales del período FOTIA.",
+                descripcion:
+                  "Indicadores institucionales del período FOTIA-FORTE.",
                 onClick: () => setVistaActiva("estadisticas"),
               },
             ].map((modulo) => (
@@ -537,6 +584,221 @@ export default function GestionFotia({
           </div>
         </>
       )}
+
+      {vistaActiva === "periodos" && (
+        <div
+          style={{
+            width: "100%",
+            minWidth: 0,
+          }}
+        >
+          <button
+            type="button"
+            onClick={volverAlInicioFotia}
+            style={{
+              marginBottom: "20px",
+              padding: "9px 14px",
+              border: "1px solid #bfd4df",
+              borderRadius: "9px",
+              background: "#f3f8fa",
+              color: "#315f6f",
+              cursor: "pointer",
+              fontWeight: "700",
+            }}
+          >
+            ← Volver a FOTIA-FORTE
+          </button>
+
+          <div
+            style={{
+              border: "2px solid #b9d4ea",
+              borderRadius: "16px",
+              padding: "clamp(18px, 3vw, 26px)",
+              background: "linear-gradient(180deg, #f8fbfe 0%, #ffffff 100%)",
+              boxShadow: "0 5px 16px rgba(41, 78, 112, 0.08)",
+            }}
+          >
+            <div
+              style={{
+                textAlign: "center",
+                marginBottom: "24px",
+              }}
+            >
+              <p
+                style={{
+                  margin: "0 0 5px",
+                  color: "#6b7f92",
+                  fontSize: "12px",
+                  fontWeight: "700",
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                }}
+              >
+                ADMINISTRACIÓN
+              </p>
+
+              <h2
+                style={{
+                  margin: "0 0 8px",
+                  color: "#23436d",
+                  fontSize: "27px",
+                }}
+              >
+                📅 Períodos FOTIA-FORTE
+              </h2>
+
+              <p
+                style={{
+                  margin: 0,
+                  color: "#607080",
+                }}
+              >
+                Gestión de los períodos institucionales de fortalecimiento.
+              </p>
+            </div>
+
+            {periodoActivo && !periodoEnEdicion && (
+              <div
+                style={{
+                  padding: "20px",
+                  border: "2px solid #b7ddd3",
+                  borderRadius: "14px",
+                  background: "#eef8f5",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    gap: "16px",
+                  }}
+                >
+                  <div>
+                    <span
+                      style={{
+                        display: "block",
+                        marginBottom: "6px",
+                        color: "#607080",
+                        fontSize: "12px",
+                        fontWeight: "700",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Período activo
+                    </span>
+
+                    <h3
+                      style={{
+                        margin: "0 0 8px",
+                        color: "#23436d",
+                        fontSize: "21px",
+                      }}
+                    >
+                      {periodoActivo.nombre}
+                    </h3>
+
+                    <div
+                      style={{
+                        color: "#566f86",
+                        lineHeight: 1.6,
+                      }}
+                    >
+                      <div>
+                        Ciclo lectivo:{" "}
+                        <strong>{periodoActivo.cicloLectivo}</strong>
+                      </div>
+
+                      <div>
+                        Estado: <strong>{periodoActivo.estado}</strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  {esAdmin && (
+                    <button
+                      type="button"
+                      onClick={() => setPeriodoEnEdicion(periodoActivo)}
+                      style={{
+                        padding: "10px 18px",
+                        border: "1px solid #8fb5d9",
+                        borderRadius: "10px",
+                        background: "#ffffff",
+                        color: "#23436d",
+                        fontWeight: "700",
+                        cursor: "pointer",
+                      }}
+                    >
+                      ✏️ Editar período
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {periodoEnEdicion && (
+              <FormularioPeriodoFotia
+                periodoEditar={periodoEnEdicion}
+                onCancelar={() => setPeriodoEnEdicion(null)}
+                onPeriodoActualizado={(periodoActualizado) => {
+                  setPeriodoActivo(periodoActualizado);
+
+                  setPeriodoEnEdicion(null);
+
+                  setErrorFotia("");
+                }}
+              />
+            )}
+
+            {!periodoActivo && !mostrarFormularioPeriodo && (
+              <div
+                style={{
+                  textAlign: "center",
+                  marginTop: "24px",
+                }}
+              >
+                <p
+                  style={{
+                    color: "#607080",
+                    marginBottom: "16px",
+                  }}
+                >
+                  No existe un período activo.
+                </p>
+
+                {esAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => setMostrarFormularioPeriodo(true)}
+                    style={{
+                      padding: "11px 20px",
+                      border: "none",
+                      borderRadius: "10px",
+                      background: "#148c84",
+                      color: "#ffffff",
+                      fontWeight: "700",
+                      cursor: "pointer",
+                    }}
+                  >
+                    ➕ Crear período
+                  </button>
+                )}
+              </div>
+            )}
+
+            {mostrarFormularioPeriodo && !periodoActivo && (
+              <FormularioPeriodoFotia
+                onCancelar={() => setMostrarFormularioPeriodo(false)}
+                onPeriodoCreado={(periodo) => {
+                  periodoCreado(periodo);
+                  setVistaActiva("periodos");
+                }}
+              />
+            )}
+          </div>
+        </div>
+      )}
       {vistaActiva === "acreditaciones" && (
         <div style={{ width: "100%", minWidth: 0 }}>
           <button
@@ -553,7 +815,7 @@ export default function GestionFotia({
               fontWeight: "700",
             }}
           >
-            ← Volver al inicio de FOTIA
+            ← Volver a FOTIA-FORTE
           </button>
 
           <div
@@ -578,7 +840,7 @@ export default function GestionFotia({
                   textTransform: "uppercase",
                 }}
               >
-                FOTIA
+                FOTIA - FORTE
               </p>
 
               <h2
@@ -817,25 +1079,25 @@ export default function GestionFotia({
                     participarán y qué áreas se trabajarán.
                   </span>
                   {esAdmin && (
-                  <button
-                    type="button"
-                    onClick={() => setMostrarIncorporacion(true)}
-                    style={{
-                      display: "block",
-                      margin: "20px auto 0",
-                      padding: "12px 22px",
-                      border: "none",
-                      borderRadius: "10px",
-                      background: "#148c84",
-                      color: "#ffffff",
-                      fontSize: "15px",
-                      fontWeight: "700",
-                      cursor: "pointer",
-                      boxShadow: "0 4px 10px rgba(20, 140, 132, 0.20)",
-                    }}
-                  >
-                    ➕ Incorporar estudiante
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => setMostrarIncorporacion(true)}
+                      style={{
+                        display: "block",
+                        margin: "20px auto 0",
+                        padding: "12px 22px",
+                        border: "none",
+                        borderRadius: "10px",
+                        background: "#148c84",
+                        color: "#ffffff",
+                        fontSize: "15px",
+                        fontWeight: "700",
+                        cursor: "pointer",
+                        boxShadow: "0 4px 10px rgba(20, 140, 132, 0.20)",
+                      }}
+                    >
+                      ➕ Incorporar estudiante
+                    </button>
                   )}
                 </div>
               )}
@@ -856,8 +1118,8 @@ export default function GestionFotia({
                 }}
               />
             )}
-          {esAdmin &&
-            periodoActivo &&
+            {esAdmin &&
+              periodoActivo &&
               !mostrarIncorporacion &&
               inscripcionesFotia.length > 0 && (
                 <div
@@ -896,8 +1158,6 @@ export default function GestionFotia({
               onActualizada={actualizarInscripcionEnPantalla}
               onEliminarEstudiante={eliminarEstudiantePeriodo}
             />
-
-
           </div>
         </div>
       )}

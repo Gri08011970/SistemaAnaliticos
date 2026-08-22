@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const estadoInicial = {
   nombre: "",
@@ -11,8 +11,10 @@ const estadoInicial = {
 };
 
 export default function FormularioPeriodoFotia({
+  periodoEditar = null,
   onCancelar,
   onPeriodoCreado,
+  onPeriodoActualizado,
 }) {
   const [formulario, setFormulario] =
     useState(estadoInicial);
@@ -21,6 +23,43 @@ export default function FormularioPeriodoFotia({
     useState(false);
 
   const [error, setError] = useState("");
+
+  const editando = Boolean(periodoEditar?._id);
+
+  useEffect(() => {
+    if (periodoEditar?._id) {
+      setFormulario({
+        nombre: periodoEditar.nombre || "",
+        cicloLectivo:
+          periodoEditar.cicloLectivo ||
+          new Date().getFullYear(),
+        fechaInicio:
+          periodoEditar.fechaInicio
+            ? String(periodoEditar.fechaInicio).slice(
+                0,
+                10,
+              )
+            : "",
+        fechaFin:
+          periodoEditar.fechaFin
+            ? String(periodoEditar.fechaFin).slice(
+                0,
+                10,
+              )
+            : "",
+        estado:
+          periodoEditar.estado || "Planificado",
+        descripcion:
+          periodoEditar.descripcion || "",
+        observaciones:
+          periodoEditar.observaciones || "",
+      });
+
+      return;
+    }
+
+    setFormulario(estadoInicial);
+  }, [periodoEditar]);
 
   const actualizarCampo = (evento) => {
     const { name, value } = evento.target;
@@ -38,35 +77,58 @@ export default function FormularioPeriodoFotia({
       setGuardando(true);
       setError("");
 
-      const respuesta = await fetch(
-        "/api/fotia/periodos",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            ...formulario,
-            cicloLectivo: Number(
-              formulario.cicloLectivo,
-            ),
-          }),
+      const url = editando
+        ? `/api/fotia/periodos/${periodoEditar._id}`
+        : "/api/fotia/periodos";
+
+      const respuesta = await fetch(url, {
+        method: editando ? "PUT" : "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+
+          Authorization: `Bearer ${localStorage.getItem(
+            "tokenUsuario",
+          )}`,
         },
-      );
+
+        body: JSON.stringify({
+          ...formulario,
+
+          cicloLectivo: Number(
+            formulario.cicloLectivo,
+          ),
+        }),
+      });
 
       const datos = await respuesta.json();
 
       if (!respuesta.ok) {
         throw new Error(
           datos.mensaje ||
-            "No se pudo crear el período de FOTIA",
+            (editando
+              ? "No se pudo actualizar el período de FOTIA-FORTE"
+              : "No se pudo crear el período de FOTIA-FORTE"),
         );
       }
 
-      onPeriodoCreado?.(datos.periodo);
+      const periodoGuardado =
+        datos.periodo || datos;
+
+      if (editando) {
+        onPeriodoActualizado?.(
+          periodoGuardado,
+        );
+      } else {
+        onPeriodoCreado?.(
+          periodoGuardado,
+        );
+      }
     } catch (errorGuardado) {
       console.error(
-        "Error al crear período de FOTIA:",
+        editando
+          ? "Error al actualizar período de FOTIA-FORTE:"
+          : "Error al crear período de FOTIA-FORTE:",
         errorGuardado,
       );
 
@@ -102,7 +164,9 @@ export default function FormularioPeriodoFotia({
             fontSize: "22px",
           }}
         >
-          📘 Nuevo período de fortalecimiento
+          {editando
+            ? "✏️ Editar período de fortalecimiento"
+            : "📘 Nuevo período de fortalecimiento"}
         </h3>
 
         <p
@@ -112,8 +176,9 @@ export default function FormularioPeriodoFotia({
             lineHeight: 1.5,
           }}
         >
-          Definí el período institucional en el que se
-          desarrollará FOTIA.
+          {editando
+            ? "Modificá los datos institucionales del período seleccionado."
+            : "Definí el período institucional en el que se desarrollará FOTIA-FORTE."}
         </p>
       </div>
 
@@ -330,7 +395,9 @@ export default function FormularioPeriodoFotia({
         >
           {guardando
             ? "Guardando..."
-            : "💾 Crear período"}
+            : editando
+              ? "💾 Guardar cambios"
+              : "💾 Crear período"}
         </button>
       </div>
     </form>

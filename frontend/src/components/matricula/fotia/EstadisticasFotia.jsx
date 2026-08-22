@@ -670,7 +670,7 @@ export default function EstadisticasFotia({
             cursor: "pointer",
           }}
         >
-          ← Volver a FOTIA
+          ← Volver a FOTIA-FORTE
         </button>
 
         <button
@@ -721,7 +721,7 @@ export default function EstadisticasFotia({
             fontSize: "clamp(25px, 3vw, 31px)",
           }}
         >
-          📊 Estadísticas FOTIA
+          📊 Estadísticas FOTIA-FORTE
         </h2>
 
         <p
@@ -912,7 +912,7 @@ export default function EstadisticasFotia({
             />
 
             <PanelBarras
-              titulo="👩‍🏫 Intervenciones por docente"
+              titulo=" Intervenciones por docente"
               descripcion="Áreas asignadas a cada docente responsable."
               datos={datos.porDocente}
               vacio="Todavía no hay docentes asignados."

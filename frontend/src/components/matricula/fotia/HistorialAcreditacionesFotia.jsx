@@ -661,7 +661,7 @@ export default function HistorialAcreditacionesFotia({
             boxShadow: "0 3px 8px rgba(0,0,0,.05)",
           }}
         >
-          ← Volver a FOTIA
+          ← Volver a FOTIA-FORTE
         </button>
       </div>
 
@@ -702,7 +702,7 @@ export default function HistorialAcreditacionesFotia({
               fontSize: "clamp(23px, 3vw, 29px)",
             }}
           >
-            📖 Historial de acreditaciones FOTIA
+            📖 Historial de acreditaciones FOTIA-FORTE
           </h2>
 
           <p

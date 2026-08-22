@@ -179,7 +179,7 @@ export default function GestionDocentesFotia({
     setMensajeExito(
       editando
         ? `✔ Los datos de ${datos.docente.nombre} ${datos.docente.apellido} fueron actualizados correctamente.`
-        : `✔ ${datos.docente.nombre} ${datos.docente.apellido} fue incorporado/a correctamente como docente responsable de FOTIA.`,
+        : `✔ ${datos.docente.nombre} ${datos.docente.apellido} fue incorporado/a correctamente como docente responsable de FOTIA-FORTE.`,
     );
   } catch (error) {
     console.error("Error al guardar docente FOTIA:", error);
@@ -333,7 +333,7 @@ export default function GestionDocentesFotia({
             fontSize: "12px",
           }}
         >
-          FOTIA
+          FOTIA - FORTE
         </p>
 
         <h2
@@ -343,7 +343,7 @@ export default function GestionDocentesFotia({
             fontSize: "30px",
           }}
         >
-          👩‍🏫 Docentes responsables
+           Docentes responsables
         </h2>
 
         <p
@@ -356,7 +356,7 @@ export default function GestionDocentesFotia({
           }}
         >
           Registre aquí a los docentes que participarán en las intervenciones y
-          acreditaciones de FOTIA.
+          acreditaciones de FOTIA-FORTE.
         </p>
       </div>
 
@@ -431,7 +431,7 @@ export default function GestionDocentesFotia({
               fontSize: "23px",
             }}
           >
-            👩‍🏫
+            
           </div>
 
           <div>
@@ -556,7 +556,7 @@ export default function GestionDocentesFotia({
             >
               Seleccioná una o varias asignaturas institucionales. Estas áreas
               servirán para identificar rápidamente qué docentes pueden acompañar
-              cada espacio de FOTIA, pero no limitarán las asignaciones posteriores.
+              cada espacio de FOTIA-FORTE, pero no limitarán las asignaciones posteriores.
             </p>
           </div>
 
@@ -894,7 +894,7 @@ export default function GestionDocentesFotia({
               textTransform: "uppercase",
             }}
           >
-            Plantel FOTIA
+            Plantel FOTIA-FORTE
           </p>
 
           <h3
@@ -904,7 +904,7 @@ export default function GestionDocentesFotia({
               fontSize: "22px",
             }}
           >
-            👩‍🏫 Docentes registrados: {docentesFotia.length}
+             Docentes registrados: {docentesFotia.length}
           </h3>
         </div>
 
