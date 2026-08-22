@@ -151,6 +151,53 @@ export default function GestionFotia({
 
   const [mostrarIncorporacion, setMostrarIncorporacion] = useState(false);
 
+  const [filtroPrograma, setFiltroPrograma] = useState("Todos");
+
+ console.log(
+  "DATOS PARA CLASIFICAR:",
+  inscripcionesFotia.map((i) => ({
+    estudiante: `${i.apellido} ${i.nombre}`,
+    asignatura: i.asignatura,
+    tipoOrigen: i.tipoOrigen,
+  })),
+);
+
+console.log("FILTRO PROGRAMA:", filtroPrograma);
+
+  const inscripcionesSegunPrograma = useMemo(() => {
+    if (filtroPrograma === "FOTIA") {
+      return inscripcionesFotia.filter((inscripcion) => {
+        const asignatura = String(inscripcion.asignatura || "")
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase()
+          .trim();
+
+        return (
+          inscripcion.tipoOrigen === "En curso" &&
+          asignatura === "practicas del lenguaje"
+        );
+      });
+    }
+
+    if (filtroPrograma === "FORTE") {
+      return inscripcionesFotia.filter(
+        (inscripcion) => inscripcion.tipoOrigen === "Previa",
+      );
+    }
+
+    return inscripcionesFotia;
+  }, [inscripcionesFotia, filtroPrograma]);
+
+  console.log(
+  "RESULTADO DEL FILTRO:",
+  inscripcionesSegunPrograma.map((i) => ({
+    estudiante: `${i.apellido} ${i.nombre}`,
+    asignatura: i.asignatura,
+    tipoOrigen: i.tipoOrigen,
+  })),
+);
+
   const cancelarFormularioPeriodo = () => {
     setMostrarFormularioPeriodo(false);
   };
@@ -1149,9 +1196,49 @@ export default function GestionFotia({
                   </button>
                 </div>
               )}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: "10px",
+                margin: "22px 0 18px",
+              }}
+            >
+              {[
+                { valor: "Todos", texto: "Todos" },
+                { valor: "FOTIA", texto: "FOTIA · Alfabetización" },
+                { valor: "FORTE", texto: "FORTE · Intensificación" },
+              ].map((opcion) => {
+                const seleccionado = filtroPrograma === opcion.valor;
+
+                return (
+                  <button
+                    key={opcion.valor}
+                    type="button"
+                    onClick={() => setFiltroPrograma(opcion.valor)}
+                    style={{
+                      padding: "10px 16px",
+                      border: seleccionado
+                        ? "2px solid #148c84"
+                        : "1px solid #bfd4df",
+                      borderRadius: "10px",
+                      background: seleccionado ? "#e8f6f3" : "#ffffff",
+                      color: seleccionado ? "#126f69" : "#49657d",
+                      fontWeight: "700",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {opcion.texto}
+                  </button>
+                );
+              })}
+            </div>
 
             <ListadoInscripcionesFotia
-              inscripciones={inscripcionesFotia}
+              inscripciones={inscripcionesSegunPrograma} 
+              programaSeleccionado={filtroPrograma}
               docentesFotia={docentesFotia}
               esAdmin={esAdmin}
               onRetirar={retirarInscripcionFotia}

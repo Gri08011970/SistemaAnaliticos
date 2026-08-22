@@ -87,6 +87,7 @@ const formatearFechaImpresion = (fecha) => {
 
 export default function ListadoInscripcionesFotia({
   inscripciones = [],
+  programaSeleccionado = "Todos",
   docentesFotia = [],
   esAdmin = false,
   onRetirar,
@@ -355,6 +356,13 @@ export default function ListadoInscripcionesFotia({
           inscripcion.periodoId && typeof inscripcion.periodoId === "object",
       )?.periodoId?.nombre || "Período FOTIA-FORTE";
 
+    const tituloPrograma =
+      programaSeleccionado === "FOTIA"
+        ? "FOTIA · Alfabetización"
+        : programaSeleccionado === "FORTE"
+          ? "FORTE · Intensificación y acreditación"
+          : "FOTIA-FORTE · Listado general";
+
     const filtrosAplicados = [
       filtroCurso && `Curso: ${filtroCurso}`,
       filtroTurno && `Turno: ${filtroTurno}`,
@@ -406,7 +414,7 @@ export default function ListadoInscripcionesFotia({
       <html lang="es">
         <head>
           <meta charset="UTF-8" />
-          <title>Listado filtrado FOTIA</title>
+           <title>${escaparHtml(tituloPrograma)}</title>
 
           <style>
             * {
@@ -584,7 +592,7 @@ export default function ListadoInscripcionesFotia({
               “Florencio Molina Campos”
             </p>
 
-            <h1>Listado de estudiantes FOTIA</h1>
+            <h1>${escaparHtml(tituloPrograma)}</h1>
 
             <p class="subtitulo">
               ${escaparHtml(nombrePeriodo)}
@@ -739,7 +747,11 @@ export default function ListadoInscripcionesFotia({
             color: "#607080",
           }}
         >
-          Seguimiento de las áreas incorporadas al fortalecimiento.
+          {programaSeleccionado === "FOTIA"
+            ? "Estudiantes de FOTIA · Alfabetización."
+            : programaSeleccionado === "FORTE"
+              ? "Estudiantes de FORTE · Intensificación y acreditación."
+              : "Seguimiento de las áreas incorporadas al fortalecimiento."}
         </p>
       </div>
 
@@ -972,14 +984,8 @@ export default function ListadoInscripcionesFotia({
                 ? "1px solid #6fa3cf"
                 : "1px solid #c7d7e3",
             borderRadius: "9px",
-            background:
-              vistaListado === "tarjetas"
-                ? "#eaf4fb"
-                : "#ffffff",
-            color:
-              vistaListado === "tarjetas"
-                ? "#24577f"
-                : "#52697d",
+            background: vistaListado === "tarjetas" ? "#eaf4fb" : "#ffffff",
+            color: vistaListado === "tarjetas" ? "#24577f" : "#52697d",
             fontWeight: "700",
             cursor: "pointer",
           }}
@@ -1001,14 +1007,8 @@ export default function ListadoInscripcionesFotia({
                 ? "1px solid #6fa3cf"
                 : "1px solid #c7d7e3",
             borderRadius: "9px",
-            background:
-              vistaListado === "compacta"
-                ? "#eaf4fb"
-                : "#ffffff",
-            color:
-              vistaListado === "compacta"
-                ? "#24577f"
-                : "#52697d",
+            background: vistaListado === "compacta" ? "#eaf4fb" : "#ffffff",
+            color: vistaListado === "compacta" ? "#24577f" : "#52697d",
             fontWeight: "700",
             cursor: "pointer",
           }}
@@ -1138,156 +1138,148 @@ export default function ListadoInscripcionesFotia({
             </thead>
 
             <tbody>
-              {filasCompactas.map(
-                ({ estudiante, inscripcion }, indice) => {
-                  const detalleAbierto =
-                    estudianteDetalleId === estudiante.alumnoId;
+              {filasCompactas.map(({ estudiante, inscripcion }, indice) => {
+                const detalleAbierto =
+                  estudianteDetalleId === estudiante.alumnoId;
 
-                  return (
-                    <Fragment
-                      key={`${estudiante.alumnoId}-${inscripcion._id || indice}`}
+                return (
+                  <Fragment
+                    key={`${estudiante.alumnoId}-${inscripcion._id || indice}`}
+                  >
+                    <tr
+                      style={{
+                        background: indice % 2 === 0 ? "#ffffff" : "#f8fbfd",
+                      }}
                     >
-                      <tr
+                      <td
                         style={{
-                          background:
-                            indice % 2 === 0
-                              ? "#ffffff"
-                              : "#f8fbfd",
+                          padding: "10px 9px",
+                          minWidth: "210px",
+                          fontWeight: "700",
+                          color: "#23436d",
                         }}
                       >
-                        <td
-                          style={{
-                            padding: "10px 9px",
-                            minWidth: "210px",
-                            fontWeight: "700",
-                            color: "#23436d",
-                          }}
-                        >
-                          {[estudiante.apellido, estudiante.nombre]
-                            .filter(Boolean)
-                            .join(" ")}
-                        </td>
+                        {[estudiante.apellido, estudiante.nombre]
+                          .filter(Boolean)
+                          .join(" ")}
+                      </td>
 
-                        <td
-                          style={{
-                            padding: "10px 9px",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {estudiante.curso || "Sin curso"}
-                        </td>
+                      <td
+                        style={{
+                          padding: "10px 9px",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {estudiante.curso || "Sin curso"}
+                      </td>
 
-                        <td
-                          style={{
-                            padding: "10px 9px",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {estudiante.turno || "Sin turno"}
-                        </td>
+                      <td
+                        style={{
+                          padding: "10px 9px",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {estudiante.turno || "Sin turno"}
+                      </td>
 
-                        <td
-                          style={{
-                            padding: "10px 9px",
-                            minWidth: "180px",
-                          }}
-                        >
-                          <strong>
-                            {inscripcion.asignatura || "Sin asignatura"}
-                          </strong>
+                      <td
+                        style={{
+                          padding: "10px 9px",
+                          minWidth: "180px",
+                        }}
+                      >
+                        <strong>
+                          {inscripcion.asignatura || "Sin asignatura"}
+                        </strong>
 
-                          {inscripcion.anio && (
-                            <div
-                              style={{
-                                marginTop: "3px",
-                                color: "#718294",
-                                fontSize: "11px",
-                              }}
-                            >
-                              {inscripcion.anio} año
-                            </div>
-                          )}
-                        </td>
-
-                        <td
-                          style={{
-                            padding: "10px 9px",
-                            minWidth: "170px",
-                          }}
-                        >
-                          {inscripcion.docenteNombre ||
-                            "Sin docente asignado"}
-                        </td>
-
-                        <td
-                          style={{
-                            padding: "10px 9px",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {inscripcion.estado || "Incorporada"}
-                        </td>
-
-                        <td
-                          style={{
-                            padding: "8px 9px",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setEstudianteDetalleId((anterior) =>
-                                anterior === estudiante.alumnoId
-                                  ? ""
-                                  : estudiante.alumnoId,
-                              )
-                            }
+                        {inscripcion.anio && (
+                          <div
                             style={{
-                              padding: "7px 10px",
-                              border: "1px solid #a8c7dc",
-                              borderRadius: "8px",
-                              background: detalleAbierto
-                                ? "#e8f2f8"
-                                : "#ffffff",
-                              color: "#295b7d",
-                              fontWeight: "700",
-                              cursor: "pointer",
+                              marginTop: "3px",
+                              color: "#718294",
+                              fontSize: "11px",
                             }}
                           >
-                            {detalleAbierto
-                              ? "▲ Ocultar detalle"
-                              : "▼ Ver detalle"}
-                          </button>
+                            {inscripcion.anio} año
+                          </div>
+                        )}
+                      </td>
+
+                      <td
+                        style={{
+                          padding: "10px 9px",
+                          minWidth: "170px",
+                        }}
+                      >
+                        {inscripcion.docenteNombre || "Sin docente asignado"}
+                      </td>
+
+                      <td
+                        style={{
+                          padding: "10px 9px",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {inscripcion.estado || "Incorporada"}
+                      </td>
+
+                      <td
+                        style={{
+                          padding: "8px 9px",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setEstudianteDetalleId((anterior) =>
+                              anterior === estudiante.alumnoId
+                                ? ""
+                                : estudiante.alumnoId,
+                            )
+                          }
+                          style={{
+                            padding: "7px 10px",
+                            border: "1px solid #a8c7dc",
+                            borderRadius: "8px",
+                            background: detalleAbierto ? "#e8f2f8" : "#ffffff",
+                            color: "#295b7d",
+                            fontWeight: "700",
+                            cursor: "pointer",
+                          }}
+                        >
+                          {detalleAbierto
+                            ? "▲ Ocultar detalle"
+                            : "▼ Ver detalle"}
+                        </button>
+                      </td>
+                    </tr>
+
+                    {detalleAbierto && (
+                      <tr
+                        key={`${estudiante.alumnoId}-detalle-${inscripcion._id || indice}`}
+                      >
+                        <td
+                          colSpan={7}
+                          style={{
+                            padding: "14px",
+                            background: "#f5f9fc",
+                          }}
+                        >
+                          <TarjetaEstudianteFotia
+                            estudiante={estudiante}
+                            docentesFotia={docentesFotia}
+                            esAdmin={esAdmin}
+                            onRetirar={onRetirar}
+                            onActualizada={onActualizada}
+                            onEliminarEstudiante={onEliminarEstudiante}
+                          />
                         </td>
                       </tr>
-
-                      {detalleAbierto && (
-                        <tr
-                          key={`${estudiante.alumnoId}-detalle-${inscripcion._id || indice}`}
-                        >
-                          <td
-                            colSpan={7}
-                            style={{
-                              padding: "14px",
-                              background: "#f5f9fc",
-                            }}
-                          >
-                            <TarjetaEstudianteFotia
-                              estudiante={estudiante}
-                              docentesFotia={docentesFotia}
-                              esAdmin={esAdmin}
-                              onRetirar={onRetirar}
-                              onActualizada={onActualizada}
-                              onEliminarEstudiante={onEliminarEstudiante}
-                            />
-                          </td>
-                        </tr>
-                      )}
-                    </Fragment>
-                  );
-                },
-              )}
+                    )}
+                  </Fragment>
+                );
+              })}
             </tbody>
           </table>
         </div>
