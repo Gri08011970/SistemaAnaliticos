@@ -44,15 +44,16 @@ export default function PortadaInstitucional({ entrar }) {
       titulo: "Mesas inclusivas",
       subtitulo: "Cuando el espacio también aprende a cuidar.",
       contenido: [
-        "Las mesas inclusivas nacieron de una necesidad concreta: hacer de la escuela un lugar más accesible, más cómodo y más justo para estudiantes usuarias de silla de ruedas.",
+        "Las mesas inclusivas nacieron de una necesidad concreta: hacer de la escuela un lugar más accesible, más cómodo y más justo para estudiantes usuarias/os de silla de ruedas.",
         "Pero la comunidad educativa decidió ir más allá de la adaptación funcional. Las mesas fueron intervenidas artísticamente, convirtiendo una respuesta pedagógica y material en una expresión de cuidado, inclusión y belleza.",
         "Cada mesa recuerda que la inclusión no es solamente una palabra: es una decisión cotidiana que transforma los espacios para que todas y todos puedan habitarlos con dignidad."
       ]
     },
 
     memoria: {
-      titulo: "Memoria, Verdad y Justicia",
-      subtitulo: "El Nunca Más como compromiso cotidiano.",
+      titulo: "2026 año  de los derechos humanos por Memoria, Verdad y Justicia",
+      subtitulo: "El Nunca Más como compromiso cotidiano.", 
+      
       contenido: [
         "Cada pañuelo blanco representa una historia que nunca dejó de buscar la verdad.",
         "Esta intervención artística invita a las nuevas generaciones a mantener viva la memoria, defender los derechos humanos y comprender que el Nunca Más no pertenece solamente al pasado.",

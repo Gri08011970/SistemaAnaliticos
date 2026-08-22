@@ -869,7 +869,7 @@ h3{
           className="boton-sistema boton-secundario"
           style={botonSecundario}
         >
-          📥 Importar Excel
+          📥 Cargar Excel
           <input
             type="file"
             accept=".xlsx,.xls"
@@ -882,14 +882,14 @@ h3{
       <h3 style={subtituloTabla}>
         {cursoSeleccionado
           ? `Cargando domicilios de ${cursoSeleccionado}`
-          : "Seleccioná un curso para cargar alumno por alumno"}
+          : "Seleccioná un curso para cargar cada estudiante "}
       </h3>
 
       <div style={tablaContenedor}>
         <table style={tabla}>
           <thead>
             <tr style={encabezado}>
-              <th style={celda}>Alumno</th>
+              <th style={celda}>Estudiante</th>
               <th style={celda}>DNI</th>
               <th style={celda}>Domicilio</th>
               <th style={celda}>Teléfono</th>

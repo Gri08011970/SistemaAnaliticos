@@ -3,7 +3,7 @@ export const proyectosEscuela = [
     imagen: "mesas_inclusivas1.jpg",
     titulo: "Mesas inclusivas",
     descripcion:
-      "Mesas adaptadas e intervenidas artísticamente para favorecer la inclusión de estudiantes usuarias de silla de ruedas."
+      "Mesas adaptadas e intervenidas artísticamente para favorecer la inclusión de estudiantes usuarias/os de silla de ruedas."
   },
 
   {

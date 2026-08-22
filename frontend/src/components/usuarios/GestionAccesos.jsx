@@ -216,7 +216,7 @@ export default function GestionAccesos({ volver }) {
     }
 
     if (nuevoUsuario.rol === "docente" && !nuevoUsuario.docenteId) {
-      setErrorFormulario("Seleccioná el docente FOTIA que tendrá esta cuenta.");
+      setErrorFormulario("Seleccioná el docente FOTIA-FORTE que tendrá esta cuenta.");
       return;
     }
 
@@ -449,14 +449,14 @@ export default function GestionAccesos({ volver }) {
                           Vincular cuenta docente
                         </strong>
                         <p style={textoAvisoVinculo}>
-                          Elegí un docente ya registrado en FOTIA. El sistema
+                          Elegí un docente ya registrado en FOTIA-FORTE. El sistema
                           guardará automáticamente su docenteId.
                         </p>
                       </div>
                     </div>
 
                     <label style={grupoCampo}>
-                      <span style={labelCampo}>Docente FOTIA *</span>
+                      <span style={labelCampo}>Docente FOTIA-FORTE*</span>
                       <select
                         value={nuevoUsuario.docenteId}
                         onChange={(evento) => {

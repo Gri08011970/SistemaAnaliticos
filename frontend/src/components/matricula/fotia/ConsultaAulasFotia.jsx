@@ -170,7 +170,7 @@ export default function ConsultaAulasFotia({ volver }) {
           <div>
             <div style={etiqueta}>CONSULTA INSTITUCIONAL</div>
 
-            <h1 style={titulo}>👁 Aulas FOTIA publicadas</h1>
+            <h1 style={titulo}>👁 Aulas FOTIA-FORTE publicadas</h1>
 
             <p style={subtitulo}>
               Recorrido institucional de aulas, docentes, asignaturas y

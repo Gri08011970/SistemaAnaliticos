@@ -58,7 +58,7 @@ export default function AulaConsultaFotia({ aula, volver }) {
             <div style={etiqueta}>CONSULTA INSTITUCIONAL · SOLO LECTURA</div>
 
             <h1 style={titulo}>
-              {aula?.asignatura || "Aula FOTIA"}
+              {aula?.asignatura || "-AULA ASIGNADA FOTIA-FORTE"}
             </h1>
 
             <p style={subtitulo}>

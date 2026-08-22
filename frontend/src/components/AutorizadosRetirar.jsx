@@ -575,7 +575,7 @@ export default function AutorizadosRetirar({ volverInicio, esAdmin }) {
         </button>
 
         <label className="boton-sistema boton-secundario" style={botonSecundario}>
-          📥 Importar Excel
+          📥 Cargar Excel
           <input
             type="file"
             accept=".xlsx,.xls"
@@ -588,14 +588,14 @@ export default function AutorizadosRetirar({ volverInicio, esAdmin }) {
       <h3 style={subtituloTabla}>
         {cursoSeleccionado
           ? `Cargando autorizados de ${cursoSeleccionado}`
-          : "Seleccioná un curso para cargar alumno por alumno"}
+          : "Seleccioná un curso para cargar cada estudiante "}
       </h3>
 
       <div style={tablaContenedor}>
         <table style={tabla}>
           <thead>
             <tr style={encabezado}>
-              <th style={celda}>Alumno</th>
+              <th style={celda}>Estudiante</th>
               <th style={celda}>DNI</th>
               <th style={celda}>Adulto autorizado</th>
               <th style={celda}>Vínculo</th>

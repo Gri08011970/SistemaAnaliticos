@@ -353,7 +353,7 @@ export default function ListadoInscripcionesFotia({
       inscripcionesActivas.find(
         (inscripcion) =>
           inscripcion.periodoId && typeof inscripcion.periodoId === "object",
-      )?.periodoId?.nombre || "Período FOTIA";
+      )?.periodoId?.nombre || "Período FOTIA-FORTE";
 
     const filtrosAplicados = [
       filtroCurso && `Curso: ${filtroCurso}`,

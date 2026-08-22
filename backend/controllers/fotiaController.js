@@ -74,7 +74,7 @@ export const crearPeriodoController = async (
 
     res.status(201).json({
       mensaje:
-        "Período de FOTIA creado correctamente",
+        "Período de FOTIA-FORTE creado correctamente",
       periodo,
     });
   } catch (error) {
@@ -94,7 +94,7 @@ export const actualizarPeriodoController = async (
 
     res.json({
       mensaje:
-        "Período de FOTIA actualizado correctamente",
+        "Período de FOTIA-FORTE actualizado correctamente",
       periodo,
     });
   } catch (error) {
@@ -148,7 +148,7 @@ export const crearDocenteController = async (
 
     res.status(201).json({
       mensaje:
-        "Docente de FOTIA creado correctamente",
+        "Docente de FOTIA-FORTE creado correctamente",
       docente,
     });
   } catch (error) {
@@ -168,7 +168,7 @@ export const actualizarDocenteController = async (
 
     res.json({
       mensaje:
-        "Docente de FOTIA actualizado correctamente",
+        "Docente de FOTIA-FORTE actualizado correctamente",
       docente,
     });
   } catch (error) {

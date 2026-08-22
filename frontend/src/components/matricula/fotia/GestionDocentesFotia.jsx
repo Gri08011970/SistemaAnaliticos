@@ -145,17 +145,18 @@ export default function GestionDocentesFotia({
 
     const editando = Boolean(docenteEnEdicion?._id);
 
-    const url = editando
-      ? `http://localhost:3001/api/fotia/docentes/${docenteEnEdicion._id}`
-      : "http://localhost:3001/api/fotia/docentes";
+   const url = editando
+  ? `/api/fotia/docentes/${docenteEnEdicion._id}`
+  : "/api/fotia/docentes";
 
-    const respuesta = await fetch(url, {
-      method: editando ? "PUT" : "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(docenteParaGuardar),
-    });
+   const respuesta = await fetch(url, {
+  method: editando ? "PUT" : "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${localStorage.getItem("tokenUsuario")}`,
+  },
+  body: JSON.stringify(docenteParaGuardar),
+});
 
     const datos = await respuesta.json();
 
@@ -236,18 +237,19 @@ export default function GestionDocentesFotia({
       setMensajeExito("");
       setMensajeError("");
 
-      const respuesta = await fetch(
-        `http://localhost:3001/api/fotia/docentes/${docente._id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            activo: false,
-          }),
-        },
-      );
+     const respuesta = await fetch(
+  `/api/fotia/docentes/${docente._id}`,
+  {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("tokenUsuario")}`,
+    },
+    body: JSON.stringify({
+      activo: false,
+    }),
+  },
+);
 
       const datos = await respuesta.json();
 

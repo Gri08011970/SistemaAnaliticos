@@ -130,7 +130,7 @@ export default function FormularioPeriodoFotia({
           name="nombre"
           value={formulario.nombre}
           onChange={actualizarCampo}
-          placeholder="Ej.: FOTIA Agosto - Octubre 2026"
+          placeholder="Ej.: FOTIA-FORTE Agosto - Octubre 2026"
           requerido
           ocuparTodo
         />

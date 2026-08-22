@@ -364,7 +364,7 @@ export default function App() {
         {seccionActiva !== "inicio" &&
           seccionActiva !== "parteDiario" &&
           seccionActiva !== "documentacion" &&
-          seccionActiva !== "gestionAccesos" && 
+          seccionActiva !== "gestionAccesos" &&
           seccionActiva !== "consultaAulasFotia" && (
             <>
               <h1 style={{ color: "#1e3a5f", marginBottom: "5px" }}>
@@ -471,7 +471,7 @@ export default function App() {
 
             {(rolUsuario === "consulta" || rolUsuario === "admin") && (
               <div style={tarjetaInicio} className="tarjeta-inicio">
-                <h3>👁 Aulas FOTIA publicadas</h3>
+                <h3>👁 Aulas FOTIA-FORTE publicadas</h3>
 
                 <p>
                   Consulta institucional de aulas, docentes, asignaturas y
@@ -706,7 +706,7 @@ export default function App() {
 
         {seccionActiva === "estadisticas" && (
           <Estadisticas estudiantes={estudiantes} />
-        )} 
+        )}
 
         {seccionActiva === "matricula" && <Matricula />}
       </div>
@@ -751,6 +751,10 @@ export default function App() {
                   localStorage.removeItem("nombreUsuario");
                   localStorage.removeItem("ultimoAcceso");
                   localStorage.removeItem("alumnoIdUsuario");
+                  localStorage.removeItem("docenteIdUsuario");
+                  localStorage.removeItem("tokenUsuario");
+
+                  setSeccionActiva("inicio");
                   setMostrarDespedida(false);
                   setLogueado(false);
                   setMostrarPortada(true);

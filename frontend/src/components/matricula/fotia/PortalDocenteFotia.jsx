@@ -139,7 +139,7 @@ export default function PortalDocenteFotia({ nombreUsuario, cerrarSesion }) {
             <div style={estadoPreparando}>
               <div style={iconoPreparando}>📭</div>
 
-              <strong>No tenés espacios FOTIA asignados.</strong>
+              <strong>No tenés espacios FOTIA-FORTE asignados.</strong>
 
               <span style={textoPreparando}>
                 Cuando seas asignado/a como docente de una materia, aparecerá
@@ -160,7 +160,7 @@ export default function PortalDocenteFotia({ nombreUsuario, cerrarSesion }) {
 
           <div style={{ flex: 1 }}>
             <div style={etiquetaMateria}>
-              ESPACIO DE FORTALECIMIENTO
+              ESPACIO DE FORTALECIMIENTO FOTIA-FORTE
             </div>
 
             <h3 style={nombreAsignatura}>

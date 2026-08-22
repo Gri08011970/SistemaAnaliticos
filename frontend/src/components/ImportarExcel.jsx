@@ -58,7 +58,7 @@ alert("Excel importado y guardado correctamente 🎉")
           cursor: "pointer"
         }}
       >
-        Importar Excel
+        Cargar Excel
 
         <input
           type="file"

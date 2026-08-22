@@ -187,17 +187,18 @@ export default function GestionFotia({
 
     try {
       const respuesta = await fetch(
-        `/api/fotia/inscripciones/${inscripcion._id}/retirar`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            observacion: "Retirada desde la gestión del período FOTIA",
-          }),
-        },
-      );
+  `/api/fotia/inscripciones/${inscripcion._id}/retirar`,
+  {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("tokenUsuario")}`,
+    },
+    body: JSON.stringify({
+      observacion: "Retirada desde la gestión del período FOTIA",
+    }),
+  },
+);
 
       const datos = await respuesta.json();
 
@@ -257,10 +258,13 @@ export default function GestionFotia({
       setErrorFotia("");
 
       const respuesta = await fetch(
-        `http://localhost:3001/api/fotia/periodos/${periodoId}/estudiantes/${alumnoId}`,
+       `/api/fotia/periodos/${periodoId}/estudiantes/${alumnoId}` ,
         {
           method: "DELETE",
+           headers: {
+           Authorization: `Bearer ${localStorage.getItem("tokenUsuario")}`,
         },
+       },
       );
 
       const datos = await respuesta.json();

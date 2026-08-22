@@ -150,7 +150,7 @@ export default function HerramientasGestionMatricula({
             />
 
             <TarjetaModulo
-              titulo="📘 FOTIA"
+              titulo="📘 FOTIA-FORTE"
               descripcion="Gestión del fortalecimiento, seguimiento de asignaturas pendientes y docentes responsables."
               onEntrar={() => setSeccionActiva("fotia")}
               colorBorde="#8fb5d9"

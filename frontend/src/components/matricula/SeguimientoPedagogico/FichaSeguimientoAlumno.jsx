@@ -308,7 +308,7 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
           setDatosFotiaAlumno(datosConstruidos);
         }
       } catch (error) {
-        console.error("Error al obtener FOTIA para el informe:", error);
+        console.error("Error al obtener FOTIA-FORTE para el informe:", error);
 
         if (componenteActivo) {
           setDatosFotiaAlumno(estadoVacioFotia);
