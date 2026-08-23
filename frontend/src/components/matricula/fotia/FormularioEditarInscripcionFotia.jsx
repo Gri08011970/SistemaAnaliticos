@@ -11,16 +11,10 @@ const MOTIVOS_INCORPORACION = [
 ];
 
 const obtenerDocenteIdInicial = (inscripcion) =>
-  String(
-    inscripcion?.docenteId?._id ||
-      inscripcion?.docenteId ||
-      "",
-  );
+  String(inscripcion?.docenteId?._id || inscripcion?.docenteId || "");
 
 const esMotivoPredefinido = (motivo = "") =>
-  MOTIVOS_INCORPORACION
-    .filter((opcion) => opcion !== "Otro")
-    .includes(motivo);
+  MOTIVOS_INCORPORACION.filter((opcion) => opcion !== "Otro").includes(motivo);
 
 export default function FormularioEditarInscripcionFotia({
   inscripcion,
@@ -28,51 +22,39 @@ export default function FormularioEditarInscripcionFotia({
   onCancelar,
   onGuardado,
 }) {
-  const motivoActual =
-    inscripcion?.motivoIncorporacion || "";
+  const esForteAutomatico = inscripcion?.origenAutomaticoForte === true;
 
-  const motivoInicial = esMotivoPredefinido(
-    motivoActual,
-  )
+  const tieneIntervencionGuardada =
+    Boolean(inscripcion?._id) && !String(inscripcion._id).startsWith("forte-");
+  const motivoActual = inscripcion?.motivoIncorporacion || "";
+
+  const motivoInicial = esMotivoPredefinido(motivoActual)
     ? motivoActual
     : motivoActual
       ? "Otro"
       : "";
 
-  const [asignatura, setAsignatura] = useState(
-    inscripcion?.asignatura || "",
-  );
+  const [asignatura, setAsignatura] = useState(inscripcion?.asignatura || "");
 
-  const [anio, setAnio] = useState(
-    String(inscripcion?.anio || ""),
-  );
+  const [anio, setAnio] = useState(String(inscripcion?.anio || ""));
 
-  const [fechaIncorporacion, setFechaIncorporacion] =
-    useState(
-      inscripcion?.fechaIncorporacion
-        ? String(
-            inscripcion.fechaIncorporacion,
-          ).slice(0, 10)
-        : "",
-    );
+  const [fechaIncorporacion, setFechaIncorporacion] = useState(
+    inscripcion?.fechaIncorporacion
+      ? String(inscripcion.fechaIncorporacion).slice(0, 10)
+      : "",
+  );
 
   const [docenteId, setDocenteId] = useState(
     obtenerDocenteIdInicial(inscripcion),
   );
 
   const [estado, setEstado] = useState(
-    inscripcion?.estado === "En proceso"
-      ? "En proceso"
-      : "Incorporada",
+    inscripcion?.estado === "En proceso" ? "En proceso" : "Incorporada",
   );
 
-  const [motivoIncorporacion, setMotivoIncorporacion] =
-    useState(motivoInicial);
+  const [motivoIncorporacion, setMotivoIncorporacion] = useState(motivoInicial);
 
-  const [
-    otroMotivoIncorporacion,
-    setOtroMotivoIncorporacion,
-  ] = useState(
+  const [otroMotivoIncorporacion, setOtroMotivoIncorporacion] = useState(
     motivoInicial === "Otro" ? motivoActual : "",
   );
 
@@ -81,8 +63,7 @@ export default function FormularioEditarInscripcionFotia({
   );
 
   const [guardando, setGuardando] = useState(false);
-  const [errorGuardado, setErrorGuardado] =
-    useState("");
+  const [errorGuardado, setErrorGuardado] = useState("");
 
   const guardarCambios = async (evento) => {
     evento.preventDefault();
@@ -90,55 +71,73 @@ export default function FormularioEditarInscripcionFotia({
     try {
       setErrorGuardado("");
 
-      if (!inscripcion?._id) {
-        throw new Error(
-          "La inscripción no tiene un identificador válido.",
-        );
-      }
-
       const asignaturaLimpia = asignatura.trim();
 
       if (!asignaturaLimpia) {
-        throw new Error(
-          "La asignatura es obligatoria.",
-        );
-      }
-
-      if (!anio.trim()) {
-        throw new Error(
-          "El año de la asignatura es obligatorio.",
-        );
+        throw new Error("La asignatura es obligatoria.");
       }
 
       if (!fechaIncorporacion) {
-        throw new Error(
-          "La fecha de incorporación es obligatoria.",
-        );
+        throw new Error("La fecha de incorporación es obligatoria.");
       }
 
-      const motivoFinal =
-        motivoIncorporacion === "Otro"
+      const anioFinal = esForteAutomatico
+        ? String(inscripcion?.anio || "").trim()
+        : anio.trim();
+
+      if (!esForteAutomatico && !anioFinal) {
+        throw new Error("El año de la asignatura es obligatorio.");
+      }
+
+      const motivoFinal = esForteAutomatico
+        ? "Asignatura previa - FORTE"
+        : motivoIncorporacion === "Otro"
           ? otroMotivoIncorporacion.trim()
           : motivoIncorporacion.trim();
 
-      if (!motivoFinal) {
-        throw new Error(
-          "Seleccioná o escribí el motivo de incorporación.",
-        );
+      if (!esForteAutomatico && !motivoFinal) {
+        throw new Error("Seleccioná o escribí el motivo de incorporación.");
       }
 
       setGuardando(true);
 
-      const respuesta = await fetch(
-        `/api/fotia/inscripciones/${inscripcion._id}`,
-        {
+      let respuesta;
+
+      if (esForteAutomatico && !tieneIntervencionGuardada) {
+        respuesta = await fetch("/api/fotia/inscripciones", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("tokenUsuario")}`,
+          },
+          body: JSON.stringify({
+            periodoId: inscripcion.periodoId,
+            alumnoId: inscripcion.alumnoId?._id || inscripcion.alumnoId,
+            tipoOrigen: "Previa",
+            materiaPendienteId: inscripcion.materiaPendienteId,
+            asignatura: asignaturaLimpia,
+            anio: anioFinal,
+            docenteId: docenteId || null,
+            fechaIncorporacion,
+            estado,
+            motivoIncorporacion: motivoFinal,
+            observaciones: observaciones.trim(),
+          }),
+        });
+      } else {
+        if (!inscripcion?._id) {
+          throw new Error("La inscripción no tiene un identificador válido.");
+        }
+
+        respuesta = await fetch(`/api/fotia/inscripciones/${inscripcion._id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("tokenUsuario")}`,
           },
           body: JSON.stringify({
             asignatura: asignaturaLimpia,
-            anio: anio.trim(),
+            anio: anioFinal,
             tipoOrigen: inscripcion.tipoOrigen,
             fechaIncorporacion,
             docenteId: docenteId || null,
@@ -146,32 +145,24 @@ export default function FormularioEditarInscripcionFotia({
             motivoIncorporacion: motivoFinal,
             observaciones: observaciones.trim(),
           }),
-        },
-      );
+        });
+      }
 
       const datos = await respuesta.json();
 
       if (!respuesta.ok) {
         throw new Error(
-          datos.mensaje ||
-            "No se pudo actualizar la inscripción de FOTIA.",
+          datos.mensaje || datos.error || "No se pudo guardar la intervención.",
         );
       }
 
-      const inscripcionActualizada =
-        datos.inscripcion || datos;
+      const inscripcionActualizada = datos.inscripcion || datos;
 
       onGuardado?.(inscripcionActualizada);
     } catch (error) {
-      console.error(
-        "Error al editar la inscripción de FOTIA:",
-        error,
-      );
+      console.error("Error al guardar la intervención FOTIA-FORTE:", error);
 
-      setErrorGuardado(
-        error.message ||
-          "No se pudieron guardar los cambios.",
-      );
+      setErrorGuardado(error.message || "No se pudieron guardar los cambios.");
     } finally {
       setGuardando(false);
     }
@@ -186,8 +177,7 @@ export default function FormularioEditarInscripcionFotia({
         border: "2px solid #b9d4ea",
         borderRadius: "13px",
         background: "#f7fbfe",
-        boxShadow:
-          "0 4px 12px rgba(41, 78, 112, 0.07)",
+        boxShadow: "0 4px 12px rgba(41, 78, 112, 0.07)",
       }}
     >
       <div
@@ -212,7 +202,9 @@ export default function FormularioEditarInscripcionFotia({
               textTransform: "uppercase",
             }}
           >
-            Editando área de fortalecimiento
+            {esForteAutomatico && !tieneIntervencionGuardada
+              ? "Iniciando intervención FORTE"
+              : "Editando área de fortalecimiento"}
           </span>
 
           <h6
@@ -237,9 +229,7 @@ export default function FormularioEditarInscripcionFotia({
             background: "#ffffff",
             color: "#52697d",
             fontWeight: "700",
-            cursor: guardando
-              ? "not-allowed"
-              : "pointer",
+            cursor: guardando ? "not-allowed" : "pointer",
           }}
         >
           ✕ Cancelar
@@ -254,52 +244,44 @@ export default function FormularioEditarInscripcionFotia({
           gap: "15px",
         }}
       >
-        <label style={estiloLabel}>
-          <span style={estiloEtiqueta}>
-            Asignatura *
-          </span>
+        {!esForteAutomatico && (
+          <label style={estiloLabel}>
+            <span style={estiloEtiqueta}>Asignatura *</span>
 
-          <input
-            type="text"
-            value={asignatura}
-            onChange={(evento) =>
-              setAsignatura(evento.target.value)
-            }
-            disabled={guardando}
-            placeholder="Ej.: Prácticas del Lenguaje"
-            style={estiloControl}
-          />
-        </label>
+            <input
+              type="text"
+              value={asignatura}
+              onChange={(evento) => setAsignatura(evento.target.value)}
+              disabled={guardando}
+              placeholder="Ej.: Prácticas del Lenguaje"
+              style={estiloControl}
+            />
+          </label>
+        )}
 
-        <label style={estiloLabel}>
-          <span style={estiloEtiqueta}>
-            Año de la asignatura *
-          </span>
+        {!esForteAutomatico && (
+          <label style={estiloLabel}>
+            <span style={estiloEtiqueta}>Año de la asignatura *</span>
 
-          <select
-            value={anio}
-            onChange={(evento) =>
-              setAnio(evento.target.value)
-            }
-            disabled={guardando}
-            style={estiloControl}
-          >
-            <option value="">
-              Seleccionar año
-            </option>
-            <option value="1">1.º año</option>
-            <option value="2">2.º año</option>
-            <option value="3">3.º año</option>
-            <option value="4">4.º año</option>
-            <option value="5">5.º año</option>
-            <option value="6">6.º año</option>
-          </select>
-        </label>
+            <select
+              value={anio}
+              onChange={(evento) => setAnio(evento.target.value)}
+              disabled={guardando}
+              style={estiloControl}
+            >
+              <option value="">Seleccionar año</option>
+              <option value="1">1.º año</option>
+              <option value="2">2.º año</option>
+              <option value="3">3.º año</option>
+              <option value="4">4.º año</option>
+              <option value="5">5.º año</option>
+              <option value="6">6.º año</option>
+            </select>
+          </label>
+        )}
 
         <label style={estiloLabel}>
-          <span style={estiloEtiqueta}>
-            Origen
-          </span>
+          <span style={estiloEtiqueta}>Origen</span>
 
           <input
             type="text"
@@ -319,142 +301,100 @@ export default function FormularioEditarInscripcionFotia({
         </label>
 
         <label style={estiloLabel}>
-          <span style={estiloEtiqueta}>
-            Fecha de incorporación *
-          </span>
+          <span style={estiloEtiqueta}>Fecha de incorporación *</span>
 
           <input
             type="date"
             value={fechaIncorporacion}
-            onChange={(evento) =>
-              setFechaIncorporacion(
-                evento.target.value,
-              )
-            }
+            onChange={(evento) => setFechaIncorporacion(evento.target.value)}
             disabled={guardando}
             style={estiloControl}
           />
         </label>
 
         <label style={estiloLabel}>
-          <span style={estiloEtiqueta}>
-            Estado de la intervención
-          </span>
+          <span style={estiloEtiqueta}>Estado de la intervención</span>
 
           <select
             value={estado}
-            onChange={(evento) =>
-              setEstado(evento.target.value)
-            }
+            onChange={(evento) => setEstado(evento.target.value)}
             disabled={guardando}
             style={estiloControl}
           >
-            <option value="Incorporada">
-              Incorporada
-            </option>
+            <option value="Incorporada">Incorporada</option>
 
-            <option value="En proceso">
-              En proceso
-            </option>
+            <option value="En proceso">En proceso</option>
           </select>
         </label>
 
         <label style={estiloLabel}>
-          <span style={estiloEtiqueta}>
-            Docente responsable
-          </span>
+          <span style={estiloEtiqueta}>Docente responsable</span>
 
           <select
             value={docenteId}
-            onChange={(evento) =>
-              setDocenteId(evento.target.value)
-            }
+            onChange={(evento) => setDocenteId(evento.target.value)}
             disabled={guardando}
             style={estiloControl}
           >
-            <option value="">
-              Sin docente asignado
-            </option>
+            <option value="">Sin docente asignado</option>
 
             {docentesFotia
-              .filter(
-                (docente) =>
-                  docente.activo !== false,
-              )
+              .filter((docente) => docente.activo !== false)
               .map((docente) => (
-                <option
-                  key={docente._id}
-                  value={docente._id}
-                >
-                  {docente.apellido}{" "}
-                  {docente.nombre}
+                <option key={docente._id} value={docente._id}>
+                  {docente.apellido} {docente.nombre}
                 </option>
               ))}
           </select>
         </label>
-
-        <label
-          style={{
-            ...estiloLabel,
-            gridColumn: "1 / -1",
-          }}
-        >
-          <span style={estiloEtiqueta}>
-            Motivo de incorporación *
-          </span>
-
-          <select
-            value={motivoIncorporacion}
-            onChange={(evento) => {
-              const nuevoMotivo =
-                evento.target.value;
-
-              setMotivoIncorporacion(
-                nuevoMotivo,
-              );
-
-              if (nuevoMotivo !== "Otro") {
-                setOtroMotivoIncorporacion("");
-              }
-            }}
-            disabled={guardando}
-            style={estiloControl}
-          >
-            <option value="">
-              Seleccionar motivo
-            </option>
-
-            {MOTIVOS_INCORPORACION.map(
-              (motivo) => (
-                <option
-                  key={motivo}
-                  value={motivo}
-                >
-                  {motivo}
-                </option>
-              ),
-            )}
-          </select>
-        </label>
-
-        {motivoIncorporacion === "Otro" && (
+        {!esForteAutomatico && (
           <label
             style={{
               ...estiloLabel,
               gridColumn: "1 / -1",
             }}
           >
-            <span style={estiloEtiqueta}>
-              Especificar otro motivo *
-            </span>
+            <span style={estiloEtiqueta}>Motivo de incorporación *</span>
+
+            <select
+              value={motivoIncorporacion}
+              onChange={(evento) => {
+                const nuevoMotivo = evento.target.value;
+
+                setMotivoIncorporacion(nuevoMotivo);
+
+                if (nuevoMotivo !== "Otro") {
+                  setOtroMotivoIncorporacion("");
+                }
+              }}
+              disabled={guardando}
+              style={estiloControl}
+            >
+              <option value="">Seleccionar motivo</option>
+
+              {MOTIVOS_INCORPORACION.map((motivo) => (
+                <option key={motivo} value={motivo}>
+                  {motivo}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+
+        {!esForteAutomatico && motivoIncorporacion === "Otro" && (
+          <label
+            style={{
+              ...estiloLabel,
+              gridColumn: "1 / -1",
+            }}
+          >
+            <span style={estiloEtiqueta}>Especificar otro motivo *</span>
 
             <input
               type="text"
               value={otroMotivoIncorporacion}
               onChange={(evento) =>
-                setOtroMotivoIncorporacion(
-                  evento.target.value,
-                )
+                setOtroMotivoIncorporacion(evento.target.value)
               }
               disabled={guardando}
               placeholder="Escribí el motivo"
@@ -469,17 +409,11 @@ export default function FormularioEditarInscripcionFotia({
             gridColumn: "1 / -1",
           }}
         >
-          <span style={estiloEtiqueta}>
-            Observaciones
-          </span>
+          <span style={estiloEtiqueta}>Observaciones</span>
 
           <textarea
             value={observaciones}
-            onChange={(evento) =>
-              setObservaciones(
-                evento.target.value,
-              )
-            }
+            onChange={(evento) => setObservaciones(evento.target.value)}
             disabled={guardando}
             rows={3}
             placeholder="Información adicional sobre la intervención."
@@ -546,9 +480,7 @@ export default function FormularioEditarInscripcionFotia({
             background: "#ffffff",
             color: "#56697a",
             fontWeight: "700",
-            cursor: guardando
-              ? "not-allowed"
-              : "pointer",
+            cursor: guardando ? "not-allowed" : "pointer",
           }}
         >
           Cancelar
@@ -561,21 +493,18 @@ export default function FormularioEditarInscripcionFotia({
             padding: "9px 16px",
             border: "none",
             borderRadius: "8px",
-            background: guardando
-              ? "#8eb8b4"
-              : "#148c84",
+            background: guardando ? "#8eb8b4" : "#148c84",
             color: "#ffffff",
             fontWeight: "700",
-            cursor: guardando
-              ? "not-allowed"
-              : "pointer",
-            boxShadow:
-              "0 3px 8px rgba(20, 140, 132, 0.18)",
+            cursor: guardando ? "not-allowed" : "pointer",
+            boxShadow: "0 3px 8px rgba(20, 140, 132, 0.18)",
           }}
         >
           {guardando
             ? "Guardando..."
-            : "💾 Guardar cambios"}
+            : esForteAutomatico && !tieneIntervencionGuardada
+              ? "💾 Iniciar intervención"
+              : "💾 Guardar cambios"}
         </button>
       </div>
     </form>

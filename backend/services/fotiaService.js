@@ -897,16 +897,15 @@ export const acreditarInscripcion = async (
       inscripcionAcreditada = inscripcion;
     });
 
-    return {
-      mensaje:
-        inscripcionAcreditada.tipoOrigen === "Previa"
-          ? "La asignatura fue acreditada..."
-          : "La asignatura del año fue acreditada correctamente en FOTIA.",
+   return {
+  mensaje:
+    inscripcionAcreditada.tipoOrigen === "Previa"
+      ? "La asignatura fue acreditada y dejó de figurar como previa institucional."
+      : "La asignatura del año fue acreditada correctamente en FOTIA.",
 
-      inscripcion: inscripcionAcreditada,
-
-      alumno: alumnoActualizado,
-    };
+  inscripcion: inscripcionAcreditada,
+  alumno: alumnoActualizado,
+};
   } finally {
     await session.endSession();
   }

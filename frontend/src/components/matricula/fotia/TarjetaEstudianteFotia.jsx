@@ -15,6 +15,16 @@ export default function TarjetaEstudianteFotia({
 
   const cantidadAsignaturas = asignaturas.length;
 
+  const tieneAsignaturasForteAutomaticas = asignaturas.some(
+    (asignatura) => asignatura.origenAutomaticoForte === true,
+  );
+
+  const esSoloForteAutomatico =
+    asignaturas.length > 0 &&
+    asignaturas.every(
+      (asignatura) => asignatura.origenAutomaticoForte === true,
+    );
+
   const cantidadIncorporadas = asignaturas.filter(
     (asignatura) => asignatura.estado === "Incorporada",
   ).length;
@@ -76,7 +86,11 @@ export default function TarjetaEstudianteFotia({
                 textTransform: "uppercase",
               }}
             >
-              Estudiante incorporado
+              {esSoloForteAutomatico
+                ? "Estudiante FORTE · previa automática"
+                : tieneAsignaturasForteAutomaticas
+                  ? "Estudiante FOTIA-FORTE"
+                  : "Estudiante incorporado"}
             </span>
 
             <h4
@@ -142,9 +156,7 @@ export default function TarjetaEstudianteFotia({
             {cantidadIncorporadas > 0 && (
               <Indicador
                 texto={`${cantidadIncorporadas} ${
-                  cantidadIncorporadas === 1
-                    ? "incorporada"
-                    : "incorporadas"
+                  cantidadIncorporadas === 1 ? "incorporada" : "incorporadas"
                 }`}
                 icono="🟡"
                 fondo="#fff8e8"
@@ -166,9 +178,7 @@ export default function TarjetaEstudianteFotia({
             {cantidadAcreditadas > 0 && (
               <Indicador
                 texto={`${cantidadAcreditadas} ${
-                  cantidadAcreditadas === 1
-                    ? "acreditada"
-                    : "acreditadas"
+                  cantidadAcreditadas === 1 ? "acreditada" : "acreditadas"
                 }`}
                 icono="🟢"
                 fondo="#eef8f5"
@@ -192,7 +202,7 @@ export default function TarjetaEstudianteFotia({
         </div>
       </button>
 
-      {esAdmin && (
+      {esAdmin && !tieneAsignaturasForteAutomaticas && (
         <div
           style={{
             padding: "0 18px 14px",

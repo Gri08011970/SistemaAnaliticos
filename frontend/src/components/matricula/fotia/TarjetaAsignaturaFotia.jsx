@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import FormularioEditarInscripcionFotia from "./FormularioEditarInscripcionFotia";
 import FormularioAcreditacionFotia from "./FormularioAcreditacionFotia";
 
@@ -67,6 +67,61 @@ export default function TarjetaAsignaturaFotia({
   const [modoEdicion, setModoEdicion] = useState(false);
   const [modoAcreditacion, setModoAcreditacion] = useState(false);
 
+  const [mensajeExito, setMensajeExito] = useState("");
+
+  const mostrarMensajeExito = (mensaje) => {
+    setMensajeExito(mensaje);
+
+    setTimeout(() => {
+      setMensajeExito("");
+    }, 3000);
+  };
+
+  const formularioRef = useRef(null);
+  useEffect(() => {
+    if (!modoEdicion || !formularioRef.current) return;
+
+    const temporizador = setTimeout(() => {
+      const formulario = formularioRef.current;
+
+      if (!formulario) return;
+
+      // 1. Primero acomodamos el scroll interno de la tabla
+      const contenedorTabla = formulario.closest('[data-fotia-scroll="tabla"]');
+
+      if (contenedorTabla) {
+        const rectFormulario = formulario.getBoundingClientRect();
+        const rectTabla = contenedorTabla.getBoundingClientRect();
+
+        const desplazamientoInterno =
+          rectFormulario.top - rectTabla.top + contenedorTabla.scrollTop - 70;
+
+        contenedorTabla.scrollTo({
+          top: Math.max(0, desplazamientoInterno),
+          behavior: "smooth",
+        });
+      }
+
+      // 2. Después acomodamos la página
+      setTimeout(() => {
+        const rectFormulario = formulario.getBoundingClientRect();
+
+        const posicionDeseada = 120;
+
+        window.scrollBy({
+          top: rectFormulario.top - posicionDeseada,
+          behavior: "smooth",
+        });
+      }, 180);
+    }, 100);
+
+    return () => clearTimeout(temporizador);
+  }, [modoEdicion]);
+  const esForteAutomatico = asignatura.origenAutomaticoForte === true;
+
+  const tieneIntervencionGuardada =
+    Boolean(asignatura._id) && !String(asignatura._id).startsWith("forte-");
+
   return (
     <article
       style={{
@@ -124,9 +179,7 @@ export default function TarjetaAsignaturaFotia({
               fontSize: "14px",
             }}
           >
-            {asignatura.anio
-              ? `${asignatura.anio} año`
-              : "Año sin informar"}
+            {asignatura.anio ? `${asignatura.anio} año` : "Año sin informar"}
           </p>
         </div>
 
@@ -148,7 +201,11 @@ export default function TarjetaAsignaturaFotia({
           }}
         >
           <span>{configuracionEstado.icono}</span>
-          <span>{asignatura.estado || "Incorporada"}</span>
+          <span>
+            {esForteAutomatico && !tieneIntervencionGuardada
+              ? "Sin intervención"
+              : asignatura.estado || "Incorporada"}
+          </span>
         </span>
       </div>
 
@@ -173,7 +230,10 @@ export default function TarjetaAsignaturaFotia({
 
         <Dato
           etiqueta="Motivo de incorporación"
-          valor={asignatura.motivoIncorporacion || "Sin informar"}
+          valor={
+            asignatura.motivoIncorporacion ||
+            (esForteAutomatico ? "Asignatura previa" : "Sin informar")
+          }
           ocuparTodo
         />
 
@@ -222,56 +282,97 @@ export default function TarjetaAsignaturaFotia({
               cursor: "pointer",
             }}
           >
-            ✏️ Editar
+            {esForteAutomatico && !tieneIntervencionGuardada
+              ? " Iniciar intervención"
+              : "✏️ Editar"}
           </button>
 
-          <button
-            type="button"
-            onClick={() => onRetirar?.(asignatura)}
-            style={{
-              padding: "8px 12px",
-              border: "1px solid #e6cf9e",
-              borderRadius: "8px",
-              background: "#fff8e8",
-              color: "#9a712a",
-              fontWeight: "700",
-              cursor: "pointer",
-            }}
-          >
-            ⏸️ Retirar de FOTIA
-          </button>
+          {tieneIntervencionGuardada && (
+            <button
+              type="button"
+              onClick={() => onRetirar?.(asignatura)}
+              style={{
+                padding: "8px 12px",
+                border: "1px solid #e6cf9e",
+                borderRadius: "8px",
+                background: "#fff8e8",
+                color: "#9a712a",
+                fontWeight: "700",
+                cursor: "pointer",
+              }}
+            >
+              ⏸️ Retirar de FOTIA
+            </button>
+          )}
 
-          <button
-            type="button"
-            onClick={() => {
-              setModoEdicion(false);
-              setModoAcreditacion(true);
-            }}
-            style={{
-              padding: "8px 12px",
-              border: "1px solid #70b7a8",
-              borderRadius: "8px",
-              background: "#eef8f5",
-              color: "#256b61",
-              fontWeight: "700",
-              cursor: "pointer",
-            }}
-          >
-            ✅ Acreditar
-          </button>
+          {tieneIntervencionGuardada && (
+            <button
+              type="button"
+              onClick={() => {
+                setModoEdicion(false);
+                setModoAcreditacion(true);
+              }}
+              style={{
+                padding: "8px 12px",
+                border: "1px solid #70b7a8",
+                borderRadius: "8px",
+                background: "#eef8f5",
+                color: "#256b61",
+                fontWeight: "700",
+                cursor: "pointer",
+              }}
+            >
+              ✅ Acreditar
+            </button>
+          )}
+        </div>
+      )}
+
+      {mensajeExito && (
+        <div
+          style={{
+            marginTop: "14px",
+            padding: "12px 16px",
+            border: "1px solid #9fd4c7",
+            borderRadius: "10px",
+            background: "#eef9f6",
+            color: "#1f6f63",
+            fontWeight: "700",
+            textAlign: "center",
+            boxShadow: "0 3px 8px rgba(31, 111, 99, 0.10)",
+          }}
+        >
+          {mensajeExito}
         </div>
       )}
 
       {esAdmin && modoEdicion && (
-        <FormularioEditarInscripcionFotia
-          inscripcion={asignatura}
-          docentesFotia={docentesFotia}
-          onCancelar={() => setModoEdicion(false)}
-          onGuardado={(inscripcionActualizada) => {
-            onActualizada?.(inscripcionActualizada);
-            setModoEdicion(false);
+        <div
+          ref={formularioRef}
+          style={{
+            width: "100%",
+            maxWidth: "100%",
+            boxSizing: "border-box",
+            scrollMarginTop: "12px",
           }}
-        />
+        >
+          <FormularioEditarInscripcionFotia
+            inscripcion={asignatura}
+            docentesFotia={docentesFotia}
+            onCancelar={() => setModoEdicion(false)}
+            onGuardado={(inscripcionActualizada) => {
+              onActualizada?.(inscripcionActualizada);
+
+              mostrarMensajeExito(
+                esForteAutomatico && !tieneIntervencionGuardada
+                  ? "✅ Intervención iniciada correctamente"
+                  : "✅ Cambios guardados correctamente",
+              );
+
+              setModoEdicion(false);
+            }}
+          />
+        </div>
       )}
 
       {esAdmin && modoAcreditacion && (

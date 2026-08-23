@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import FormularioPeriodoFotia from "./FormularioPeriodoFotia";
 import IncorporarEstudianteFotia from "./IncorporarEstudianteFotia";
 import ListadoInscripcionesFotia from "./ListadoInscripcionesFotia";
@@ -23,10 +23,134 @@ export default function GestionFotia({
 
   const [errorFotia, setErrorFotia] = useState("");
 
+  const listadoFotiaRef = useRef(null);
+
+  const cambiarPrograma = (programa) => {
+    setFiltroPrograma(programa);
+
+    setTimeout(() => {
+      listadoFotiaRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 100);
+  };
+
   const fuenteAlumnos =
     Array.isArray(alumnosMatricula) && alumnosMatricula.length > 0
       ? alumnosMatricula
       : alumnosParaExamen;
+  const normalizarTextoForte = (valor = "") =>
+    String(valor)
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+
+  const esPreviaRealForte = (materia) => {
+    const asignatura = normalizarTextoForte(
+      materia?.asignatura || materia?.materia || "",
+    );
+
+    const valoresSinMateria = [
+      "",
+      "-",
+      "----------",
+      "---------",
+      "--------",
+      "ninguna",
+      "sin previas",
+      "sin previa",
+      "no posee",
+    ];
+
+    return !valoresSinMateria.includes(asignatura);
+  };
+
+  const inscripcionesForteAutomaticas = useMemo(() => {
+    return fuenteAlumnos.flatMap((alumno) => {
+      const materiasPendientes = Array.isArray(alumno?.materiasPendientes)
+        ? alumno.materiasPendientes.filter(esPreviaRealForte)
+        : [];
+
+      return materiasPendientes.map((materia) => {
+        const asignatura = materia?.asignatura || materia?.materia || "";
+
+        const anio = materia?.anio || materia?.año || "";
+
+        const inscripcionExistente = inscripcionesFotia.find((inscripcion) => {
+          const alumnoIdInscripcion =
+            inscripcion.alumnoId?._id || inscripcion.alumnoId;
+
+          return (
+            String(alumnoIdInscripcion) === String(alumno._id) &&
+            inscripcion.tipoOrigen === "Previa" &&
+            normalizarTextoForte(inscripcion.asignatura) ===
+              normalizarTextoForte(asignatura) &&
+            String(inscripcion.anio || "") === String(anio || "")
+          );
+        });
+
+        return {
+          _id:
+            inscripcionExistente?._id ||
+            `forte-${alumno._id}-${materia?._id || `${asignatura}-${anio}`}`,
+
+          periodoId: inscripcionExistente?.periodoId || periodoActivo || null,
+
+          alumnoId: alumno,
+
+          apellido: alumno.apellido || alumno.apellidoNombre || "",
+
+          nombre: alumno.nombre || "",
+
+          dni: alumno.dni || "",
+
+          curso: alumno.curso || "",
+
+          turno: alumno.turno || "",
+
+          tipoOrigen: "Previa",
+
+          materiaPendienteId: materia?._id || null,
+
+          asignatura,
+
+          anio,
+
+          docenteId: inscripcionExistente?.docenteId || null,
+
+          docenteNombre: inscripcionExistente?.docenteNombre || "",
+
+          estado: inscripcionExistente?.estado || "Sin intervención",
+
+          fechaIncorporacion: inscripcionExistente?.fechaIncorporacion || "",
+
+          fechaAcreditacion: inscripcionExistente?.fechaAcreditacion || "",
+
+          motivoIncorporacion: inscripcionExistente?.motivoIncorporacion || "",
+
+          observaciones: inscripcionExistente?.observaciones || "",
+
+          activo: true,
+
+          origenAutomaticoForte: true,
+        };
+      });
+    });
+  }, [fuenteAlumnos, inscripcionesFotia, periodoActivo]);
+
+  console.log("FORTE AUTOMÁTICO:", inscripcionesForteAutomaticas);
+
+  console.log("TOTAL PREVIAS FORTE:", inscripcionesForteAutomaticas.length);
+
+  const estudiantesForteUnicos = new Set(
+    inscripcionesForteAutomaticas.map((inscripcion) =>
+      String(inscripcion.alumnoId?._id || inscripcion.alumnoId || ""),
+    ),
+  );
+
+  console.log("TOTAL ESTUDIANTES FORTE:", estudiantesForteUnicos.size);
 
   const inscripcionesActivas = useMemo(
     () =>
@@ -153,50 +277,52 @@ export default function GestionFotia({
 
   const [filtroPrograma, setFiltroPrograma] = useState("Todos");
 
- console.log(
-  "DATOS PARA CLASIFICAR:",
-  inscripcionesFotia.map((i) => ({
-    estudiante: `${i.apellido} ${i.nombre}`,
-    asignatura: i.asignatura,
-    tipoOrigen: i.tipoOrigen,
-  })),
-);
+  console.log(
+    "DATOS PARA CLASIFICAR:",
+    inscripcionesFotia.map((i) => ({
+      estudiante: `${i.apellido} ${i.nombre}`,
+      asignatura: i.asignatura,
+      tipoOrigen: i.tipoOrigen,
+    })),
+  );
 
-console.log("FILTRO PROGRAMA:", filtroPrograma);
+  console.log("FILTRO PROGRAMA:", filtroPrograma);
 
   const inscripcionesSegunPrograma = useMemo(() => {
-    if (filtroPrograma === "FOTIA") {
-      return inscripcionesFotia.filter((inscripcion) => {
-        const asignatura = String(inscripcion.asignatura || "")
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .toLowerCase()
-          .trim();
+    const inscripcionesFotiaAlfabetizacion = inscripcionesFotia.filter(
+      (inscripcion) => {
+        const asignatura = normalizarTextoForte(inscripcion.asignatura);
 
         return (
+          inscripcion.activo !== false &&
+          inscripcion.estado !== "Suspendida" &&
           inscripcion.tipoOrigen === "En curso" &&
           asignatura === "practicas del lenguaje"
         );
-      });
+      },
+    );
+
+    if (filtroPrograma === "FOTIA") {
+      return inscripcionesFotiaAlfabetizacion;
     }
 
     if (filtroPrograma === "FORTE") {
-      return inscripcionesFotia.filter(
-        (inscripcion) => inscripcion.tipoOrigen === "Previa",
-      );
+      return inscripcionesForteAutomaticas;
     }
 
-    return inscripcionesFotia;
-  }, [inscripcionesFotia, filtroPrograma]);
-
+    return [
+      ...inscripcionesFotiaAlfabetizacion,
+      ...inscripcionesForteAutomaticas,
+    ];
+  }, [filtroPrograma, inscripcionesFotia, inscripcionesForteAutomaticas]);
   console.log(
-  "RESULTADO DEL FILTRO:",
-  inscripcionesSegunPrograma.map((i) => ({
-    estudiante: `${i.apellido} ${i.nombre}`,
-    asignatura: i.asignatura,
-    tipoOrigen: i.tipoOrigen,
-  })),
-);
+    "RESULTADO DEL FILTRO:",
+    inscripcionesSegunPrograma.map((i) => ({
+      estudiante: `${i.apellido} ${i.nombre}`,
+      asignatura: i.asignatura,
+      tipoOrigen: i.tipoOrigen,
+    })),
+  );
 
   const cancelarFormularioPeriodo = () => {
     setMostrarFormularioPeriodo(false);
@@ -333,15 +459,35 @@ console.log("FILTRO PROGRAMA:", filtroPrograma);
     }
   };
 
-  const actualizarInscripcionEnPantalla = (inscripcionActualizada) => {
-    setInscripcionesFotia((anteriores) =>
-      anteriores.map((inscripcion) =>
-        String(inscripcion._id) === String(inscripcionActualizada._id)
-          ? inscripcionActualizada
-          : inscripcion,
-      ),
+ const actualizarInscripcionEnPantalla = (inscripcionActualizada) => {
+  if (!inscripcionActualizada?._id) return;
+
+  setInscripcionesFotia((anteriores) => {
+    const indiceExistente = anteriores.findIndex(
+      (inscripcion) =>
+        String(inscripcion._id) ===
+        String(inscripcionActualizada._id),
     );
-  };
+
+    // Si ya existía, la actualizamos.
+    if (indiceExistente !== -1) {
+      return anteriores.map((inscripcion) =>
+        String(inscripcion._id) ===
+        String(inscripcionActualizada._id)
+          ? {
+              ...inscripcion,
+              ...inscripcionActualizada,
+            }
+          : inscripcion,
+      );
+    }
+
+    // Si es una intervención FORTE recién creada,
+    // todavía no existía en inscripcionesFotia:
+    // la agregamos inmediatamente al estado.
+    return [...anteriores, inscripcionActualizada];
+  });
+};
 
   const [periodoEnEdicion, setPeriodoEnEdicion] = useState(null);
 
@@ -1217,7 +1363,7 @@ console.log("FILTRO PROGRAMA:", filtroPrograma);
                   <button
                     key={opcion.valor}
                     type="button"
-                    onClick={() => setFiltroPrograma(opcion.valor)}
+                    onClick={() => cambiarPrograma(opcion.valor)}
                     style={{
                       padding: "10px 16px",
                       border: seleccionado
@@ -1236,15 +1382,26 @@ console.log("FILTRO PROGRAMA:", filtroPrograma);
               })}
             </div>
 
-            <ListadoInscripcionesFotia
-              inscripciones={inscripcionesSegunPrograma} 
-              programaSeleccionado={filtroPrograma}
-              docentesFotia={docentesFotia}
-              esAdmin={esAdmin}
-              onRetirar={retirarInscripcionFotia}
-              onActualizada={actualizarInscripcionEnPantalla}
-              onEliminarEstudiante={eliminarEstudiantePeriodo}
-            />
+            <div
+              ref={listadoFotiaRef}
+              style={{
+                width: "100%",
+                maxWidth: "100%",
+                minWidth: 0,
+                boxSizing: "border-box",
+                scrollMarginTop: "18px",
+              }}
+            >
+              <ListadoInscripcionesFotia
+                inscripciones={inscripcionesSegunPrograma}
+                programaSeleccionado={filtroPrograma}
+                docentesFotia={docentesFotia}
+                esAdmin={esAdmin}
+                onRetirar={retirarInscripcionFotia}
+                onActualizada={actualizarInscripcionEnPantalla}
+                onEliminarEstudiante={eliminarEstudiantePeriodo}
+              />
+            </div>
           </div>
         </div>
       )}

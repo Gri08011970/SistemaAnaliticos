@@ -60,6 +60,7 @@ export default function FormularioAcreditacionFotia({
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("tokenUsuario")}`,
           },
           body: JSON.stringify({
             fechaAcreditacion,
