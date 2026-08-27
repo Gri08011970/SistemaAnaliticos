@@ -9,10 +9,12 @@
  * El informe organiza evidencias institucionales.
  * No reemplaza la valoración profesional del equipo docente.
  *
+ *
  * ============================================================
  */
 
 import IntervencionesInstitucionales from "./IntervencionesInstitucionales";
+import "./InformeInstitucional.css";
 
 function obtenerTextoSeguro(valor, textoAlternativo = "Sin información") {
   if (valor === null || valor === undefined || valor === "") {
@@ -236,355 +238,298 @@ export default function InformeInstitucional({
         </div>
       </section>
 
-      {/* ======================================================
+      <section className="informe-institucional__capitulo">
+        <header className="informe-institucional__capitulo-encabezado">
+          <span className="informe-institucional__capitulo-numero">
+            01 · Lectura institucional
+          </span>
+
+          <h2 className="informe-institucional__capitulo-titulo">
+            Situación de la trayectoria
+          </h2>
+
+          <p className="informe-institucional__capitulo-descripcion">
+            Síntesis de la situación pedagógica actual, los antecedentes
+            académicos y las relaciones relevantes para el análisis
+            institucional de la trayectoria.
+          </p>
+        </header>
+
+        {/* ======================================================
           ESTAMOS ACÁ
          ====================================================== */}
 
-      <section className="informe-institucional__seccion">
-        <h3>Situación pedagógica actual</h3>
+        <section className="informe-institucional__seccion">
+          <h3>Situación pedagógica actual</h3>
 
-        <p>
-          La siguiente información reúne los registros pedagógicos disponibles
-          para el período analizado.
-        </p>
+          <p>
+            La siguiente información reúne los registros pedagógicos disponibles
+            para el período analizado.
+          </p>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
-            gap: "12px",
-            marginTop: "16px",
-          }}
-        >
-          <IndicadorSituacion etiqueta="TEA" cantidad={cantidadTEA} />
+          <div className="informe-institucional__indicadores">
+            <IndicadorSituacion etiqueta="TEA" cantidad={cantidadTEA} />
 
-          <IndicadorSituacion etiqueta="TEP" cantidad={cantidadTEP} />
+            <IndicadorSituacion etiqueta="TEP" cantidad={cantidadTEP} />
 
-          <IndicadorSituacion etiqueta="TED" cantidad={cantidadTED} />
+            <IndicadorSituacion etiqueta="TED" cantidad={cantidadTED} />
 
-          <IndicadorSituacion
-            etiqueta="Sin registro"
-            cantidad={cantidadSinCargar}
-          />
-        </div>
-
-        {asignaturasConDificultad.length > 0 && (
-          <div style={{ marginTop: "18px" }}>
-            <h4>Asignaturas que requieren atención</h4>
-
-            <ul>
-              {asignaturasConDificultad.map((item, indice) => (
-                <li key={`${item.asignatura}-${indice}`}>
-                  <strong>{item.asignatura}</strong>
-                  {" — "}
-                  {item.conceptual}
-                </li>
-              ))}
-            </ul>
+            <IndicadorSituacion
+              etiqueta="Sin registro"
+              cantidad={cantidadSinCargar}
+            />
           </div>
-        )}
-      </section>
 
-      {/* ======================================================
+          {asignaturasConDificultad.length > 0 && (
+            <div className="informe-institucional__atencion">
+              <h4>Asignaturas que requieren atención</h4>
+
+              <ul>
+                {asignaturasConDificultad.map((item, indice) => (
+                  <li key={`${item.asignatura}-${indice}`}>
+                    <strong>{item.asignatura}</strong>
+                    {" — "}
+                    {item.conceptual}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
+
+        {/* ======================================================
           ANTECEDENTES ACADÉMICOS
          ====================================================== */}
 
-      <section className="informe-institucional__seccion">
-        <h3>Antecedentes académicos relevantes</h3>
+        <section className="informe-institucional__seccion">
+          <h3>Antecedentes académicos relevantes</h3>
 
-        {antecedentesAcademicos.length > 0 ? (
-          <>
-            <p>Asignaturas pendientes de acreditación:</p>
+          {antecedentesAcademicos.length > 0 ? (
+            <>
+              <p>Asignaturas pendientes de acreditación:</p>
 
-            <ul>
-              {antecedentesAcademicos.map((pendiente, indice) => {
-                const nombre = obtenerNombreAsignatura(pendiente);
+              <ul>
+                {antecedentesAcademicos.map((pendiente, indice) => {
+                  const nombre = obtenerNombreAsignatura(pendiente);
 
-                const anio = obtenerAnioAsignatura(pendiente);
+                  const anio = obtenerAnioAsignatura(pendiente);
 
-                return (
-                  <li key={`${nombre}-${anio}-${indice}`}>
-                    <strong>{nombre || "Asignatura sin informar"}</strong>
+                  return (
+                    <li key={`${nombre}-${anio}-${indice}`}>
+                      <strong>{nombre || "Asignatura sin informar"}</strong>
 
-                    {anio ? ` — ${anio} año` : ""}
-                  </li>
-                );
-              })}
-            </ul>
-          </>
-        ) : (
-          <p>No se registran asignaturas pendientes de acreditación.</p>
-        )}
-      </section>
+                      {anio ? ` — ${anio} año` : ""}
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          ) : (
+            <p>No se registran asignaturas pendientes de acreditación.</p>
+          )}
+        </section>
 
-      {/* ======================================================
+        {/* ======================================================
     CONTINUIDADES / RELACIONES PEDAGÓGICAS
    ====================================================== */}
 
-      {interpretacionesAgrupadas.length > 0 && (
-        <section className="informe-institucional__seccion">
-          <h3>Relaciones entre antecedentes y situación actual</h3>
+        {interpretacionesAgrupadas.length > 0 && (
+          <section className="informe-institucional__seccion">
+            <h3>Relaciones entre antecedentes y situación actual</h3>
 
-          <p>
-            El sistema detectó las siguientes relaciones que pueden resultar
-            relevantes para el análisis pedagógico del equipo.
-          </p>
+            <p>
+              El sistema detectó las siguientes relaciones que pueden resultar
+              relevantes para el análisis pedagógico del equipo.
+            </p>
 
-          <div
-            style={{
-              display: "grid",
-              gap: "12px",
-              marginTop: "14px",
-            }}
-          >
-            {interpretacionesAgrupadas.map((interpretacion, indice) => {
-              const asignaturasActuales =
-                interpretacion.asignaturasActuales || [];
+            <div className="informe-institucional__relaciones">
+              {interpretacionesAgrupadas.map((interpretacion, indice) => {
+                const asignaturasActuales =
+                  interpretacion.asignaturasActuales || [];
 
-              const tieneVariasAsignaturasActuales =
-                asignaturasActuales.length > 1;
+                const tieneVariasAsignaturasActuales =
+                  asignaturasActuales.length > 1;
 
-              const nombrePendiente =
-                interpretacion.asignaturaPendiente || "un espacio previo";
+                const nombrePendiente =
+                  interpretacion.asignaturaPendiente || "un espacio previo";
 
-              const anioPendiente = interpretacion.anioPendiente
-                ? ` — ${interpretacion.anioPendiente} año`
-                : "";
+                const anioPendiente = interpretacion.anioPendiente
+                  ? ` — ${interpretacion.anioPendiente} año`
+                  : "";
 
-              return (
-                <div
-                  key={[
-                    interpretacion.codigo,
-                    interpretacion.area,
-                    interpretacion.asignaturaPendiente,
-                    interpretacion.anioPendiente,
-                    interpretacion.estadoActual,
-                    interpretacion.periodo,
-                    indice,
-                  ]
-                    .filter(Boolean)
-                    .join("-")}
-                  style={{
-                    padding: "13px 15px",
-                    border: "1px solid #d8e4ec",
-                    borderRadius: "10px",
-                    background: "#f9fbfc",
-                  }}
-                >
-                  {interpretacion.titulo && (
-                    <strong
-                      style={{
-                        display: "block",
-                        marginBottom: "6px",
-                      }}
-                    >
-                      {interpretacion.titulo}
-                    </strong>
-                  )}
+                return (
+                  <div
+                    key={[
+                      interpretacion.codigo,
+                      interpretacion.area,
+                      interpretacion.asignaturaPendiente,
+                      interpretacion.anioPendiente,
+                      interpretacion.estadoActual,
+                      interpretacion.periodo,
+                      indice,
+                    ]
+                      .filter(Boolean)
+                      .join("-")}
+                    className="informe-institucional__relacion"
+                  >
+                    {interpretacion.titulo && (
+                      <strong className="informe-institucional__relacion-titulo">
+                        {interpretacion.titulo}
+                      </strong>
+                    )}
 
-                  {tieneVariasAsignaturasActuales &&
-                  interpretacion.estadoActual === "TEP" ? (
-                    <>
-                      <p
-                        style={{
-                          margin: "0 0 7px",
-                          lineHeight: 1.55,
-                        }}
-                      >
-                        Se registra{" "}
-                        <strong>
-                          {nombrePendiente}
-                          {anioPendiente}
-                        </strong>{" "}
-                        pendiente de acreditación y, en el período analizado, se
-                        observan Trayectorias Educativas en Proceso en:
-                      </p>
-
-                      <ul
-                        style={{
-                          margin: "0 0 7px",
-                          paddingLeft: "22px",
-                          lineHeight: 1.55,
-                        }}
-                      >
-                        {asignaturasActuales.map((asignatura) => (
-                          <li key={`${interpretacion.area}-${asignatura}`}>
-                            <strong>{asignatura}</strong>
-                          </li>
-                        ))}
-                      </ul>
-
-                      {interpretacion.interpretacion && (
-                        <p
-                          style={{
-                            margin: 0,
-                            lineHeight: 1.55,
-                          }}
-                        >
-                          {interpretacion.interpretacion}
+                    {tieneVariasAsignaturasActuales &&
+                    interpretacion.estadoActual === "TEP" ? (
+                      <>
+                        <p className="informe-institucional__relacion-texto">
+                          Se registra{" "}
+                          <strong>
+                            {nombrePendiente}
+                            {anioPendiente}
+                          </strong>{" "}
+                          pendiente de acreditación y, en el período analizado,
+                          se observan Trayectorias Educativas en Proceso en:
                         </p>
-                      )}
-                    </>
-                  ) : (
-                    <p
-                      style={{
-                        margin: 0,
-                        lineHeight: 1.55,
-                      }}
-                    >
-                      {obtenerTextoSeguro(
-                        interpretacion.descripcion ||
-                          interpretacion.interpretacion,
-                      )}
-                    </p>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
+
+                        <ul className="informe-institucional__relacion-lista">
+                          {asignaturasActuales.map((asignatura) => (
+                            <li key={`${interpretacion.area}-${asignatura}`}>
+                              <strong>{asignatura}</strong>
+                            </li>
+                          ))}
+                        </ul>
+
+                        {interpretacion.interpretacion && (
+                          <p className="informe-institucional__relacion-texto informe-institucional__relacion-texto--final">
+                            {interpretacion.interpretacion}
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <p className="informe-institucional__relacion-texto">
+                        {obtenerTextoSeguro(
+                          interpretacion.descripcion ||
+                            interpretacion.interpretacion,
+                        )}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+      </section>
 
       {/* ======================================================
     FOTIA / FORTE
    ====================================================== */}
 
-      <IntervencionesInstitucionales
-        {...(informe.intervencionesInstitucionales || {})}
-      />
+      <section className="informe-institucional__capitulo informe-institucional__capitulo--pagina-2">
+        <div className="informe-institucional__continuidad-impresion">
+          <strong>
+            {obtenerTextoSeguro(
+              informe.estudiante?.apellidoNombre ||
+                informe.estudiante?.nombreCompleto ||
+                informe.estudiante?.nombre ||
+                informe.encabezado?.estudiante,
+            )}
+          </strong>
+
+          <span>
+            {obtenerTextoSeguro(
+              informe.curso ||
+                informe.estudiante?.curso ||
+                informe.encabezado?.curso,
+            )}
+            {" · "}
+            Turno{" "}
+            {obtenerTextoSeguro(
+              informe.estudiante?.turno || informe.encabezado?.turno,
+            )}
+            {" · "}
+            {obtenerTextoSeguro(informe.periodo || informe.encabezado?.periodo)}
+          </span>
+        </div>
+        <header className="informe-institucional__capitulo-encabezado">
+          <span className="informe-institucional__capitulo-numero">
+            02 · Acompañamiento institucional
+          </span>
+
+          <h2 className="informe-institucional__capitulo-titulo">
+            Intervenciones institucionales
+          </h2>
+
+          <p className="informe-institucional__capitulo-descripcion">
+            Registro de las acciones, dispositivos y antecedentes de
+            acompañamiento institucional vinculados a la trayectoria del
+            estudiante.
+          </p>
+        </header>
+
+        <IntervencionesInstitucionales
+          {...(informe.intervencionesInstitucionales || {})}
+        />
+      </section>
 
       {/* ======================================================
     AHORA ACORDAMOS
    ====================================================== */}
-      <section
-        className="informe-institucional__seccion"
-        style={{
-          marginTop: "24px",
-          padding: "18px",
-          border: "2px solid #b9d4ea",
-          borderRadius: "14px",
-          background: "#f7fbfd",
-        }}
-      >
-        <span
-          style={{
-            display: "block",
-            marginBottom: "5px",
-            color: "#607080",
-            fontSize: "11px",
-            fontWeight: "700",
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-          }}
-        >
-          Análisis institucional
-        </span>
-
-        <h3 style={{ marginTop: 0 }}>Ahora, ¿cómo seguimos?</h3>
-
-        <p style={{ marginBottom: "18px" }}>
-          A partir de la información precedente, el equipo docente y directivo
-          podrá analizar la situación, identificar saberes prioritarios y
-          acordar estrategias de acompañamiento.
-        </p>
-
-        {/* ======================================================
-    LECTURA PEDAGÓGICA COMPARTIDA
+      {/* ======================================================
+    CAPÍTULO III · ANÁLISIS Y ACUERDOS
    ====================================================== */}
 
-        <div
-          style={{
-            padding: "16px 18px",
-            border: "1px solid #d4e3ee",
-            borderRadius: "12px",
-            background: "#ffffff",
-          }}
-        >
-          <div
-            style={{
-              marginBottom: "10px",
-            }}
-          >
-            <strong
-              style={{
-                display: "block",
-                color: "#315f75",
-                fontSize: "15px",
-                marginBottom: "4px",
-              }}
-            >
+      <section className="informe-institucional__capitulo">
+        <header className="informe-institucional__capitulo-encabezado">
+          <span className="informe-institucional__capitulo-numero">
+            03 · Análisis y acuerdos
+          </span>
+
+          <h2 className="informe-institucional__capitulo-titulo">
+            Construcción del acompañamiento pedagógico
+          </h2>
+
+          <p className="informe-institucional__capitulo-descripcion">
+            Espacio destinado a la lectura compartida de la trayectoria, la
+            definición de prioridades y los acuerdos institucionales de
+            acompañamiento.
+          </p>
+        </header>
+        {/* ======================================================
+        
+    LECTURA PEDAGÓGICA COMPARTIDA 
+   ====================================================== */}
+
+        <div className="informe-institucional__campo-trabajo">
+          <div className="informe-institucional__campo-encabezado">
+            <strong className="informe-institucional__campo-titulo">
               Lectura pedagógica compartida
             </strong>
 
-            <p
-              style={{
-                margin: 0,
-                color: "#6b7f92",
-                fontSize: "13px",
-                lineHeight: 1.5,
-              }}
-            >
+            <p className="informe-institucional__campo-descripcion">
               Espacio destinado a registrar la lectura construida por el equipo
               docente y directivo a partir de la información precedente.
             </p>
           </div>
 
           <textarea
-            rows={5}
+            rows={3}
+            className="informe-institucional__textarea"
             placeholder="Registrar aquí la lectura pedagógica compartida..."
-            style={{
-              width: "100%",
-              boxSizing: "border-box",
-              padding: "12px 14px",
-              border: "1px solid #cbdbe7",
-              borderRadius: "9px",
-              background: "#fbfdff",
-              color: "#31465a",
-              fontSize: "14px",
-              fontFamily: "inherit",
-              lineHeight: 1.6,
-              resize: "vertical",
-              outline: "none",
-            }}
           />
         </div>
+
         {/* ======================================================
     FORTALEZAS OBSERVADAS
    ====================================================== */}
 
-        <div
-          style={{
-            marginTop: "14px",
-            padding: "16px 18px",
-            border: "1px solid #d4e3ee",
-            borderRadius: "12px",
-            background: "#ffffff",
-          }}
-        >
-          <div
-            style={{
-              marginBottom: "10px",
-            }}
-          >
-            <strong
-              style={{
-                display: "block",
-                color: "#315f75",
-                fontSize: "15px",
-                marginBottom: "4px",
-              }}
-            >
+        <div className="informe-institucional__campo-trabajo">
+          <div className="informe-institucional__campo-encabezado">
+            <strong className="informe-institucional__campo-titulo">
               Fortalezas observadas
             </strong>
 
-            <p
-              style={{
-                margin: 0,
-                color: "#6b7f92",
-                fontSize: "13px",
-                lineHeight: 1.5,
-              }}
-            >
+            <p className="informe-institucional__campo-descripcion">
               Registrar avances, capacidades, modos de participación, intereses
               o condiciones favorables que puedan constituirse en puntos de
               apoyo para el acompañamiento pedagógico.
@@ -592,22 +537,9 @@ export default function InformeInstitucional({
           </div>
 
           <textarea
-            rows={4}
+            rows={3}
+            className="informe-institucional__textarea"
             placeholder="Registrar aquí las fortalezas observadas..."
-            style={{
-              width: "100%",
-              boxSizing: "border-box",
-              padding: "12px 14px",
-              border: "1px solid #cbdbe7",
-              borderRadius: "9px",
-              background: "#fbfdff",
-              color: "#31465a",
-              fontSize: "14px",
-              fontFamily: "inherit",
-              lineHeight: 1.6,
-              resize: "vertical",
-              outline: "none",
-            }}
           />
         </div>
 
@@ -615,39 +547,13 @@ export default function InformeInstitucional({
     SABERES / APRENDIZAJES PRIORITARIOS
    ====================================================== */}
 
-        <div
-          style={{
-            marginTop: "14px",
-            padding: "16px 18px",
-            border: "1px solid #d4e3ee",
-            borderRadius: "12px",
-            background: "#ffffff",
-          }}
-        >
-          <div
-            style={{
-              marginBottom: "12px",
-            }}
-          >
-            <strong
-              style={{
-                display: "block",
-                color: "#315f75",
-                fontSize: "15px",
-                marginBottom: "4px",
-              }}
-            >
+        <div className="informe-institucional__saberes">
+          <div className="informe-institucional__campo-encabezado">
+            <strong className="informe-institucional__campo-titulo">
               Saberes y aprendizajes prioritarios
             </strong>
 
-            <p
-              style={{
-                margin: 0,
-                color: "#6b7f92",
-                fontSize: "13px",
-                lineHeight: 1.5,
-              }}
-            >
+            <p className="informe-institucional__campo-descripcion">
               A partir de las trayectorias actualmente en proceso o
               discontinuas, identificar los saberes que requieren ser retomados,
               fortalecidos o profundizados en cada espacio curricular.
@@ -655,140 +561,84 @@ export default function InformeInstitucional({
           </div>
 
           {asignaturasConDificultad.length > 0 ? (
-            <div
-              style={{
-                display: "grid",
-                gap: "10px",
-              }}
-            >
+            <div className="informe-institucional__saberes-lista">
               {asignaturasConDificultad.map((item, indice) => (
                 <div
                   key={`${item.asignatura}-${item.conceptual}-${indice}`}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns:
-                      "minmax(150px, 0.7fr) minmax(240px, 2fr)",
-                    gap: "12px",
-                    alignItems: "center",
-                    padding: "11px 12px",
-                    border: "1px solid #dce6ed",
-                    borderRadius: "9px",
-                    background: "#fbfdff",
-                  }}
+                  className="informe-institucional__saber-fila"
                 >
-                  <div>
-                    <strong
-                      style={{
-                        display: "block",
-                        color: "#31465a",
-                        fontSize: "14px",
-                      }}
-                    >
-                      {item.asignatura}
-                    </strong>
+                  <div className="informe-institucional__saber-asignatura">
+                    <strong>{item.asignatura}</strong>
 
                     <span
-                      style={{
-                        display: "inline-block",
-                        marginTop: "4px",
-                        color:
-                          item.conceptual === "TED" ? "#9b4d4d" : "#8a6d2f",
-                        fontSize: "12px",
-                        fontWeight: "700",
-                      }}
+                      className={
+                        item.conceptual === "TED"
+                          ? "informe-institucional__saber-estado informe-institucional__saber-estado--ted"
+                          : "informe-institucional__saber-estado informe-institucional__saber-estado--tep"
+                      }
                     >
                       {item.conceptual}
                     </span>
                   </div>
 
                   <textarea
-                    rows={2}
+                    rows={1}
+                    className="informe-institucional__saber-textarea"
                     placeholder={`Saberes/aprendizajes a priorizar en ${item.asignatura}...`}
-                    style={{
-                      width: "100%",
-                      boxSizing: "border-box",
-                      padding: "9px 11px",
-                      border: "1px solid #cbdbe7",
-                      borderRadius: "8px",
-                      background: "#ffffff",
-                      color: "#31465a",
-                      fontSize: "13px",
-                      fontFamily: "inherit",
-                      lineHeight: 1.5,
-                      resize: "vertical",
-                      outline: "none",
-                    }}
                   />
                 </div>
               ))}
             </div>
           ) : (
-            <p
-              style={{
-                margin: 0,
-                padding: "12px",
-                borderRadius: "8px",
-                background: "#f6faf8",
-                color: "#607080",
-                fontSize: "13px",
-              }}
-            >
+            <p className="informe-institucional__saberes-vacio">
               No se registran actualmente asignaturas con TEP o TED para este
               período.
             </p>
           )}
         </div>
 
-        {/* ======================================================
-    ACUERDOS PEDAGÓGICOS
-   ====================================================== */}
+        {/* =============================================
+                   ACUERDOS PEDAGÓGICOS
+        ====================================================== */}
+        <div className="informe-institucional__continuidad-impresion informe-institucional__continuidad-impresion--pagina-3">
+          <strong>
+            {obtenerTextoSeguro(
+              informe.estudiante?.apellidoNombre ||
+                informe.estudiante?.nombreCompleto ||
+                informe.estudiante?.nombre ||
+                informe.encabezado?.estudiante,
+            )}
+          </strong>
 
-        <div
-          style={{
-            marginTop: "14px",
-            padding: "16px 18px",
-            border: "1px solid #d4e3ee",
-            borderRadius: "12px",
-            background: "#ffffff",
-          }}
-        >
-          <div
-            style={{
-              marginBottom: "12px",
-            }}
-          >
-            <strong
-              style={{
-                display: "block",
-                color: "#315f75",
-                fontSize: "15px",
-                marginBottom: "4px",
-              }}
-            >
+          <span>
+            {obtenerTextoSeguro(
+              informe.curso ||
+                informe.estudiante?.curso ||
+                informe.encabezado?.curso,
+            )}
+            {" · "}
+            Turno{" "}
+            {obtenerTextoSeguro(
+              informe.estudiante?.turno || informe.encabezado?.turno,
+            )}
+            {" · "}
+            {obtenerTextoSeguro(informe.periodo || informe.encabezado?.periodo)}
+          </span>
+        </div>
+
+        <div className="informe-institucional__acuerdos">
+          <div className="informe-institucional__campo-encabezado">
+            <strong className="informe-institucional__campo-titulo">
               Acuerdos pedagógicos
             </strong>
 
-            <p
-              style={{
-                margin: 0,
-                color: "#6b7f92",
-                fontSize: "13px",
-                lineHeight: 1.5,
-              }}
-            >
+            <p className="informe-institucional__campo-descripcion">
               Seleccionar las estrategias acordadas por el equipo docente y
               directivo para acompañar la trayectoria del estudiante.
             </p>
           </div>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns:
-                "repeat(auto-fit, minmax(min(100%, 260px), 1fr))",
-              gap: "10px",
-            }}
-          >
+          <div className="informe-institucional__acuerdos-opciones">
             {[
               "Recuperación de saberes prioritarios",
               "Actividades diferenciadas",
@@ -800,440 +650,163 @@ export default function InformeInstitucional({
             ].map((acuerdo) => (
               <label
                 key={acuerdo}
-                style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: "9px",
-                  padding: "10px 12px",
-                  border: "1px solid #dce6ed",
-                  borderRadius: "9px",
-                  background: "#fbfdff",
-                  color: "#40556a",
-                  fontSize: "13px",
-                  lineHeight: 1.45,
-                  cursor: "pointer",
-                }}
+                className="informe-institucional__acuerdo-opcion"
               >
-                <input
-                  type="checkbox"
-                  style={{
-                    marginTop: "2px",
-                    flexShrink: 0,
-                  }}
-                />
+                <input type="checkbox" />
 
                 <span>{acuerdo}</span>
               </label>
             ))}
           </div>
 
-          <div
-            style={{
-              marginTop: "12px",
-            }}
-          >
-            <label
-              style={{
-                display: "block",
-                color: "#40556a",
-                fontSize: "13px",
-                fontWeight: "700",
-                marginBottom: "6px",
-              }}
-            >
-              Otro acuerdo o estrategia
-            </label>
+          <div className="informe-institucional__acuerdo-otro">
+            <label>Otro acuerdo o estrategia</label>
 
             <input
               type="text"
               placeholder="Registrar otro acuerdo pedagógico..."
-              style={{
-                width: "100%",
-                boxSizing: "border-box",
-                padding: "10px 12px",
-                border: "1px solid #cbdbe7",
-                borderRadius: "8px",
-                background: "#ffffff",
-                color: "#31465a",
-                fontSize: "13px",
-                fontFamily: "inherit",
-                outline: "none",
-              }}
             />
           </div>
+        </div>
+
+        {/* ======================================================
+    ACCIONES A IMPLEMENTAR
+   ====================================================== */}
+
+        <div className="informe-institucional__campo-trabajo">
+          <div className="informe-institucional__campo-encabezado">
+            <strong className="informe-institucional__campo-titulo">
+              Acciones a implementar
+            </strong>
+
+            <p className="informe-institucional__campo-descripcion">
+              Registrar las acciones concretas acordadas para acompañar la
+              trayectoria del estudiante, especificando las intervenciones que
+              se desarrollarán durante el período de seguimiento.
+            </p>
+          </div>
+
+          <textarea
+            rows={3}
+            className="informe-institucional__textarea"
+            placeholder="Ej.: diseñar una secuencia breve de recuperación de saberes, ofrecer instancias diferenciadas de trabajo, articular con el equipo de fortalecimiento, realizar seguimiento quincenal..."
+          />
+        </div>
+
+        {/* ======================================================
+    RESPONSABLES Y FECHA DE REVISIÓN
+   ====================================================== */}
+
+        <div className="informe-institucional__responsables">
+          <div className="informe-institucional__campo-encabezado">
+            <strong className="informe-institucional__campo-titulo">
+              Responsables y fecha de revisión
+            </strong>
+
+            <p className="informe-institucional__campo-descripcion">
+              Identificar los responsables del acompañamiento y establecer una
+              fecha para revisar los avances y los acuerdos adoptados.
+            </p>
+          </div>
+
+          <div className="informe-institucional__responsables-grid">
+            <CampoCorto
+              etiqueta="Docente/s responsable/s"
+              placeholder="Nombre/s del/de los docente/s"
+            />
+
+            <CampoCorto
+              etiqueta="Equipo de Conducción"
+              placeholder="Responsable/s del EC"
+            />
+
+            <CampoCorto
+              etiqueta="Equipo FOTIA-FORTE"
+              placeholder="Responsable/s, si corresponde"
+            />
+
+            <CampoCorto
+              etiqueta="Otros actores"
+              placeholder="Preceptoría, EOE, familia, otros"
+            />
+
+            <label className="informe-institucional__campo-corto">
+              <span>Fecha prevista de revisión</span>
+
+              <input type="date" />
+            </label>
+          </div>
+        </div>
+
+        {/* ======================================================
+    REGISTRO DE EVOLUCIÓN
+   ====================================================== */}
+
+        <div className="informe-institucional__evolucion">
+          <div className="informe-institucional__campo-encabezado">
+            <strong className="informe-institucional__campo-titulo">
+              Registro de evolución y seguimiento
+            </strong>
+
+            <p className="informe-institucional__campo-descripcion">
+              Registrar en las instancias de revisión los avances observados,
+              las dificultades que persisten y las decisiones adoptadas para dar
+              continuidad al acompañamiento.
+            </p>
+          </div>
+
+          <div className="informe-institucional__evolucion-instancia">
+            <div className="informe-institucional__evolucion-datos">
+              <label className="informe-institucional__campo-corto">
+                <span>Fecha de revisión</span>
+                <input type="date" />
+              </label>
+
+              <CampoCorto
+                etiqueta="Participantes de la revisión"
+                placeholder="Docentes, EC y otros participantes"
+              />
+            </div>
+
+            <label className="informe-institucional__evolucion-campo">
+              <span>Avances observados</span>
+
+              <textarea
+                rows={2}
+                placeholder="Registrar avances observados desde los acuerdos anteriores..."
+              />
+            </label>
+
+            <label className="informe-institucional__evolucion-campo">
+              <span>Dificultades que persisten</span>
+
+              <textarea
+                rows={2}
+                placeholder="Registrar situaciones que requieren continuidad o revisión..."
+              />
+            </label>
+
+            <label className="informe-institucional__evolucion-campo">
+              <span>Continuidad / nuevos acuerdos</span>
+
+              <textarea
+                rows={2}
+                placeholder="Registrar qué estrategias se sostienen, modifican o incorporan..."
+              />
+            </label>
+          </div>
+
+          <button
+            type="button"
+            className="informe-institucional__evolucion-agregar"
+          >
+            + Agregar nueva instancia de seguimiento
+          </button>
         </div>
       </section>
 
       {/* ======================================================
-    ACCIONES A IMPLEMENTAR
-   ====================================================== */}
-
-      <div
-        style={{
-          marginTop: "14px",
-          padding: "16px 18px",
-          border: "1px solid #d4e3ee",
-          borderRadius: "12px",
-          background: "#ffffff",
-        }}
-      >
-        <div
-          style={{
-            marginBottom: "10px",
-          }}
-        >
-          <strong
-            style={{
-              display: "block",
-              color: "#315f75",
-              fontSize: "15px",
-              marginBottom: "4px",
-            }}
-          >
-            Acciones a implementar
-          </strong>
-
-          <p
-            style={{
-              margin: 0,
-              color: "#6b7f92",
-              fontSize: "13px",
-              lineHeight: 1.5,
-            }}
-          >
-            Registrar las acciones concretas acordadas para acompañar la
-            trayectoria del estudiante, especificando las intervenciones que se
-            desarrollarán durante el período de seguimiento.
-          </p>
-        </div>
-
-        <textarea
-          rows={5}
-          placeholder="Ej.: diseñar una secuencia breve de recuperación de saberes, ofrecer instancias diferenciadas de trabajo, articular con el equipo de fortalecimiento, realizar seguimiento quincenal..."
-          style={{
-            width: "100%",
-            boxSizing: "border-box",
-            padding: "12px 14px",
-            border: "1px solid #cbdbe7",
-            borderRadius: "9px",
-            background: "#fbfdff",
-            color: "#31465a",
-            fontSize: "14px",
-            fontFamily: "inherit",
-            lineHeight: 1.6,
-            resize: "vertical",
-            outline: "none",
-          }}
-        />
-      </div>
-      {/* ======================================================
-    RESPONSABLES Y FECHA DE REVISIÓN
-   ====================================================== */}
-
-      <div
-        style={{
-          marginTop: "14px",
-          padding: "16px 18px",
-          border: "1px solid #d4e3ee",
-          borderRadius: "12px",
-          background: "#ffffff",
-        }}
-      >
-        <div
-          style={{
-            marginBottom: "12px",
-          }}
-        >
-          <strong
-            style={{
-              display: "block",
-              color: "#315f75",
-              fontSize: "15px",
-              marginBottom: "4px",
-            }}
-          >
-            Responsables y fecha de revisión
-          </strong>
-
-          <p
-            style={{
-              margin: 0,
-              color: "#6b7f92",
-              fontSize: "13px",
-              lineHeight: 1.5,
-            }}
-          >
-            Identificar los responsables del acompañamiento y establecer una
-            fecha para revisar los avances y los acuerdos adoptados.
-          </p>
-        </div>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns:
-              "repeat(auto-fit, minmax(min(100%, 210px), 1fr))",
-            gap: "12px",
-          }}
-        >
-          <CampoCorto
-            etiqueta="Docente/s responsable/s"
-            placeholder="Nombre/s del/de los docente/s"
-          />
-
-          <CampoCorto
-            etiqueta="Equipo de Conducción"
-            placeholder="Responsable/s del EC"
-          />
-
-          <CampoCorto
-            etiqueta="Equipo FOTIA-FORTE"
-            placeholder="Responsable/s, si corresponde"
-          />
-
-          <CampoCorto
-            etiqueta="Otros actores"
-            placeholder="Preceptoría, EOE, familia, otros"
-          />
-
-          <label
-            style={{
-              display: "grid",
-              gap: "6px",
-              color: "#40556a",
-              fontSize: "13px",
-              fontWeight: "700",
-            }}
-          >
-            Fecha prevista de revisión
-            <input
-              type="date"
-              style={{
-                padding: "10px 12px",
-                border: "1px solid #cbdbe7",
-                borderRadius: "8px",
-                background: "#ffffff",
-                color: "#31465a",
-                fontSize: "13px",
-                fontFamily: "inherit",
-                outline: "none",
-              }}
-            />
-          </label>
-        </div>
-      </div>
-
-      {/* ======================================================
-    REGISTRO DE EVOLUCIÓN
-   ====================================================== */}
-
-      <div
-        style={{
-          marginTop: "14px",
-          padding: "16px 18px",
-          border: "1px solid #d4e3ee",
-          borderRadius: "12px",
-          background: "#ffffff",
-        }}
-      >
-        <div
-          style={{
-            marginBottom: "12px",
-          }}
-        >
-          <strong
-            style={{
-              display: "block",
-              color: "#315f75",
-              fontSize: "15px",
-              marginBottom: "4px",
-            }}
-          >
-            Registro de evolución y seguimiento
-          </strong>
-
-          <p
-            style={{
-              margin: 0,
-              color: "#6b7f92",
-              fontSize: "13px",
-              lineHeight: 1.5,
-            }}
-          >
-            Registrar en las instancias de revisión los avances observados, las
-            dificultades que persisten y las decisiones adoptadas para dar
-            continuidad al acompañamiento.
-          </p>
-        </div>
-
-        <div
-          style={{
-            padding: "14px",
-            border: "1px solid #dce6ed",
-            borderRadius: "10px",
-            background: "#fbfdff",
-          }}
-        >
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "minmax(170px, 0.45fr) minmax(220px, 1fr)",
-              gap: "12px",
-              marginBottom: "12px",
-            }}
-          >
-            <label
-              style={{
-                display: "grid",
-                gap: "6px",
-                color: "#40556a",
-                fontSize: "13px",
-                fontWeight: "700",
-              }}
-            >
-              Fecha de revisión
-              <input
-                type="date"
-                style={{
-                  padding: "10px 12px",
-                  border: "1px solid #cbdbe7",
-                  borderRadius: "8px",
-                  background: "#ffffff",
-                  color: "#31465a",
-                  fontSize: "13px",
-                  fontFamily: "inherit",
-                }}
-              />
-            </label>
-
-            <CampoCorto
-              etiqueta="Participantes de la revisión"
-              placeholder="Docentes, EC y otros participantes"
-            />
-          </div>
-
-          <label
-            style={{
-              display: "grid",
-              gap: "6px",
-              marginBottom: "12px",
-              color: "#40556a",
-              fontSize: "13px",
-              fontWeight: "700",
-            }}
-          >
-            Avances observados
-            <textarea
-              rows={3}
-              placeholder="Registrar avances observados desde los acuerdos anteriores..."
-              style={{
-                width: "100%",
-                boxSizing: "border-box",
-                padding: "10px 12px",
-                border: "1px solid #cbdbe7",
-                borderRadius: "8px",
-                background: "#ffffff",
-                color: "#31465a",
-                fontSize: "13px",
-                fontFamily: "inherit",
-                lineHeight: 1.55,
-                resize: "vertical",
-              }}
-            />
-          </label>
-
-          <label
-            style={{
-              display: "grid",
-              gap: "6px",
-              marginBottom: "12px",
-              color: "#40556a",
-              fontSize: "13px",
-              fontWeight: "700",
-            }}
-          >
-            Dificultades que persisten
-            <textarea
-              rows={3}
-              placeholder="Registrar situaciones que requieren continuidad o revisión..."
-              style={{
-                width: "100%",
-                boxSizing: "border-box",
-                padding: "10px 12px",
-                border: "1px solid #cbdbe7",
-                borderRadius: "8px",
-                background: "#ffffff",
-                color: "#31465a",
-                fontSize: "13px",
-                fontFamily: "inherit",
-                lineHeight: 1.55,
-                resize: "vertical",
-              }}
-            />
-          </label>
-
-          <label
-            style={{
-              display: "grid",
-              gap: "6px",
-              color: "#40556a",
-              fontSize: "13px",
-              fontWeight: "700",
-            }}
-          >
-            Continuidad / nuevos acuerdos
-            <textarea
-              rows={3}
-              placeholder="Registrar qué estrategias se sostienen, modifican o incorporan..."
-              style={{
-                width: "100%",
-                boxSizing: "border-box",
-                padding: "10px 12px",
-                border: "1px solid #cbdbe7",
-                borderRadius: "8px",
-                background: "#ffffff",
-                color: "#31465a",
-                fontSize: "13px",
-                fontFamily: "inherit",
-                lineHeight: 1.55,
-                resize: "vertical",
-              }}
-            />
-          </label>
-        </div>
-
-        <button
-          type="button"
-          style={{
-            marginTop: "12px",
-            padding: "9px 14px",
-            border: "1px solid #b9d4ea",
-            borderRadius: "8px",
-            background: "#f4f9fd",
-            color: "#315f75",
-            fontSize: "13px",
-            fontWeight: "700",
-            cursor: "pointer",
-          }}
-        >
-          + Agregar nueva instancia de seguimiento
-        </button>
-      </div>
-
-      {/* ======================================================
-          ACLARACIÓN PROFESIONAL
-         ====================================================== */}
-
-      {informe.aclaracionInstitucional && (
-        <aside className="informe-institucional__aclaracion">
-          <strong>Aclaración</strong>
-
-          <p>{informe.aclaracionInstitucional}</p>
-        </aside>
-      )}
-
-      {/* ======================================================
-          DETALLE TÉCNICO
+          DETALLE TÉCNICO 
          ====================================================== */}
 
       {mostrarDetalleTecnico && (
@@ -1249,71 +822,23 @@ export default function InformeInstitucional({
 
 function IndicadorSituacion({ etiqueta, cantidad }) {
   return (
-    <div
-      style={{
-        padding: "13px",
-        border: "1px solid #d6e2eb",
-        borderRadius: "10px",
-        background: "#ffffff",
-        textAlign: "center",
-      }}
-    >
-      <span
-        style={{
-          display: "block",
-          color: "#607080",
-          fontSize: "11px",
-          fontWeight: "700",
-          textTransform: "uppercase",
-          letterSpacing: "0.05em",
-        }}
-      >
+    <div className="informe-institucional__indicador">
+      <span className="informe-institucional__indicador-etiqueta">
         {etiqueta}
       </span>
 
-      <strong
-        style={{
-          display: "block",
-          marginTop: "5px",
-          color: "#23436d",
-          fontSize: "24px",
-        }}
-      >
+      <strong className="informe-institucional__indicador-cantidad">
         {cantidad}
       </strong>
     </div>
   );
 }
-
 function CampoCorto({ etiqueta, placeholder }) {
   return (
-    <label
-      style={{
-        display: "grid",
-        gap: "6px",
-        color: "#40556a",
-        fontSize: "13px",
-        fontWeight: "700",
-      }}
-    >
-      {etiqueta}
+    <label className="informe-institucional__campo-corto">
+      <span>{etiqueta}</span>
 
-      <input
-        type="text"
-        placeholder={placeholder}
-        style={{
-          width: "100%",
-          boxSizing: "border-box",
-          padding: "10px 12px",
-          border: "1px solid #cbdbe7",
-          borderRadius: "8px",
-          background: "#ffffff",
-          color: "#31465a",
-          fontSize: "13px",
-          fontFamily: "inherit",
-          outline: "none",
-        }}
-      />
+      <input type="text" placeholder={placeholder} />
     </label>
   );
 }

@@ -286,20 +286,8 @@ export default function IntervencionesInstitucionales({
     acreditacionesDetalladas,
   );
 
-  return (
-    <section
-      className="intervenciones-institucionales"
-      style={{
-        marginTop: "26px",
-        padding: "22px",
-        border: "1px solid #c8ddd8",
-        borderRadius: "16px",
-        background: "linear-gradient(180deg, #f6fbfa 0%, #ffffff 100%)",
-        boxShadow: "0 5px 16px rgba(40, 82, 78, 0.08)",
-        breakInside: "avoid",
-        pageBreakInside: "avoid",
-      }}
-    >
+    return (
+  <section className="intervenciones-institucionales">     
       <style>
         {`
           @media print {
@@ -316,57 +304,7 @@ export default function IntervencionesInstitucionales({
         `}
       </style>
 
-      <header
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "13px",
-          marginBottom: "18px",
-        }}
-      >
-        <div
-          aria-hidden="true"
-          style={{
-            width: "48px",
-            height: "48px",
-            flexShrink: 0,
-            display: "grid",
-            placeItems: "center",
-            borderRadius: "14px",
-            background: "#e3f2ee",
-            fontSize: "24px",
-          }}
-        >
-          🏫
-        </div>
-
-        <div>
-          <p
-            style={{
-              margin: "0 0 4px",
-              color: "#667085",
-              fontSize: "11px",
-              fontWeight: "700",
-              letterSpacing: "0.07em",
-              textTransform: "uppercase",
-            }}
-          >
-            Acompañamiento institucional
-          </p>
-
-          <h3
-            style={{
-              margin: 0,
-              color: "#285e58",
-              fontSize: "20px",
-              lineHeight: 1.3,
-            }}
-          >
-            Intervenciones institucionales de acompañamiento pedagógico
-          </h3>
-        </div>
-      </header>
-
+    
       <div
         style={{
           padding: "16px 18px",
@@ -427,7 +365,7 @@ export default function IntervencionesInstitucionales({
           <p
             style={{
               margin: "0 0 10px",
-              color: "#40556a",
+              color: "#40556a", 
               fontSize: "14px",
               lineHeight: 1.7,
             }}

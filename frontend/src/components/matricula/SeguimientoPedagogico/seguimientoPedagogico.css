@@ -312,16 +312,6 @@
     grid-template-columns: 1fr;
   }
 } 
-.informe-institucional__aclaracion {
-  margin-top: 40px;
-  padding-top: 22px;
-  border-top: 1px solid #d8e1e8;
-}
-.informe-institucional__aclaracion p {
-  margin: 8px 0 0;
-  line-height: 1.6;
-}
-
 
 .informe-institucional__control-catalogo {
   display: none !important;
