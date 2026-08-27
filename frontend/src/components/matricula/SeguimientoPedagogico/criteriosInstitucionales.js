@@ -273,6 +273,10 @@ export function calcularPuntajeInstitucional(
       ? evaluacionTrayectoria
           .persistencias
       : [];
+  const tea =
+  obtenerCantidadSegura(
+    situacionActual.tea,
+  );    
 
   const tep =
     obtenerCantidadSegura(
@@ -459,6 +463,7 @@ export function calcularPuntajeInstitucional(
     detalles,
 
     cantidades: {
+      tea,
       tep,
       ted,
       asignaturasPendientes:

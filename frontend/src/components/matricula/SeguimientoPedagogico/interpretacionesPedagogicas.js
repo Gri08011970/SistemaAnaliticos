@@ -292,7 +292,7 @@ export function construirNombreAsignaturaPendiente({
  * Devuelve una clave estable para evitar interpretaciones
  * duplicadas.
  */
-export function crearClaveInterpretacion(
+export function crearClaveInterpretacion( 
   interpretacion,
 ) {
 

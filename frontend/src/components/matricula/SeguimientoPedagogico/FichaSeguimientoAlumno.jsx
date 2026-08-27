@@ -113,13 +113,15 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
   useEffect(() => {
     let componenteActivo = true;
 
-    const estadoVacioFotia = {
-      participaFotia: false,
-      asignaturasEnFortalecimiento: [],
-      asignaturasAcreditadas: [],
-      docentesResponsables: [],
-      observaciones: [],
-    };
+  const estadoVacioFotia = {
+  participaFotia: false,
+  registraAntecedentesFotia: false,
+  asignaturasEnFortalecimiento: [],
+  asignaturasAcreditadas: [],
+  acreditacionesDetalladas: [],
+  docentesResponsables: [],
+  observaciones: [],
+};
 
     async function obtenerFotiaDelAlumno() {
       const alumnoId = alumnoSeleccionado?._id;
@@ -190,6 +192,19 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
             inscripcion.estado !== "Acreditada" &&
             inscripcion.estado !== "Finalizada sin acreditar",
         );
+
+        /*
+         * Participación ACTUAL:
+         * solo si tiene al menos una intervención vigente.
+         */
+        const participaFotiaActualmente = inscripcionesActivas.length > 0;
+
+        /*
+         * Antecedentes:
+         * existen registros históricos, aunque ya no estén activos.
+         */
+        const registraAntecedentesFotia =
+          listaInscripciones.length > 0 || listaAcreditaciones.length > 0;
 
         const asignaturasEnFortalecimiento = obtenerValoresUnicos(
           inscripcionesActivas.map((inscripcion) => inscripcion.asignatura),
@@ -291,17 +306,76 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
           ).values(),
         );
 
-        const participaFotia =
-          listaInscripciones.length > 0 || listaAcreditaciones.length > 0;
+      /*
+ * Acreditaciones completas para el informe institucional.
+ *
+ * Conservamos los objetos completos porque contienen:
+ * asignatura, docente, fecha, año, origen, observaciones, etc.
+ *
+ * Pueden aparecer tanto en las inscripciones como en el
+ * historial de acreditaciones, por eso eliminamos duplicados.
+ */
+const acreditacionesDetalladas = Array.from(
+  new Map(
+    [
+      ...acreditacionesDesdeInscripciones,
+      ...listaAcreditaciones,
+    ].map((acreditacion, indice) => {
+      const docente =
+        acreditacion.docenteNombre ||
+        acreditacion.docenteId?._id ||
+        acreditacion.docenteId ||
+        "";
 
-        const datosConstruidos = {
-          participaFotia,
-          asignaturasEnFortalecimiento,
-          asignaturasAcreditadas,
-          docentesResponsables,
-          observaciones,
-        };
+      const clave = [
+        acreditacion.asignatura || "",
+        acreditacion.fechaAcreditacion || "",
+        docente,
+        acreditacion.anio || "",
+        acreditacion.tipoOrigen || "",
+      ]
+        .map((valor) => String(valor).trim().toLowerCase())
+        .join("|");
 
+      return [
+        clave || `acreditacion-${indice}`,
+        acreditacion,
+      ];
+    }),
+  ).values(),
+);
+
+const datosConstruidos = {
+  /*
+   * Participación vigente en FOTIA-FORTE.
+   */
+  participaFotia:
+    participaFotiaActualmente,
+
+  /*
+   * Registra antecedentes históricos en el programa,
+   * aunque actualmente no participe.
+   */
+  registraAntecedentesFotia,
+
+  asignaturasEnFortalecimiento,
+  asignaturasAcreditadas,
+
+  /*
+   * NUEVO:
+   * objetos completos de las acreditaciones.
+   */
+  acreditacionesDetalladas,
+
+  docentesResponsables,
+  observaciones,
+
+  /*
+   * Conservamos también las inscripciones completas
+   * para el informe detallado.
+   */
+  inscripciones: listaInscripciones,
+};
         console.log("FOTIA · datos enviados al informe:", datosConstruidos);
 
         if (componenteActivo) {

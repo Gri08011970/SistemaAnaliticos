@@ -983,35 +983,37 @@ export function generarInformeInstitucional(diagnostico, opciones = {}) {
     institucion: opciones.institucion || null,
 
     intervencionesInstitucionales: {
-  participaFotia: datosFotia.participaFotia === true,
+      participaFotia: datosFotia.participaFotia === true,
 
-  asignaturasEnFortalecimiento: Array.isArray(
-    datosFotia.asignaturasEnFortalecimiento,
-  )
-    ? datosFotia.asignaturasEnFortalecimiento
-    : [],
+      registraAntecedentesFotia: datosFotia.registraAntecedentesFotia === true,
 
-  asignaturasAcreditadas: Array.isArray(
-    datosFotia.asignaturasAcreditadas,
-  )
-    ? datosFotia.asignaturasAcreditadas
-    : [],
+      asignaturasEnFortalecimiento: Array.isArray(
+        datosFotia.asignaturasEnFortalecimiento,
+      )
+        ? datosFotia.asignaturasEnFortalecimiento
+        : [],
 
-  docentesResponsables: Array.isArray(
-    datosFotia.docentesResponsables,
-  )
-    ? datosFotia.docentesResponsables
-    : [],
+      asignaturasAcreditadas: Array.isArray(datosFotia.asignaturasAcreditadas)
+        ? datosFotia.asignaturasAcreditadas
+        : [],
 
-  observaciones: Array.isArray(
-    datosFotia.observaciones,
-  )
-    ? datosFotia.observaciones
-    : [],
+      acreditacionesDetalladas: Array.isArray(
+        datosFotia.acreditacionesDetalladas,
+      )
+        ? datosFotia.acreditacionesDetalladas
+        : [],
 
-  informeEquipoFortalecimiento:
-    construirInformeEquipoFortalecimiento(datosFotia),
-},
+      docentesResponsables: Array.isArray(datosFotia.docentesResponsables)
+        ? datosFotia.docentesResponsables
+        : [],
+
+      observaciones: Array.isArray(datosFotia.observaciones)
+        ? datosFotia.observaciones
+        : [],
+
+      informeEquipoFortalecimiento:
+        construirInformeEquipoFortalecimiento(datosFotia),
+    },
 
     /*
      * Encabezado institucional.
@@ -1083,6 +1085,11 @@ export function generarInformeInstitucional(diagnostico, opciones = {}) {
       cantidades:
         diagnostico.detalleTecnico?.cantidades ||
         diagnostico.cantidades ||
+        null,
+
+      situacionActual:
+        diagnostico.detalleTecnico?.situacionActual ||
+        diagnostico.situacionActual ||
         null,
 
       persistencias:

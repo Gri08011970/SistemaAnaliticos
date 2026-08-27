@@ -1,11 +1,25 @@
 import { useMemo, useState } from "react";
 
+function formatearFechaAcreditacion(fecha) {
+  if (!fecha) {
+    return "";
+  }
+
+  const partes = String(fecha).split("-");
+
+  if (partes.length !== 3) {
+    return fecha;
+  }
+
+  const [anio, mes, dia] = partes;
+
+  return `${dia}/${mes}/${anio}`;
+}
+
 const obtenerListaLegible = (valores = []) => {
   const lista = [
     ...new Set(
-      valores
-        .map((valor) => String(valor || "").trim())
-        .filter(Boolean),
+      valores.map((valor) => String(valor || "").trim()).filter(Boolean),
     ),
   ];
 
@@ -78,10 +92,7 @@ const agruparObservacionesPorAsignatura = (observaciones = []) => {
 
     const grupo = grupos.get(clave);
 
-    if (
-      observacion.docente &&
-      observacion.docente !== "Docente sin informar"
-    ) {
+    if (observacion.docente && observacion.docente !== "Docente sin informar") {
       grupo.docentes.add(observacion.docente);
     }
 
@@ -148,13 +159,14 @@ const formatearFecha = (fecha) => {
 
 export default function IntervencionesInstitucionales({
   participaFotia = false,
+  registraAntecedentesFotia = false,
   asignaturasEnFortalecimiento = [],
   asignaturasAcreditadas = [],
+  acreditacionesDetalladas = [],
   docentesResponsables = [],
   observaciones = [],
   informeEquipoFortalecimiento = "",
-  nombrePrograma =
-    "Programa Institucional de Fortalecimiento de Trayectorias Educativas (FOTIA)",
+  nombrePrograma = "Programa Institucional de Fortalecimiento de Trayectorias Educativas (FOTIA)",
 }) {
   const [mostrarDetalle, setMostrarDetalle] = useState(false);
 
@@ -188,8 +200,7 @@ export default function IntervencionesInstitucionales({
       construirSintesisObservaciones({
         observaciones: observacionesNormalizadas,
         cantidadEspacios:
-          asignaturasEnFortalecimiento.length +
-          asignaturasAcreditadas.length,
+          asignaturasEnFortalecimiento.length + asignaturasAcreditadas.length,
       }),
     [
       observacionesNormalizadas,
@@ -198,16 +209,24 @@ export default function IntervencionesInstitucionales({
     ],
   );
 
-  const informeVisible =
-    sintesisObservaciones || informeFortalecimientoLimpio;
+  const tieneParticipacionActual =
+    participaFotia === true || asignaturasEnFortalecimiento.length > 0;
 
-  const tieneParticipacion =
-    participaFotia ||
-    asignaturasEnFortalecimiento.length > 0 ||
-    asignaturasAcreditadas.length > 0;
+  const informeVisible = tieneParticipacionActual
+    ? sintesisObservaciones || informeFortalecimientoLimpio
+    : "";
 
   const construirTextoParticipacion = () => {
-    if (!tieneParticipacion) {
+    if (!tieneParticipacionActual) {
+      if (registraAntecedentesFotia) {
+        return (
+          "Al momento de la emisión del presente informe, el estudiante no " +
+          "registra participación activa en dispositivos institucionales de " +
+          "fortalecimiento de trayectorias educativas. Existen antecedentes " +
+          "de registros institucionales previos vinculados al programa."
+        );
+      }
+
       return (
         "Al momento de la emisión del presente informe, el estudiante no " +
         "registra participación en dispositivos institucionales de " +
@@ -221,9 +240,7 @@ export default function IntervencionesInstitucionales({
       partes.push(
         `El estudiante participa actualmente en el ${nombrePrograma}, ` +
           `donde fortalece actualmente ${
-            asignaturasEnFortalecimiento.length === 1
-              ? "el área"
-              : "las áreas"
+            asignaturasEnFortalecimiento.length === 1 ? "el área" : "las áreas"
           } de ${asignaturasActivasTexto}` +
           (docentesTexto
             ? ` bajo la orientación pedagógica de ${
@@ -259,6 +276,15 @@ export default function IntervencionesInstitucionales({
 
     return partes.join(" ");
   };
+  console.log(
+    "INTERVENCIONES · asignaturasAcreditadas:",
+    asignaturasAcreditadas,
+  );
+
+  console.log(
+    "INTERVENCIONES · acreditaciones detalladas:",
+    acreditacionesDetalladas,
+  );
 
   return (
     <section
@@ -268,8 +294,7 @@ export default function IntervencionesInstitucionales({
         padding: "22px",
         border: "1px solid #c8ddd8",
         borderRadius: "16px",
-        background:
-          "linear-gradient(180deg, #f6fbfa 0%, #ffffff 100%)",
+        background: "linear-gradient(180deg, #f6fbfa 0%, #ffffff 100%)",
         boxShadow: "0 5px 16px rgba(40, 82, 78, 0.08)",
         breakInside: "avoid",
         pageBreakInside: "avoid",
@@ -373,7 +398,103 @@ export default function IntervencionesInstitucionales({
         </p>
       </div>
 
-      {tieneParticipacion && (
+      {/* ======================================================
+          ANTECEDENTES DE ACREDITACIÓN EN FORTALECIMIENTO
+         ====================================================== */}
+
+      {asignaturasAcreditadas.length > 0 && (
+        <div
+          style={{
+            marginTop: "14px",
+            padding: "16px 18px",
+            border: "1px solid #cfe4dc",
+            borderRadius: "12px",
+            background: "#f7fbf9",
+            breakInside: "avoid",
+            pageBreakInside: "avoid",
+          }}
+        >
+          <h4
+            style={{
+              margin: "0 0 10px",
+              color: "#285e58",
+              fontSize: "15px",
+            }}
+          >
+            Antecedentes de acreditación en fortalecimiento
+          </h4>
+
+          <p
+            style={{
+              margin: "0 0 10px",
+              color: "#40556a",
+              fontSize: "14px",
+              lineHeight: 1.7,
+            }}
+          >
+            El estudiante registra antecedentes de participación en el programa
+            institucional de fortalecimiento, con{" "}
+            <strong>
+              {asignaturasAcreditadas.length}{" "}
+              {asignaturasAcreditadas.length === 1
+                ? "asignatura acreditada"
+                : "asignaturas acreditadas"}
+            </strong>
+            .
+          </p>
+
+          <ul
+            style={{
+              margin: 0,
+              paddingLeft: "22px",
+              color: "#40556a",
+              fontSize: "14px",
+              lineHeight: 1.7,
+            }}
+          >
+            {acreditacionesDetalladas.map((acreditacion, index) => {
+              const asignatura =
+                acreditacion.asignatura || "Asignatura sin especificar";
+
+              const docente =
+                acreditacion.docenteNombre || "Docente no informado";
+
+              const fecha = formatearFechaAcreditacion(
+                acreditacion.fechaAcreditacion,
+              );
+
+              return (
+                <li
+                  key={
+                    acreditacion._id ||
+                    `${asignatura}-${acreditacion.fechaAcreditacion || ""}-${index}`
+                  }
+                  style={{
+                    marginBottom:
+                      index < acreditacionesDetalladas.length - 1 ? "7px" : 0,
+                  }}
+                >
+                  <strong>{asignatura}</strong>
+
+                  <span
+                    style={{
+                      display: "block",
+                      marginTop: "2px",
+                      color: "#607080",
+                      fontSize: "13px",
+                    }}
+                  >
+                    Docente responsable: {docente}
+                    {fecha ? ` · Acreditada: ${fecha}` : ""}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
+      {tieneParticipacionActual && (
         <div
           style={{
             display: "grid",
@@ -385,9 +506,7 @@ export default function IntervencionesInstitucionales({
         >
           <DatoIntervencion
             etiqueta="Áreas en fortalecimiento"
-            valor={
-              asignaturasActivasTexto || "Sin áreas activas informadas"
-            }
+            valor={asignaturasActivasTexto || "Sin áreas activas informadas"}
           />
 
           <DatoIntervencion
@@ -398,8 +517,7 @@ export default function IntervencionesInstitucionales({
           <DatoIntervencion
             etiqueta="Áreas acreditadas"
             valor={
-              asignaturasAcreditadasTexto ||
-              "Sin acreditaciones registradas"
+              asignaturasAcreditadasTexto || "Sin acreditaciones registradas"
             }
           />
         </div>
@@ -476,10 +594,7 @@ export default function IntervencionesInstitucionales({
               }}
             >
               {observacionesAgrupadas.map((grupo) => (
-                <DetalleAsignatura
-                  key={grupo.asignatura}
-                  grupo={grupo}
-                />
+                <DetalleAsignatura key={grupo.asignatura} grupo={grupo} />
               ))}
             </div>
           )}
@@ -578,8 +693,7 @@ function DetalleAsignatura({ grupo }) {
               key={observacion.id}
               style={{
                 padding: "13px 14px",
-                borderTop:
-                  indice === 0 ? "none" : "1px solid #e5ece9",
+                borderTop: indice === 0 ? "none" : "1px solid #e5ece9",
               }}
             >
               {(observacion.estado || fechaFormateada) && (

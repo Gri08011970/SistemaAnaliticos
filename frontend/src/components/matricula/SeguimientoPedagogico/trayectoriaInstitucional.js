@@ -741,7 +741,7 @@ export function evaluarTrayectoriaAlumno({
         desempenosNormalizados,
     },
 
-    antecedentes: {
+    antecedentes: { 
       asignaturasPendientes,
 
       cantidadAsignaturasPendientes:

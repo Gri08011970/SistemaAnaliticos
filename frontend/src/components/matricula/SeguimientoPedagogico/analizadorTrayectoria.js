@@ -405,7 +405,7 @@ export function analizarTrayectoria({
     }); 
 
   const diagnostico =
-    crearDiagnosticoInstitucional(
+    crearDiagnosticoInstitucional( 
       evaluacion,
     );
 
