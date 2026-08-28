@@ -103,6 +103,7 @@ export default function InformeInstitucional({
     informe?.estudiante?.id ||
     informe?.estudiante?.dni ||
     "";
+  const [estadoGuardado, setEstadoGuardado] = useState("");
 
   const periodoAcompanamiento =
     informe?.periodo || informe?.encabezado?.periodo || "";
@@ -174,12 +175,16 @@ export default function InformeInstitucional({
   }, [estudianteId, periodoAcompanamiento]);
 
   async function guardarAcompanamiento() {
-    if (!estudianteId || !periodoAcompanamiento) {
-      return;
-    }
+  if (!estudianteId || !periodoAcompanamiento) {
+    return;
+  }
 
-    try {
-      const respuesta = await fetch("/api/acompanamiento-institucional", {
+  setEstadoGuardado("guardando");
+
+  try {
+    const respuesta = await fetch(
+      "/api/acompanamiento-institucional",
+      {
         method: "PUT",
 
         headers: {
@@ -189,41 +194,54 @@ export default function InformeInstitucional({
         body: JSON.stringify({
           alumnoId: String(estudianteId),
           periodo: periodoAcompanamiento,
-          curso: informe?.curso || informe?.estudiante?.curso || "",
+          curso:
+            informe?.curso ||
+            informe?.estudiante?.curso ||
+            "",
 
           ...acompanamiento,
         }),
-      });
+      },
+    );
 
-      if (!respuesta.ok) {
-        throw new Error("No se pudo guardar el acompañamiento institucional");
-      }
-
-      const datosGuardados = await respuesta.json();
-
-      setAcompanamiento((anterior) => ({
-        ...anterior,
-        ...datosGuardados,
-
-        responsables: {
-          ...anterior.responsables,
-          ...(datosGuardados.responsables || {}),
-        },
-
-        seguimientos:
-          Array.isArray(datosGuardados.seguimientos) &&
-          datosGuardados.seguimientos.length > 0
-            ? datosGuardados.seguimientos
-            : anterior.seguimientos,
-      }));
-
-      window.alert("Acompañamiento institucional guardado correctamente.");
-    } catch (error) {
-      console.error("Error al guardar acompañamiento institucional:", error);
-
-      window.alert("No se pudo guardar el acompañamiento institucional.");
+    if (!respuesta.ok) {
+      throw new Error(
+        "No se pudo guardar el acompañamiento institucional",
+      );
     }
+
+    const datosGuardados = await respuesta.json();
+
+    setAcompanamiento((anterior) => ({
+      ...anterior,
+      ...datosGuardados,
+
+      responsables: {
+        ...anterior.responsables,
+        ...(datosGuardados.responsables || {}),
+      },
+
+      seguimientos:
+        Array.isArray(datosGuardados.seguimientos) &&
+        datosGuardados.seguimientos.length > 0
+          ? datosGuardados.seguimientos
+          : anterior.seguimientos,
+    }));
+
+    setEstadoGuardado("guardado");
+
+    setTimeout(() => {
+      setEstadoGuardado("");
+    }, 3000);
+  } catch (error) {
+    console.error(
+      "Error al guardar acompañamiento institucional:",
+      error,
+    );
+
+    setEstadoGuardado("error");
   }
+}
   if (!informe) {
     return (
       <section className="informe-institucional informe-institucional--vacio">
@@ -687,11 +705,9 @@ export default function InformeInstitucional({
               }))
             }
           />
-
-          <button type="button" onClick={guardarAcompanamiento}>
-            Guardar prueba
-          </button>
         </div>
+
+       
 
         {/* ======================================================
     FORTALEZAS OBSERVADAS
@@ -1180,6 +1196,31 @@ export default function InformeInstitucional({
   </button>
 </div>
 
+ <div className="informe-institucional__guardado">
+  {estadoGuardado === "guardado" && (
+    <span className="informe-institucional__mensaje-guardado">
+      ✓ Guardado correctamente
+    </span>
+  )}
+
+  {estadoGuardado === "error" && (
+    <span className="informe-institucional__mensaje-error">
+      No se pudo guardar
+    </span>
+  )}
+
+  <button
+    type="button"
+    className="informe-institucional__guardar"
+    onClick={guardarAcompanamiento}
+    disabled={estadoGuardado === "guardando"}
+  >
+    {estadoGuardado === "guardando"
+      ? "Guardando..."
+      : "💾 Guardar acompañamiento pedagógico"}
+  </button>
+</div>
+
 </section>
       {/* ======================================================
           DETALLE TÉCNICO 
@@ -1209,7 +1250,7 @@ function IndicadorSituacion({ etiqueta, cantidad }) {
     </div>
   );
 }
-function CampoCorto({
+function CampoCorto({ 
   etiqueta,
   placeholder,
   value = "",

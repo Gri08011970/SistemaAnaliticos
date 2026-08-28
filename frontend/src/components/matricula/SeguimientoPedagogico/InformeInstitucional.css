@@ -1030,3 +1030,71 @@
     font-size: 8px;
   }
 }
+/* ============================================================
+   GUARDADO DEL ACOMPAÑAMIENTO
+   ============================================================ */
+
+.informe-institucional__guardado {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+  align-items: center;
+  gap: 10px;
+}
+
+.informe-institucional__guardar {
+  padding: 9px 14px;
+
+  border: 1px solid #9fc7c1;
+  border-radius: 8px;
+  background: #eef8f6;
+
+  color: #285e58;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.informe-institucional__guardar:hover {
+  background: #e3f3f0;
+}
+
+@media print {
+  .informe-institucional__guardado {
+    display: none !important;
+  }
+}
+
+.informe-institucional__mensaje-guardado {
+  padding: 7px 11px;
+  border: 1px solid #b8d8c8;
+  border-radius: 7px;
+  background: #f1faf5;
+  color: #356b50;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.informe-institucional__mensaje-error {
+  padding: 7px 11px;
+  border: 1px solid #e3bcbc;
+  border-radius: 7px;
+  background: #fff5f5;
+  color: #9b4d4d;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.informe-institucional__guardar:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+@media print {
+  .informe-institucional__mensaje-guardado,
+  .informe-institucional__mensaje-error {
+    display: none !important;
+  }
+}
