@@ -340,7 +340,7 @@ export default function InformeInstitucional({
         </h2>
 
         <p className="informe-institucional__fecha">
-          Fecha del apertura de registro: {obtenerTextoSeguro(informe.fechaFormateada)}
+          Fecha de apertura del registro: {obtenerTextoSeguro(informe.fechaFormateada)}
         </p>
       </header>
 

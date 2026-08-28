@@ -275,6 +275,7 @@ export default function IncorporarEstudianteFotia({
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("tokenUsuario")}`,
           },
           body: JSON.stringify({
             periodoId: periodoActivo._id,
@@ -289,14 +290,13 @@ export default function IncorporarEstudianteFotia({
 
             anio: materia.anio || "",
 
-            docenteId:
-              docentesPorMateria[obtenerIdMateria(materia)] || null,
+            docenteId: docentesPorMateria[obtenerIdMateria(materia)] || null,
+
             fechaIncorporacion,
             motivoIncorporacion: motivoFinal,
             observaciones: observaciones.trim(),
           }),
         });
-
         const datos = await respuesta.json();
 
         if (!respuesta.ok) {
@@ -645,8 +645,8 @@ export default function IncorporarEstudianteFotia({
                   lineHeight: 1.45,
                 }}
               >
-                Podés asignar un docente diferente a cada materia. Si todavía
-                no está definido, dejala como “Sin docente asignado” y podrás
+                Podés asignar un docente diferente a cada materia. Si todavía no
+                está definido, dejala como “Sin docente asignado” y podrás
                 completarlo después.
               </p>
 
@@ -704,7 +704,9 @@ export default function IncorporarEstudianteFotia({
                             gap: "6px",
                           }}
                         >
-                          <span style={estiloEtiqueta}>Docente responsable</span>
+                          <span style={estiloEtiqueta}>
+                            Docente responsable
+                          </span>
 
                           <select
                             value={docentesPorMateria[materiaId] || ""}
@@ -811,8 +813,6 @@ export default function IncorporarEstudianteFotia({
                 />
               </label>
 
-
-
               <label
                 style={{
                   display: "flex",
@@ -911,7 +911,7 @@ export default function IncorporarEstudianteFotia({
               </label>
             </div>
 
-                        {docentesFotia.length === 0 && (
+            {docentesFotia.length === 0 && (
               <p
                 style={{
                   margin: "14px 0 0",
@@ -923,8 +923,8 @@ export default function IncorporarEstudianteFotia({
                   fontSize: "14px",
                 }}
               >
-                Todavía no hay docentes registrados en FOTIA. Podrás
-                incorporar al estudiante y asignar el docente posteriormente.
+                Todavía no hay docentes registrados en FOTIA. Podrás incorporar
+                al estudiante y asignar el docente posteriormente.
               </p>
             )}
 
@@ -946,9 +946,7 @@ export default function IncorporarEstudianteFotia({
                   border: "none",
                   borderRadius: "10px",
                   background:
-                    materiasSeleccionadas.length === 0
-                      ? "#b7c3cc"
-                      : "#148c84",
+                    materiasSeleccionadas.length === 0 ? "#b7c3cc" : "#148c84",
                   color: "#ffffff",
                   fontSize: "15px",
                   fontWeight: "700",
@@ -960,7 +958,7 @@ export default function IncorporarEstudianteFotia({
                   boxShadow:
                     materiasSeleccionadas.length === 0
                       ? "none"
-                      : "0 4px 10px rgba(20, 140, 132, 0.20)", 
+                      : "0 4px 10px rgba(20, 140, 132, 0.20)",
                 }}
               >
                 {guardando
