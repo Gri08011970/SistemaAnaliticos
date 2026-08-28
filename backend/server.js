@@ -10,6 +10,8 @@ import Usuario from "./models/Usuario.js";
 import DomicilioTelefono from "./models/DomicilioTelefono.js";
 import AutorizadoRetiro from "./models/AutorizadoRetiro.js";
 import SeguimientoPedagogico from "./models/SeguimientoPedagogico.js";
+import AcompanamientoInstitucional
+  from "./models/AcompanamientoInstitucional.js"; 
 import fotiaRoutes from "./routes/fotiaRoutes.js";
 import usuarioRoutes from "./routes/usuarioRoutes.js";
 import jwt from "jsonwebtoken";
@@ -607,6 +609,114 @@ app.delete("/api/seguimiento/:id", async (req, res) => {
 
     res.status(500).json({
       mensaje: "Error al eliminar el registro de seguimiento pedagógico",
+    });
+  }
+});
+
+// ==========================================
+// ACOMPAÑAMIENTO INSTITUCIONAL
+// ==========================================
+
+// Obtener el acompañamiento de un estudiante
+// para un período determinado.
+app.get("/api/acompanamiento-institucional", async (req, res) => {
+  try {
+    const { alumnoId, periodo } = req.query;
+
+    if (!alumnoId || !periodo) {
+      return res.status(400).json({
+        mensaje: "Faltan alumnoId o período",
+      });
+    }
+
+    const acompanamiento =
+      await AcompanamientoInstitucional.findOne({
+        alumnoId: String(alumnoId),
+        periodo,
+      });
+
+    res.json(acompanamiento);
+  } catch (error) {
+    console.error(
+      "Error al obtener acompañamiento institucional:",
+      error,
+    );
+
+    res.status(500).json({
+      mensaje:
+        "Error al obtener el acompañamiento institucional",
+    });
+  }
+});
+
+// Crear o actualizar el acompañamiento institucional.
+app.put("/api/acompanamiento-institucional", async (req, res) => {
+  try {
+    const {
+      alumnoId,
+      periodo,
+      curso,
+      lecturaCompartida,
+      fortalezasObservadas,
+      saberesPrioritarios,
+      acuerdosPedagogicos,
+      otroAcuerdo,
+      accionesImplementar,
+      responsables,
+      seguimientos,
+    } = req.body;
+
+    if (!alumnoId || !periodo) {
+      return res.status(400).json({
+        mensaje: "Faltan alumnoId o período",
+      });
+    }
+
+    const acompanamientoActualizado =
+      await AcompanamientoInstitucional.findOneAndUpdate(
+        {
+          alumnoId: String(alumnoId),
+          periodo,
+        },
+        {
+          $set: {
+            curso: curso || "",
+            lecturaCompartida: lecturaCompartida || "",
+            fortalezasObservadas:
+              fortalezasObservadas || "",
+            saberesPrioritarios:
+              saberesPrioritarios || {},
+            acuerdosPedagogicos:
+              Array.isArray(acuerdosPedagogicos)
+                ? acuerdosPedagogicos
+                : [],
+            otroAcuerdo: otroAcuerdo || "",
+            accionesImplementar:
+              accionesImplementar || "",
+            responsables: responsables || {},
+            seguimientos: Array.isArray(seguimientos)
+              ? seguimientos
+              : [],
+          },
+        },
+        {
+          returnDocument: "after",
+          upsert: true,
+          runValidators: true,
+          setDefaultsOnInsert: true,
+        },
+      );
+
+    res.json(acompanamientoActualizado);
+  } catch (error) {
+    console.error(
+      "Error al guardar acompañamiento institucional:",
+      error,
+    );
+
+    res.status(500).json({
+      mensaje:
+        "Error al guardar el acompañamiento institucional",
     });
   }
 });

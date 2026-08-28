@@ -12,7 +12,7 @@
  *
  * ============================================================
  */
-
+import { useEffect, useState } from "react";
 import IntervencionesInstitucionales from "./IntervencionesInstitucionales";
 import "./InformeInstitucional.css";
 
@@ -57,10 +57,173 @@ function obtenerEstadoActual(item) {
   return item?.conceptual || item?.estadoActual || item?.estado || "";
 }
 
+function crearSeguimientoVacio() {
+  return {
+    fecha: "",
+    participantes: "",
+    avances: "",
+    dificultades: "",
+    nuevosAcuerdos: "",
+  };
+}
+
+function crearAcompanamientoVacio() {
+  return {
+    lecturaCompartida: "",
+    fortalezasObservadas: "",
+
+    saberesPrioritarios: {},
+
+    acuerdosPedagogicos: [],
+    otroAcuerdo: "",
+
+    accionesImplementar: "",
+
+    responsables: {
+      docentes: "",
+      equipoConduccion: "",
+      equipoFotiaForte: "",
+      otrosActores: "",
+      fechaRevision: "",
+    },
+
+    seguimientos: [crearSeguimientoVacio()],
+  };
+}
+
 export default function InformeInstitucional({
   informe,
   mostrarDetalleTecnico = false,
 }) {
+  const [acompanamiento, setAcompanamiento] = useState(
+    crearAcompanamientoVacio,
+  );
+  const estudianteId =
+    informe?.estudiante?._id ||
+    informe?.estudiante?.id ||
+    informe?.estudiante?.dni ||
+    "";
+
+  const periodoAcompanamiento =
+    informe?.periodo || informe?.encabezado?.periodo || "";
+
+  const claveAcompanamiento = `${estudianteId}::${periodoAcompanamiento}`;
+
+  useEffect(() => {
+    let componenteActivo = true;
+
+    async function cargarAcompanamiento() {
+      if (!estudianteId || !periodoAcompanamiento) {
+        if (componenteActivo) {
+          setAcompanamiento(crearAcompanamientoVacio());
+        }
+
+        return;
+      }
+
+      try {
+        const parametros = new URLSearchParams({
+          alumnoId: String(estudianteId),
+          periodo: periodoAcompanamiento,
+        });
+
+        const respuesta = await fetch(
+          `/api/acompanamiento-institucional?${parametros.toString()}`,
+        );
+
+        if (!respuesta.ok) {
+          throw new Error("No se pudo obtener el acompañamiento institucional");
+        }
+
+        const datos = await respuesta.json();
+
+        if (!componenteActivo) {
+          return;
+        }
+
+        if (datos) {
+          setAcompanamiento({
+            ...crearAcompanamientoVacio(),
+            ...datos,
+            responsables: {
+              ...crearAcompanamientoVacio().responsables,
+              ...(datos.responsables || {}),
+            },
+            seguimientos:
+              Array.isArray(datos.seguimientos) && datos.seguimientos.length > 0
+                ? datos.seguimientos
+                : [crearSeguimientoVacio()],
+          });
+        } else {
+          setAcompanamiento(crearAcompanamientoVacio());
+        }
+      } catch (error) {
+        console.error("Error al cargar acompañamiento institucional:", error);
+
+        if (componenteActivo) {
+          setAcompanamiento(crearAcompanamientoVacio());
+        }
+      }
+    }
+
+    cargarAcompanamiento();
+
+    return () => {
+      componenteActivo = false;
+    };
+  }, [estudianteId, periodoAcompanamiento]);
+
+  async function guardarAcompanamiento() {
+    if (!estudianteId || !periodoAcompanamiento) {
+      return;
+    }
+
+    try {
+      const respuesta = await fetch("/api/acompanamiento-institucional", {
+        method: "PUT",
+
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify({
+          alumnoId: String(estudianteId),
+          periodo: periodoAcompanamiento,
+          curso: informe?.curso || informe?.estudiante?.curso || "",
+
+          ...acompanamiento,
+        }),
+      });
+
+      if (!respuesta.ok) {
+        throw new Error("No se pudo guardar el acompañamiento institucional");
+      }
+
+      const datosGuardados = await respuesta.json();
+
+      setAcompanamiento((anterior) => ({
+        ...anterior,
+        ...datosGuardados,
+
+        responsables: {
+          ...anterior.responsables,
+          ...(datosGuardados.responsables || {}),
+        },
+
+        seguimientos:
+          Array.isArray(datosGuardados.seguimientos) &&
+          datosGuardados.seguimientos.length > 0
+            ? datosGuardados.seguimientos
+            : anterior.seguimientos,
+      }));
+
+      window.alert("Acompañamiento institucional guardado correctamente.");
+    } catch (error) {
+      console.error("Error al guardar acompañamiento institucional:", error);
+
+      window.alert("No se pudo guardar el acompañamiento institucional.");
+    }
+  }
   if (!informe) {
     return (
       <section className="informe-institucional informe-institucional--vacio">
@@ -495,10 +658,10 @@ export default function InformeInstitucional({
             acompañamiento.
           </p>
         </header>
-        {/* ======================================================
+        {/* ==============================================
         
-    LECTURA PEDAGÓGICA COMPARTIDA 
-   ====================================================== */}
+                  LECTURA PEDAGÓGICA COMPARTIDA 
+            ====================================================== */}
 
         <div className="informe-institucional__campo-trabajo">
           <div className="informe-institucional__campo-encabezado">
@@ -516,7 +679,18 @@ export default function InformeInstitucional({
             rows={3}
             className="informe-institucional__textarea"
             placeholder="Registrar aquí la lectura pedagógica compartida..."
+            value={acompanamiento.lecturaCompartida}
+            onChange={(evento) =>
+              setAcompanamiento((anterior) => ({
+                ...anterior,
+                lecturaCompartida: evento.target.value,
+              }))
+            }
           />
+
+          <button type="button" onClick={guardarAcompanamiento}>
+            Guardar prueba
+          </button>
         </div>
 
         {/* ======================================================
@@ -540,6 +714,13 @@ export default function InformeInstitucional({
             rows={3}
             className="informe-institucional__textarea"
             placeholder="Registrar aquí las fortalezas observadas..."
+            value={acompanamiento.fortalezasObservadas || ""}
+            onChange={(e) =>
+              setAcompanamiento((anterior) => ({
+                ...anterior,
+                fortalezasObservadas: e.target.value,
+              }))
+            }
           />
         </div>
 
@@ -585,6 +766,19 @@ export default function InformeInstitucional({
                     rows={1}
                     className="informe-institucional__saber-textarea"
                     placeholder={`Saberes/aprendizajes a priorizar en ${item.asignatura}...`}
+                    value={
+                      acompanamiento.saberesPrioritarios?.[item.asignatura] ||
+                      ""
+                    }
+                    onChange={(e) =>
+                      setAcompanamiento((anterior) => ({
+                        ...anterior,
+                        saberesPrioritarios: {
+                          ...(anterior.saberesPrioritarios || {}),
+                          [item.asignatura]: e.target.value,
+                        },
+                      }))
+                    }
                   />
                 </div>
               ))}
@@ -652,8 +846,32 @@ export default function InformeInstitucional({
                 key={acuerdo}
                 className="informe-institucional__acuerdo-opcion"
               >
-                <input type="checkbox" />
+                <input
+                  type="checkbox"
+                  checked={
+                    acompanamiento.acuerdosPedagogicos?.includes(acuerdo) ||
+                    false
+                  }
+                  onChange={(e) => {
+                    const marcado = e.target.checked;
 
+                    setAcompanamiento((anterior) => {
+                      const acuerdosActuales = Array.isArray(
+                        anterior.acuerdosPedagogicos,
+                      )
+                        ? anterior.acuerdosPedagogicos
+                        : [];
+
+                      return {
+                        ...anterior,
+
+                        acuerdosPedagogicos: marcado
+                          ? [...acuerdosActuales, acuerdo]
+                          : acuerdosActuales.filter((item) => item !== acuerdo),
+                      };
+                    });
+                  }}
+                />
                 <span>{acuerdo}</span>
               </label>
             ))}
@@ -665,146 +883,304 @@ export default function InformeInstitucional({
             <input
               type="text"
               placeholder="Registrar otro acuerdo pedagógico..."
+              value={acompanamiento.otroAcuerdo || ""}
+              onChange={(e) =>
+                setAcompanamiento((anterior) => ({
+                  ...anterior,
+                  otroAcuerdo: e.target.value,
+                }))
+              }
             />
           </div>
         </div>
 
-        {/* ======================================================
+      {/* ======================================================
     ACCIONES A IMPLEMENTAR
    ====================================================== */}
 
-        <div className="informe-institucional__campo-trabajo">
-          <div className="informe-institucional__campo-encabezado">
-            <strong className="informe-institucional__campo-titulo">
-              Acciones a implementar
-            </strong>
+<div className="informe-institucional__campo-trabajo">
+  <div className="informe-institucional__campo-encabezado">
+    <strong className="informe-institucional__campo-titulo">
+      Acciones a implementar
+    </strong>
 
-            <p className="informe-institucional__campo-descripcion">
-              Registrar las acciones concretas acordadas para acompañar la
-              trayectoria del estudiante, especificando las intervenciones que
-              se desarrollarán durante el período de seguimiento.
-            </p>
-          </div>
+    <p className="informe-institucional__campo-descripcion">
+      Registrar las acciones concretas acordadas para acompañar la
+      trayectoria del estudiante, especificando las intervenciones que
+      se desarrollarán durante el período de seguimiento.
+    </p>
+  </div>
 
-          <textarea
-            rows={3}
-            className="informe-institucional__textarea"
-            placeholder="Ej.: diseñar una secuencia breve de recuperación de saberes, ofrecer instancias diferenciadas de trabajo, articular con el equipo de fortalecimiento, realizar seguimiento quincenal..."
-          />
-        </div>
+  <textarea
+    rows={3}
+    className="informe-institucional__textarea"
+    placeholder="Ej.: diseñar una secuencia breve de recuperación de saberes, ofrecer instancias diferenciadas de trabajo, articular con el equipo de fortalecimiento, realizar seguimiento quincenal..."
+    value={acompanamiento.accionesImplementar || ""}
+    onChange={(e) =>
+      setAcompanamiento((anterior) => ({
+        ...anterior,
+        accionesImplementar: e.target.value,
+      }))
+    }
+  />
+</div>
 
-        {/* ======================================================
+{/* ======================================================
     RESPONSABLES Y FECHA DE REVISIÓN
    ====================================================== */}
 
-        <div className="informe-institucional__responsables">
-          <div className="informe-institucional__campo-encabezado">
-            <strong className="informe-institucional__campo-titulo">
-              Responsables y fecha de revisión
-            </strong>
+<div className="informe-institucional__responsables">
+  <div className="informe-institucional__campo-encabezado">
+    <strong className="informe-institucional__campo-titulo">
+      Responsables y fecha de revisión
+    </strong>
 
-            <p className="informe-institucional__campo-descripcion">
-              Identificar los responsables del acompañamiento y establecer una
-              fecha para revisar los avances y los acuerdos adoptados.
-            </p>
-          </div>
+    <p className="informe-institucional__campo-descripcion">
+      Identificar los responsables del acompañamiento y establecer una
+      fecha para revisar los avances y los acuerdos adoptados.
+    </p>
+  </div>
 
-          <div className="informe-institucional__responsables-grid">
-            <CampoCorto
-              etiqueta="Docente/s responsable/s"
-              placeholder="Nombre/s del/de los docente/s"
-            />
+  <div className="informe-institucional__responsables-grid">
+    <CampoCorto
+      etiqueta="Docente/s responsable/s"
+      placeholder="Nombre/s del/de los docente/s"
+      value={acompanamiento.responsables?.docentes || ""}
+      onChange={(e) =>
+        setAcompanamiento((anterior) => ({
+          ...anterior,
+          responsables: {
+            ...(anterior.responsables || {}),
+            docentes: e.target.value,
+          },
+        }))
+      }
+    />
 
-            <CampoCorto
-              etiqueta="Equipo de Conducción"
-              placeholder="Responsable/s del EC"
-            />
+    <CampoCorto
+      etiqueta="Equipo de Conducción"
+      placeholder="Responsable/s del EC"
+      value={acompanamiento.responsables?.equipoConduccion || ""}
+      onChange={(e) =>
+        setAcompanamiento((anterior) => ({
+          ...anterior,
+          responsables: {
+            ...(anterior.responsables || {}),
+            equipoConduccion: e.target.value,
+          },
+        }))
+      }
+    />
 
-            <CampoCorto
-              etiqueta="Equipo FOTIA-FORTE"
-              placeholder="Responsable/s, si corresponde"
-            />
+    <CampoCorto
+      etiqueta="Equipo FOTIA-FORTE"
+      placeholder="Responsable/s, si corresponde"
+      value={acompanamiento.responsables?.equipoFotiaForte || ""}
+      onChange={(e) =>
+        setAcompanamiento((anterior) => ({
+          ...anterior,
+          responsables: {
+            ...(anterior.responsables || {}),
+            equipoFotiaForte: e.target.value,
+          },
+        }))
+      }
+    />
 
-            <CampoCorto
-              etiqueta="Otros actores"
-              placeholder="Preceptoría, EOE, familia, otros"
-            />
+    <CampoCorto
+      etiqueta="Otros actores"
+      placeholder="Preceptoría, EOE, familia, otros"
+      value={acompanamiento.responsables?.otrosActores || ""}
+      onChange={(e) =>
+        setAcompanamiento((anterior) => ({
+          ...anterior,
+          responsables: {
+            ...(anterior.responsables || {}),
+            otrosActores: e.target.value,
+          },
+        }))
+      }
+    />
 
-            <label className="informe-institucional__campo-corto">
-              <span>Fecha prevista de revisión</span>
+    <label className="informe-institucional__campo-corto">
+      <span>Fecha prevista de revisión</span>
 
-              <input type="date" />
-            </label>
-          </div>
-        </div>
+      <input
+        type="date"
+        value={acompanamiento.responsables?.fechaRevision || ""}
+        onChange={(e) =>
+          setAcompanamiento((anterior) => ({
+            ...anterior,
+            responsables: {
+              ...(anterior.responsables || {}),
+              fechaRevision: e.target.value,
+            },
+          }))
+        }
+      />
+    </label>
+  </div>
+</div>
 
-        {/* ======================================================
+{/* ======================================================
     REGISTRO DE EVOLUCIÓN
    ====================================================== */}
 
-        <div className="informe-institucional__evolucion">
-          <div className="informe-institucional__campo-encabezado">
-            <strong className="informe-institucional__campo-titulo">
-              Registro de evolución y seguimiento
-            </strong>
+<div className="informe-institucional__evolucion">
+  <div className="informe-institucional__campo-encabezado">
+    <strong className="informe-institucional__campo-titulo">
+      Registro de evolución y seguimiento
+    </strong>
 
-            <p className="informe-institucional__campo-descripcion">
-              Registrar en las instancias de revisión los avances observados,
-              las dificultades que persisten y las decisiones adoptadas para dar
-              continuidad al acompañamiento.
-            </p>
-          </div>
+    <p className="informe-institucional__campo-descripcion">
+      Registrar en las instancias de revisión los avances observados,
+      las dificultades que persisten y las decisiones adoptadas para dar
+      continuidad al acompañamiento.
+    </p>
+  </div>
 
-          <div className="informe-institucional__evolucion-instancia">
-            <div className="informe-institucional__evolucion-datos">
-              <label className="informe-institucional__campo-corto">
-                <span>Fecha de revisión</span>
-                <input type="date" />
-              </label>
+  {(acompanamiento.seguimientos || []).map((seguimiento, indice) => (
+    <div
+      key={seguimiento._id || `seguimiento-${indice}`}
+      className="informe-institucional__evolucion-instancia"
+    >
+      <div className="informe-institucional__evolucion-datos">
+        <label className="informe-institucional__campo-corto">
+          <span>Fecha de revisión</span>
 
-              <CampoCorto
-                etiqueta="Participantes de la revisión"
-                placeholder="Docentes, EC y otros participantes"
-              />
-            </div>
+          <input
+            type="date"
+            value={seguimiento.fecha || ""}
+            onChange={(e) =>
+              setAcompanamiento((anterior) => ({
+                ...anterior,
+                seguimientos: anterior.seguimientos.map(
+                  (item, posicion) =>
+                    posicion === indice
+                      ? {
+                          ...item,
+                          fecha: e.target.value,
+                        }
+                      : item,
+                ),
+              }))
+            }
+          />
+        </label>
 
-            <label className="informe-institucional__evolucion-campo">
-              <span>Avances observados</span>
+        <CampoCorto
+          etiqueta="Participantes de la revisión"
+          placeholder="Docentes, EC y otros participantes"
+          value={seguimiento.participantes || ""}
+          onChange={(e) =>
+            setAcompanamiento((anterior) => ({
+              ...anterior,
+              seguimientos: anterior.seguimientos.map(
+                (item, posicion) =>
+                  posicion === indice
+                    ? {
+                        ...item,
+                        participantes: e.target.value,
+                      }
+                    : item,
+              ),
+            }))
+          }
+        />
+      </div>
 
-              <textarea
-                rows={2}
-                placeholder="Registrar avances observados desde los acuerdos anteriores..."
-              />
-            </label>
+      <label className="informe-institucional__evolucion-campo">
+        <span>Avances observados</span>
 
-            <label className="informe-institucional__evolucion-campo">
-              <span>Dificultades que persisten</span>
+        <textarea
+          rows={2}
+          placeholder="Registrar avances observados desde los acuerdos anteriores..."
+          value={seguimiento.avances || ""}
+          onChange={(e) =>
+            setAcompanamiento((anterior) => ({
+              ...anterior,
+              seguimientos: anterior.seguimientos.map(
+                (item, posicion) =>
+                  posicion === indice
+                    ? {
+                        ...item,
+                        avances: e.target.value,
+                      }
+                    : item,
+              ),
+            }))
+          }
+        />
+      </label>
 
-              <textarea
-                rows={2}
-                placeholder="Registrar situaciones que requieren continuidad o revisión..."
-              />
-            </label>
+      <label className="informe-institucional__evolucion-campo">
+        <span>Dificultades que persisten</span>
 
-            <label className="informe-institucional__evolucion-campo">
-              <span>Continuidad / nuevos acuerdos</span>
+        <textarea
+          rows={2}
+          placeholder="Registrar situaciones que requieren continuidad o revisión..."
+          value={seguimiento.dificultades || ""}
+          onChange={(e) =>
+            setAcompanamiento((anterior) => ({
+              ...anterior,
+              seguimientos: anterior.seguimientos.map(
+                (item, posicion) =>
+                  posicion === indice
+                    ? {
+                        ...item,
+                        dificultades: e.target.value,
+                      }
+                    : item,
+              ),
+            }))
+          }
+        />
+      </label>
 
-              <textarea
-                rows={2}
-                placeholder="Registrar qué estrategias se sostienen, modifican o incorporan..."
-              />
-            </label>
-          </div>
+      <label className="informe-institucional__evolucion-campo">
+        <span>Continuidad / nuevos acuerdos</span>
 
-          <button
-            type="button"
-            className="informe-institucional__evolucion-agregar"
-          >
-            + Agregar nueva instancia de seguimiento
-          </button>
-        </div>
-      </section>
+        <textarea
+          rows={2}
+          placeholder="Registrar qué estrategias se sostienen, modifican o incorporan..."
+          value={seguimiento.nuevosAcuerdos || ""}
+          onChange={(e) =>
+            setAcompanamiento((anterior) => ({
+              ...anterior,
+              seguimientos: anterior.seguimientos.map(
+                (item, posicion) =>
+                  posicion === indice
+                    ? {
+                        ...item,
+                        nuevosAcuerdos: e.target.value,
+                      }
+                    : item,
+              ),
+            }))
+          }
+        />
+      </label>
+    </div>
+  ))}
 
+  <button
+    type="button"
+    className="informe-institucional__evolucion-agregar"
+    onClick={() =>
+      setAcompanamiento((anterior) => ({
+        ...anterior,
+        seguimientos: [
+          ...(anterior.seguimientos || []),
+          crearSeguimientoVacio(),
+        ],
+      }))
+    }
+  >
+    + Agregar nueva instancia de seguimiento
+  </button>
+</div>
+
+</section>
       {/* ======================================================
           DETALLE TÉCNICO 
          ====================================================== */}
@@ -833,12 +1209,22 @@ function IndicadorSituacion({ etiqueta, cantidad }) {
     </div>
   );
 }
-function CampoCorto({ etiqueta, placeholder }) {
+function CampoCorto({
+  etiqueta,
+  placeholder,
+  value = "",
+  onChange,
+}) {
   return (
     <label className="informe-institucional__campo-corto">
       <span>{etiqueta}</span>
 
-      <input type="text" placeholder={placeholder} />
+      <input
+        type="text"
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+      />
     </label>
   );
 }
