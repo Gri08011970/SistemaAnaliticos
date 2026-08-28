@@ -53,10 +53,6 @@ function obtenerAnioAsignatura(item) {
   );
 }
 
-function obtenerEstadoActual(item) {
-  return item?.conceptual || item?.estadoActual || item?.estado || "";
-}
-
 function crearSeguimientoVacio() {
   return {
     fecha: "",
@@ -107,8 +103,6 @@ export default function InformeInstitucional({
 
   const periodoAcompanamiento =
     informe?.periodo || informe?.encabezado?.periodo || "";
-
-  const claveAcompanamiento = `${estudianteId}::${periodoAcompanamiento}`;
 
   useEffect(() => {
     let componenteActivo = true;
@@ -251,8 +245,6 @@ export default function InformeInstitucional({
       </section>
     );
   }
-
-  const encabezado = informe.encabezado || {};
 
   const cantidades = informe.detalleTecnico?.cantidades || {};
 
