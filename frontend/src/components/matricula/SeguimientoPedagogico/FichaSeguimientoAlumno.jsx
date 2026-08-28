@@ -508,7 +508,7 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
         <meta charset="UTF-8" />
 
         <title>
-          Informe institucional de seguimiento pedagógico
+           Registro institucional de trayectoria y acompañamiento pedagógico
         </title>
 
         <style>
@@ -1030,9 +1030,8 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
                       }}
                     >
                       {periodoInforme
-                        ? informeInstitucional?.encabezado?.titulo ||
-                          "Informe institucional de seguimiento pedagógico"
-                        : "Seleccioná un período para generar el análisis institucional."}
+                        ? "Registro institucional de trayectoria y acompañamiento pedagógico"
+                        : "Seleccioná un período para iniciar el análisis institucional."}
                     </strong>
                   </div>
 
@@ -1082,7 +1081,7 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
                       boxShadow: "0 4px 12px rgba(49, 95, 90, 0.20)",
                     }}
                   >
-                    Ver informe institucional completo →
+                    Abrir registro institucional →
                   </button>
 
                   <p
@@ -1095,8 +1094,8 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
                     }}
                   >
                     {periodoInforme
-                      ? "Se abrirá en una vista exclusiva para su lectura."
-                      : "Primero seleccioná el período del informe."}
+                      ? "Se abrirá el registro completo para su análisis, elaboración y seguimiento."
+                      : "Primero seleccioná el período que querés analizar."}
                   </p>
                 </section>
               )}
@@ -1211,7 +1210,7 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
                           textTransform: "uppercase",
                         }}
                       >
-                        Lectura institucional completa
+                        Vista completa del registro
                       </p>
 
                       <h2
@@ -1223,7 +1222,7 @@ export default function FichaSeguimientoAlumno({ alumnos = [] }) {
                           lineHeight: 1.25,
                         }}
                       >
-                        Informe institucional de seguimiento pedagógico
+                        Trayectoria y acompañamiento pedagógico
                       </h2>
                     </div>
 

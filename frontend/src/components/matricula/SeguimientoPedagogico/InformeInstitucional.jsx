@@ -336,11 +336,11 @@ export default function InformeInstitucional({
         )}
 
         <h2 className="informe-institucional__titulo">
-          INFORME INSTITUCIONAL DE SEGUIMIENTO PEDAGÓGICO
+           REGISTRO INSTITUCIONAL DE TRAYECTORIA Y ACOMPAÑAMIENTO PEDAGÓGICO
         </h2>
 
         <p className="informe-institucional__fecha">
-          Fecha de elaboración: {obtenerTextoSeguro(informe.fechaFormateada)}
+          Fecha del apertura de registro: {obtenerTextoSeguro(informe.fechaFormateada)}
         </p>
       </header>
 
