@@ -30,6 +30,29 @@ export default function DocumentacionMatricula({
     celda,
   } = estilos;
 
+  const tablaContenedor = {
+    overflowX: "auto",
+    overflowY: "auto",
+    maxHeight: "65vh",
+
+    borderRadius: "14px",
+    border: "1px solid #d6e4ea",
+    backgroundColor: "white",
+  };
+
+  const celdaEncabezadoFija = {
+    ...celda,
+    position: "sticky",
+    top: 0,
+    zIndex: 3,
+
+    background: "#eaf3f1",
+    color: "#1e3a5f",
+    fontWeight: "700",
+
+    boxShadow: "0 1px 0 #cfdedb",
+  };
+
   return (
     <div style={detalleCurso}>
       <button style={botonVolver} onClick={volverInicio}>
@@ -134,108 +157,115 @@ export default function DocumentacionMatricula({
         </button>
       </div>
 
-      <table style={tabla}>
-        <thead>
-          <tr>
-            <th style={celda}>Curso</th>
-            <th style={celda}>Apellido y Nombre</th>
-            <th style={celda}>DNI</th>
-            <th style={celda}>Legajo</th>
-            <th style={celda}>DNI Físico</th>
-            <th style={celda}>Partida Nac.</th>
-            <th style={celda}>Analítico Parcial</th>
-            <th style={celda}>Observaciones</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {alumnosDocumentacion.map((alumno) => (
-            <tr key={alumno._id}>
-              <td style={celda}>{alumno.curso}</td>
-
-              <td style={celda}>
-                {alumno.apellido}, {alumno.nombre}
-              </td>
-
-              <td style={celda}>{formatearDNI(alumno.dni)}</td>
-
-              <td style={celda}>
-                {alumno.legajoNumero && alumno.legajoAnio
-                  ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
-                  : "-"}
-              </td>
-
-              <td style={celda}>
-                <select
-                  disabled={!esAdmin}
-                  defaultValue={alumno.dniFisico || "NO"}
-                  onChange={(e) =>
-                    actualizarDocumentacion(
-                      alumno,
-                      "dniFisico",
-                      e.target.value,
-                    )
-                  }
-                >
-                  <option value="NO">🟥 NO</option>
-                  <option value="SI">🟩 SÍ</option>
-                </select>
-              </td>
-
-              <td style={celda}>
-                <select
-                  disabled={!esAdmin}
-                  defaultValue={alumno.partidaNacimiento || "NO"}
-                  onChange={(e) =>
-                    actualizarDocumentacion(
-                      alumno,
-                      "partidaNacimiento",
-                      e.target.value,
-                    )
-                  }
-                >
-                  <option value="NO">🟥 NO</option>
-                  <option value="SI">🟩 SÍ</option>
-                </select>
-              </td>
-
-              <td style={celda}>
-                <select
-                  disabled={!esAdmin}
-                  defaultValue={alumno.analiticoParcial || "-----"}
-                  onChange={(e) =>
-                    actualizarDocumentacion(
-                      alumno,
-                      "analiticoParcial",
-                      e.target.value,
-                    )
-                  }
-                >
-                  <option value="-----">⚪ -----</option>
-                  <option value="SI">🟩 SÍ</option>
-                  <option value="Debe">🟨 Debe</option>
-                </select>
-              </td>
-
-              <td style={celda}>
-                <input
-                  disabled={!esAdmin}
-                  style={{ ...inputAlumno, width: "160px" }}
-                  placeholder="📝 Observación"
-                  defaultValue={alumno.observacionDocumentacion || ""}
-                  onBlur={(e) =>
-                    actualizarDocumentacion(
-                      alumno,
-                      "observacionDocumentacion",
-                      e.target.value,
-                    )
-                  }
-                />
-              </td>
+      <div style={tablaContenedor}>
+        <table style={tabla}>
+          <thead>
+            <tr>
+              <th style={celdaEncabezadoFija}>Curso</th>
+              <th style={celdaEncabezadoFija}>Apellido y Nombre</th>
+              <th style={celdaEncabezadoFija}>DNI</th>
+              <th style={celdaEncabezadoFija}>Legajo</th>
+              <th style={celdaEncabezadoFija}>DNI Físico</th>
+              <th style={celdaEncabezadoFija}>Partida Nac.</th>
+              <th style={celdaEncabezadoFija}>Analítico Parcial</th>
+              <th style={celdaEncabezadoFija}>Observaciones</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+
+          <tbody>
+            {alumnosDocumentacion.map((alumno) => (
+              <tr key={alumno._id}>
+                <td style={celda}>{alumno.curso}</td>
+
+                <td style={celda}>
+                  {alumno.apellido}, {alumno.nombre}
+                </td>
+
+                <td style={celda}>{formatearDNI(alumno.dni)}</td>
+
+                <td style={celda}>
+                  {alumno.legajoNumero && alumno.legajoAnio
+                    ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
+                    : "-"}
+                </td>
+
+                <td style={celda}>
+                  <select
+                    disabled={!esAdmin}
+                    defaultValue={alumno.dniFisico || "NO"}
+                    onChange={(e) =>
+                      actualizarDocumentacion(
+                        alumno,
+                        "dniFisico",
+                        e.target.value,
+                      )
+                    }
+                  >
+                    <option value="NO">🟥 NO</option>
+                    <option value="SI">🟩 SÍ</option>
+                  </select>
+                </td>
+
+                <td style={celda}>
+                  <select
+                    disabled={!esAdmin}
+                    defaultValue={alumno.partidaNacimiento || "NO"}
+                    onChange={(e) =>
+                      actualizarDocumentacion(
+                        alumno,
+                        "partidaNacimiento",
+                        e.target.value,
+                      )
+                    }
+                  >
+                    <option value="NO">🟥 NO</option>
+                    <option value="SI">🟩 SÍ</option>
+                  </select>
+                </td>
+
+                <td style={celda}>
+                  <select
+                    disabled={!esAdmin}
+                    defaultValue={alumno.analiticoParcial || "-----"}
+                    onChange={(e) =>
+                      actualizarDocumentacion(
+                        alumno,
+                        "analiticoParcial",
+                        e.target.value,
+                      )
+                    }
+                  >
+                    <option value="-----">⚪ -----</option>
+                    <option value="SI">🟩 SÍ</option>
+                    <option value="Debe">🟨 Debe</option>
+                  </select>
+                </td>
+
+                <td style={celda}>
+                  <input
+                    disabled={!esAdmin}
+                    style={{
+                      ...inputAlumno,
+                      width: "160px",
+                    }}
+                    placeholder="📝 Observación"
+                    defaultValue={
+                      alumno.observacionDocumentacion || ""
+                    }
+                    onBlur={(e) =>
+                      actualizarDocumentacion(
+                        alumno,
+                        "observacionDocumentacion",
+                        e.target.value,
+                      )
+                    }
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

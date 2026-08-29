@@ -1,5 +1,47 @@
 import mongoose from "mongoose";
 
+const contactoSchema = new mongoose.Schema(
+  {
+    nombreResponsable: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    vinculo: {
+      type: String,
+      enum: [
+        "MADRE",
+        "PADRE",
+        "TUTOR",
+        "ABUELA",
+        "ABUELO",
+        "HERMANO",
+        "HERMANA",
+        "TIA",
+        "TIO",
+        "OTRO",
+      ],
+      default: "MADRE",
+    },
+
+    vinculoOtro: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    telefono: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+  },
+  {
+    _id: true,
+  },
+);
+
 const domicilioTelefonoSchema = new mongoose.Schema(
   {
     alumnoId: {
@@ -27,6 +69,22 @@ const domicilioTelefonoSchema = new mongoose.Schema(
       required: true,
     },
 
+    /*
+     * Nuevo formato:
+     * permite guardar varios teléfonos/contactos
+     * asociados al mismo estudiante.
+     */
+    contactos: {
+      type: [contactoSchema],
+      default: [],
+    },
+
+    /*
+     * Campos históricos.
+     *
+     * Se conservan temporalmente para mantener
+     * compatibilidad con los registros ya guardados.
+     */
     telefono: {
       type: String,
       default: "",
@@ -34,7 +92,7 @@ const domicilioTelefonoSchema = new mongoose.Schema(
 
     nombreResponsable: {
       type: String,
-     default: "",
+      default: "",
     },
 
     adultoResponsable: {
@@ -45,10 +103,10 @@ const domicilioTelefonoSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 export default mongoose.model(
   "DomicilioTelefono",
-  domicilioTelefonoSchema
+  domicilioTelefonoSchema,
 );

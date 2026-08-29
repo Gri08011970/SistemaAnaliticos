@@ -552,14 +552,12 @@ export default function AutorizadosRetirar({ volverInicio, esAdmin }) {
   const totalCurso = alumnosDelCurso.length;
 
   const completosCurso = alumnosDelCurso.filter((alumno) => {
-  const tieneInformacion =
-    (registrosPorAlumno[alumno._id] || []).length > 0;
+    const tieneInformacion = (registrosPorAlumno[alumno._id] || []).length > 0;
 
-  const mayorDeEdad =
-    esMayorDeEdad(alumno.fechaNacimiento);
+    const mayorDeEdad = esMayorDeEdad(alumno.fechaNacimiento);
 
-  return tieneInformacion || mayorDeEdad;
-}).length;
+    return tieneInformacion || mayorDeEdad;
+  }).length;
   return (
     <div className="tarjeta-inicio" style={contenedor}>
       <button
@@ -639,13 +637,13 @@ export default function AutorizadosRetirar({ volverInicio, esAdmin }) {
         <table style={tabla}>
           <thead>
             <tr style={encabezado}>
-              <th style={celda}>Estudiante</th>
-              <th style={celda}>DNI</th>
-              <th style={celda}>Adulto autorizado</th>
-              <th style={celda}>Vínculo</th>
-              <th style={celda}>DNI adulto</th>
-              <th style={celda}>Acciones</th>
-              <th style={celda}>Cargados</th>
+              <th style={celdaEncabezadoFija}>Estudiante</th>
+              <th style={celdaEncabezadoFija}>DNI</th>
+              <th style={celdaEncabezadoFija}>Adulto autorizado</th>
+              <th style={celdaEncabezadoFija}>Vínculo</th>
+              <th style={celdaEncabezadoFija}>DNI adulto</th>
+              <th style={celdaEncabezadoFija}>Acciones</th>
+              <th style={celdaEncabezadoFija}>Cargados</th>
             </tr>
           </thead>
 
@@ -983,6 +981,9 @@ const subtituloTabla = {
 
 const tablaContenedor = {
   overflowX: "auto",
+  overflowY: "auto",
+  maxHeight: "65vh",
+
   borderRadius: "14px",
   border: "1px solid #d6e4ea",
   backgroundColor: "white",
@@ -1003,6 +1004,17 @@ const celda = {
   padding: "8px",
   textAlign: "center",
   fontSize: "13px",
+};
+
+const celdaEncabezadoFija = {
+  ...celda,
+  position: "sticky",
+  top: 0,
+  zIndex: 3,
+  background: "#eaf3f1",
+  color: "#1e3a5f",
+  fontWeight: "700",
+  boxShadow: "0 1px 0 #cfdedb",
 };
 
 const celdaNombre = {

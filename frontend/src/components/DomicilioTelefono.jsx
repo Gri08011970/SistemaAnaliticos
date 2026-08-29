@@ -5,11 +5,13 @@ import QRCode from "qrcode";
 
 const DOMICILIO_ESCUELA = "Titanic 2996, Rafael Castillo";
 
-export default function DomicilioTelefono({ volverInicio, esAdmin }) {
+function DomicilioTelefono({ volverInicio, esAdmin }) {
   const [registros, setRegistros] = useState([]);
   const [alumnosMatricula, setAlumnosMatricula] = useState([]);
   const [cursoSeleccionado, setCursoSeleccionado] = useState("");
   const [borradores, setBorradores] = useState({});
+  const [contactosDesplegados, setContactosDesplegados] = useState({});
+  const [contactoEditando, setContactoEditando] = useState({});
 
   useEffect(() => {
     obtenerRegistros();
@@ -24,7 +26,7 @@ export default function DomicilioTelefono({ volverInicio, esAdmin }) {
       console.log(error);
       alert("Error al obtener domicilios");
     }
-  } 
+  }
 
   async function obtenerMatricula() {
     try {
@@ -98,22 +100,32 @@ export default function DomicilioTelefono({ volverInicio, esAdmin }) {
       .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   }
 
-  function obtenerBorrador(alumno) {
-    const registro = registrosPorAlumno[alumno._id] || {};
+ function obtenerBorrador(alumno) {
+  const registro = registrosPorAlumno[alumno._id] || {};
 
-    return {
-      domicilio: borradores[alumno._id]?.domicilio ?? registro.domicilio ?? "",
-      telefono: borradores[alumno._id]?.telefono ?? registro.telefono ?? "",
-      nombreResponsable:
-        borradores[alumno._id]?.nombreResponsable ??
-        registro.nombreResponsable ??
-        "",
-      adultoResponsable:
-        borradores[alumno._id]?.adultoResponsable ??
-        registro.adultoResponsable ??
-        "MADRE",
-    };
-  }
+  return {
+    domicilio:
+      borradores[alumno._id]?.domicilio ??
+      registro.domicilio ??
+      "",
+
+    telefono:
+      borradores[alumno._id]?.telefono ??
+      "",
+
+    nombreResponsable:
+      borradores[alumno._id]?.nombreResponsable ??
+      "",
+
+    adultoResponsable:
+      borradores[alumno._id]?.adultoResponsable ??
+      "MADRE",
+
+    vinculoOtro:
+      borradores[alumno._id]?.vinculoOtro ??
+      "",
+  };
+}
 
   function cambiarBorrador(alumnoId, campo, valor) {
     setBorradores((previo) => ({
@@ -125,55 +137,192 @@ export default function DomicilioTelefono({ volverInicio, esAdmin }) {
     }));
   }
 
+  function alternarContactos(alumnoId) {
+  setContactosDesplegados((previo) => ({
+    ...previo,
+    [alumnoId]: !previo[alumnoId],
+  }));
+}
+
+function editarContacto(alumno, contacto, indiceContacto) {
+  if (!esAdmin) return;
+
+  setBorradores((previo) => ({
+    ...previo,
+    [alumno._id]: {
+      ...previo[alumno._id],
+      domicilio:
+        previo[alumno._id]?.domicilio ??
+        registrosPorAlumno[alumno._id]?.domicilio ??
+        "",
+      telefono: contacto.telefono || "",
+      nombreResponsable: contacto.nombreResponsable || "",
+      adultoResponsable: contacto.vinculo || "MADRE",
+      vinculoOtro: contacto.vinculoOtro || "",
+    },
+  }));
+
+  setContactoEditando((previo) => ({
+    ...previo,
+    [alumno._id]: {
+      id: contacto._id ? String(contacto._id) : null,
+      indice: indiceContacto,
+    },
+  }));
+
+  setContactosDesplegados((previo) => ({
+    ...previo,
+    [alumno._id]: true,
+  }));
+}
+
+function cancelarEdicionContacto(alumno) {
+  const registro = registrosPorAlumno[alumno._id];
+
+  setContactoEditando((previo) => {
+    const copia = { ...previo };
+    delete copia[alumno._id];
+    return copia;
+  });
+
+  setBorradores((previo) => ({
+    ...previo,
+    [alumno._id]: {
+      domicilio:
+        previo[alumno._id]?.domicilio ??
+        registro?.domicilio ??
+        "",
+      telefono: "",
+      nombreResponsable: "",
+      adultoResponsable: "MADRE",
+      vinculoOtro: "",
+    },
+  }));
+}
+
+async function eliminarContacto(alumno, contactoId) {
+  if (!esAdmin) {
+    return;
+  }
+
+  const registro = registrosPorAlumno[alumno._id];
+
+  if (!registro?._id) {
+    return;
+  }
+
+  const confirmar = window.confirm(
+    "¿Eliminar este contacto telefónico?",
+  );
+
+  if (!confirmar) {
+    return;
+  }
+
+  const contactosActuales =
+    obtenerContactosRegistro(registro);
+
+  const contactosActualizados =
+    contactosActuales.filter(
+      (contacto) =>
+        String(contacto._id) !== String(contactoId),
+    );
+
+  const primerContacto =
+    contactosActualizados[0] || {};
+
+  try {
+    await axios.put(
+      `/api/domicilios/${registro._id}`,
+      {
+        alumnoId: alumno._id,
+        curso: alumno.curso || "",
+        apellidoNombre:
+          nombreCompletoAlumno(alumno),
+        dni: alumno.dni || "",
+        domicilio: registro.domicilio || "",
+
+        contactos: contactosActualizados,
+
+        telefono:
+          primerContacto.telefono || "",
+
+        nombreResponsable:
+          primerContacto.nombreResponsable || "",
+
+        adultoResponsable: ["MADRE", "PADRE", "TUTOR"].includes(
+          primerContacto.vinculo,
+        )
+          ? primerContacto.vinculo
+          : "TUTOR",
+      },
+    );
+
+    await obtenerRegistros();
+  } catch (error) {
+    console.error(
+      "Error al eliminar contacto:",
+      error,
+    );
+
+    alert("No se pudo eliminar el contacto.");
+  }
+}
+
+  function obtenerContactosRegistro(registro) {
+  if (!registro) {
+    return [];
+  }
+
+  if (
+    Array.isArray(registro.contactos) &&
+    registro.contactos.length > 0
+  ) {
+    return registro.contactos;
+  }
+
+  /*
+   * Compatibilidad con registros antiguos:
+   * si todavía no existe contactos[],
+   * convertimos los campos históricos en un primer contacto.
+   */
+  if (
+    registro.telefono ||
+    registro.nombreResponsable
+  ) {
+    return [
+      {
+        nombreResponsable:
+          registro.nombreResponsable || "",
+        vinculo:
+          registro.adultoResponsable || "MADRE",
+        vinculoOtro: "",
+        telefono:
+          registro.telefono || "",
+      },
+    ];
+  }
+
+  return [];
+}
+
   function seleccionarCurso(curso) {
     setCursoSeleccionado(curso);
   }
 
-  async function guardarAlumno(alumno) {
-    if (!esAdmin) {
-      alert("Solo el administrador puede guardar cambios.");
-      return;
-    }
+async function guardarAlumno(alumno) {
+  if (!esAdmin) {
+    alert("Solo el administrador puede guardar cambios.");
+    return;
+  }
 
-    const borrador = obtenerBorrador(alumno);
+  const borrador = obtenerBorrador(alumno);
 
-    const registroExistente = registrosPorAlumno[alumno._id];
+  const registroExistente = registrosPorAlumno[alumno._id];
 
-    if (!borrador.domicilio) {
-      if (registroExistente?._id) {
-        await axios.delete(`/api/domicilios/${registroExistente._id}`);
-
-        setBorradores((previo) => {
-          const copia = { ...previo };
-          delete copia[alumno._id];
-          return copia;
-        });
-
-        obtenerRegistros();
-        return;
-      }
-
-      alert("Completá el domicilio.");
-      return;
-    }
-
-    const datos = {
-      alumnoId: alumno._id,
-      curso: alumno.curso || "",
-      apellidoNombre: nombreCompletoAlumno(alumno),
-      dni: alumno.dni || "",
-      domicilio: borrador.domicilio,
-      telefono: borrador.telefono,
-      nombreResponsable: borrador.nombreResponsable,
-      adultoResponsable: borrador.adultoResponsable,
-    };
-
-    try {
-      if (registroExistente?._id) {
-        await axios.put(`/api/domicilios/${registroExistente._id}`, datos);
-      } else {
-        await axios.post("/api/domicilios", datos);
-      }
+  if (!borrador.domicilio) {
+    if (registroExistente?._id) {
+      await axios.delete(`/api/domicilios/${registroExistente._id}`);
 
       setBorradores((previo) => {
         const copia = { ...previo };
@@ -182,11 +331,131 @@ export default function DomicilioTelefono({ volverInicio, esAdmin }) {
       });
 
       obtenerRegistros();
-    } catch (error) {
-      console.log(error);
-      alert("Error al guardar el registro");
+      return;
+    }
+
+    alert("Completá el domicilio.");
+    return;
+  }
+
+  const contactosExistentes =
+    obtenerContactosRegistro(registroExistente);
+
+  const tieneNuevoContacto =
+    borrador.telefono.trim() ||
+    borrador.nombreResponsable.trim();
+
+  let contactosActualizados = contactosExistentes;
+  const edicionActual = contactoEditando[alumno._id];
+
+  if (tieneNuevoContacto) {
+    if (!borrador.telefono.trim()) {
+      alert("Completá el teléfono del contacto.");
+      return;
+    }
+
+    if (!borrador.nombreResponsable.trim()) {
+      alert("Completá el nombre del adulto responsable.");
+      return;
+    }
+
+    const contactoNuevo = {
+      nombreResponsable: borrador.nombreResponsable.trim(),
+      vinculo: borrador.adultoResponsable || "MADRE",
+      vinculoOtro: borrador.vinculoOtro?.trim() || "",
+      telefono: borrador.telefono.trim(),
+    };
+
+    if (edicionActual) {
+      contactosActualizados = contactosExistentes.map((contacto, indice) => {
+        const coincidePorId =
+          edicionActual.id &&
+          contacto._id &&
+          String(contacto._id) === String(edicionActual.id);
+
+        const coincidePorIndice =
+          !edicionActual.id && indice === edicionActual.indice;
+
+        if (!coincidePorId && !coincidePorIndice) return contacto;
+
+        return contacto._id
+          ? { ...contactoNuevo, _id: contacto._id }
+          : contactoNuevo;
+      });
+    } else {
+      contactosActualizados = [...contactosExistentes, contactoNuevo];
     }
   }
+
+
+  const datos = {
+    alumnoId: alumno._id,
+    curso: alumno.curso || "",
+    apellidoNombre: nombreCompletoAlumno(alumno),
+    dni: alumno.dni || "",
+    domicilio: borrador.domicilio,
+
+    contactos: contactosActualizados,
+
+    /*
+     * Compatibilidad con el formato anterior.
+     * Conservamos como campos históricos el primer contacto.
+     */
+    telefono:
+      contactosActualizados[0]?.telefono || "",
+
+    nombreResponsable:
+      contactosActualizados[0]?.nombreResponsable || "",
+
+    adultoResponsable: ["MADRE", "PADRE", "TUTOR"].includes(
+      contactosActualizados[0]?.vinculo,
+    )
+      ? contactosActualizados[0].vinculo
+      : "TUTOR",
+  };
+
+  try {
+    if (registroExistente?._id) {
+      await axios.put(
+        `/api/domicilios/${registroExistente._id}`,
+        datos,
+      );
+    } else {
+      await axios.post(
+        "/api/domicilios",
+        datos,
+      );
+    }
+
+    /*
+     * Después de guardar:
+     * conservamos el domicilio,
+     * pero limpiamos los campos para cargar otro contacto.
+     */
+    setBorradores((previo) => ({
+      ...previo,
+
+      [alumno._id]: {
+        domicilio: borrador.domicilio,
+        telefono: "",
+        nombreResponsable: "",
+        adultoResponsable: "MADRE",
+        vinculoOtro: "",
+      },
+    }));
+
+    setContactoEditando((previo) => {
+      const copia = { ...previo };
+      delete copia[alumno._id];
+      return copia;
+    });
+
+    await obtenerRegistros();
+  } catch (error) {
+    console.log(error);
+    alert("Error al guardar el registro");
+  }
+}
 
   async function eliminarRegistro(id) {
     if (!esAdmin) return;
@@ -219,23 +488,50 @@ export default function DomicilioTelefono({ volverInicio, esAdmin }) {
   }
 
   async function imprimirActa(alumno) {
-    const registro = registrosPorAlumno[alumno._id];
+  const registro = registrosPorAlumno[alumno._id];
 
-    if (!registro) {
-      alert("Primero guardá el domicilio del estudiante.");
-      return;
-    }
+  if (!registro) {
+    alert("Primero guardá el domicilio del estudiante.");
+    return;
+  }
 
-    const origen = encodeURIComponent(DOMICILIO_ESCUELA);
-    const destino = encodeURIComponent(registro.domicilio);
+  const contactos = obtenerContactosRegistro(registro);
 
-    const urlMapa = `https://www.google.com/maps/dir/?api=1&origin=${origen}&destination=${destino}&travelmode=driving`;
+  const contactosHtml =
+    contactos.length > 0
+      ? contactos
+          .map((contacto, index) => {
+            const vinculo =
+              contacto.vinculo === "OTRO"
+                ? contacto.vinculoOtro || "Otro"
+                : contacto.vinculo || "Sin informar";
 
-    const qrMapa = await QRCode.toDataURL(urlMapa);
+            return `
+              <div class="contacto">
+                <strong>Contacto ${index + 1}:</strong>
+                ${contacto.nombreResponsable || "Sin nombre"}<br>
+                <strong>Vínculo:</strong> ${vinculo}<br>
+                <strong>Teléfono:</strong> ${contacto.telefono || "Sin informar"}
+              </div>
+            `;
+          })
+          .join("")
+      : `
+          <div class="contacto contacto-vacio">
+            Sin contactos telefónicos registrados.
+          </div>
+        `;
 
-    const ventana = window.open("", "_blank");
+  const origen = encodeURIComponent(DOMICILIO_ESCUELA);
+  const destino = encodeURIComponent(registro.domicilio);
 
-    ventana.document.write(`
+  const urlMapa = `https://www.google.com/maps/dir/?api=1&origin=${origen}&destination=${destino}&travelmode=driving`;
+
+  const qrMapa = await QRCode.toDataURL(urlMapa);
+
+  const ventana = window.open("", "_blank");
+
+  ventana.document.write(`
 <html>
 <head>
 <title>Acta de Visita Domiciliaria</title>
@@ -245,7 +541,6 @@ body{
   font-family:Arial,sans-serif;
   padding:26px;
   color:#222;
- 
 }
 
 h1{
@@ -276,7 +571,7 @@ h3{
 
 .recuadro-superior{
   display:grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns:1fr 1fr;
   gap:16px;
   border:1px solid #777;
   padding:9px 12px;
@@ -296,7 +591,7 @@ h3{
 
 .dos-columnas{
   display:grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns:1fr 1fr;
   gap:18px;
   margin-top:10px;
 }
@@ -313,6 +608,24 @@ h3{
   font-size:12px;
 }
 
+.contactos{
+  margin-top:10px;
+}
+
+.contacto{
+  border:1px solid #d6e4ea;
+  border-radius:8px;
+  padding:7px 9px;
+  margin-bottom:6px;
+  font-size:11px;
+  line-height:1.45;
+}
+
+.contacto-vacio{
+  color:#666;
+  font-style:italic;
+}
+
 .checks{
   line-height:1.7;
   font-size:12px;
@@ -320,12 +633,13 @@ h3{
 
 .obs{
   border:1px solid #777;
-  height:355px;
+  height:320px;
   margin-top:8px;
 }
+
 .firmas-qr{
   display:grid;
-  grid-template-columns: 1fr 1fr 1fr 150px;
+  grid-template-columns:1fr 1fr 1fr 150px;
   gap:18px;
   align-items:end;
   margin-top:32px;
@@ -358,10 +672,8 @@ h3{
 .qr img{
   width:92px;
   height:92px;
-}  
-
-
-</style> 
+}
+</style>
 </head>
 
 <body>
@@ -402,9 +714,11 @@ h3{
     <div class="dato"><strong>Alumno:</strong> ${nombreCompletoAlumno(alumno)}</div>
     <div class="dato"><strong>DNI:</strong> ${formatearDNI(alumno.dni)}</div>
     <div class="dato"><strong>Domicilio:</strong> ${registro.domicilio}</div>
-    <div class="dato"><strong>Teléfono:</strong> ${registro.telefono || ""}</div>
-    <div class="dato"><strong>Adulto responsable:</strong> ${registro.nombreResponsable || ""}</div>
-    <div class="dato"><strong>Vínculo:</strong> ${registro.adultoResponsable || ""}</div>
+
+    <div class="contactos">
+      <div class="titulo">CONTACTOS DE REFERENCIA</div>
+      ${contactosHtml}
+    </div>
   </div>
 
   <div>
@@ -456,101 +770,213 @@ h3{
 </html>
 `);
 
-    ventana.document.close();
-    ventana.print();
+  ventana.document.close();
+  ventana.print();
+}
+
+ function imprimirListado() {
+  const lista = cursoSeleccionado ? registrosDelCurso : registros;
+
+  const filas = lista
+    .map((registro, index) => {
+      const contactos = obtenerContactosRegistro(registro);
+
+      const contactosHtml =
+        contactos.length > 0
+          ? contactos
+              .map((contacto) => {
+                const vinculo =
+                  contacto.vinculo === "OTRO"
+                    ? contacto.vinculoOtro || "Otro"
+                    : contacto.vinculo || "Sin informar";
+
+                return `
+                  <div class="contacto-item">
+                    <strong>${contacto.nombreResponsable || "Sin nombre"}</strong><br>
+                    ${vinculo} · ${contacto.telefono || "Sin teléfono"}
+                  </div>
+                `;
+              })
+              .join("")
+          : `<span class="sin-contactos">Sin contactos registrados</span>`;
+
+      return `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${registro.curso || ""}</td>
+          <td>${registro.apellidoNombre || ""}</td>
+          <td>${formatearDNI(registro.dni) || ""}</td>
+          <td>${registro.domicilio || ""}</td>
+          <td class="contactos-celda">
+            ${contactosHtml}
+          </td>
+        </tr>
+      `;
+    })
+    .join("");
+
+  const ventana = window.open("", "_blank");
+
+  ventana.document.write(`
+    <html>
+      <head>
+        <title>Domicilio y teléfono</title>
+
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            padding: 30px;
+            color: #222;
+          }
+
+          h2,
+          p {
+            text-align: center;
+          }
+
+          h2 {
+            color: #1e3a5f;
+          }
+
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 11px;
+          }
+
+          th,
+          td {
+            border: 1px solid #444;
+            padding: 7px;
+            text-align: center;
+            vertical-align: top;
+          }
+
+          th {
+            background: #1e3a5f;
+            color: white;
+          }
+
+          .fecha {
+            text-align: right;
+            color: #555;
+            font-size: 12px;
+          }
+
+          .contactos-celda {
+            text-align: left;
+            min-width: 180px;
+          }
+
+          .contacto-item {
+            padding: 4px 0;
+            border-bottom: 1px solid #ddd;
+            line-height: 1.35;
+          }
+
+          .contacto-item:last-child {
+            border-bottom: none;
+          }
+
+          .sin-contactos {
+            color: #777;
+            font-style: italic;
+          }
+        </style>
+      </head>
+
+      <body>
+        <h2>Domicilio y teléfono</h2>
+
+        <p>E.E.S. N° 140 "Florencio Molina Campos"</p>
+
+        <p>
+          ${
+            cursoSeleccionado
+              ? `Curso: ${cursoSeleccionado}`
+              : "Todos los cursos"
+          }
+        </p>
+
+        <p class="fecha">
+          Fecha de impresión:
+          ${new Date().toLocaleString("es-AR")}
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>N°</th>
+              <th>Curso</th>
+              <th>Apellido y Nombre</th>
+              <th>DNI</th>
+              <th>Domicilio</th>
+              <th>Contactos de referencia</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            ${filas}
+          </tbody>
+        </table>
+      </body>
+    </html>
+  `);
+
+  ventana.document.close();
+  ventana.print();
+}
+ function exportarPlantillaExcel() {
+  if (!cursoSeleccionado) {
+    alert("Primero seleccioná un curso.");
+    return;
   }
 
-  function imprimirListado() {
-    const lista = cursoSeleccionado ? registrosDelCurso : registros;
+  const datos = alumnosDelCurso.map((alumno) => {
+    const registro = registrosPorAlumno[alumno._id] || {};
 
-    const filas = lista
-      .map(
-        (registro, index) => `
-          <tr> 
-            <td>${index + 1}</td>
-            <td>${registro.curso || ""}</td>
-            <td>${registro.apellidoNombre || ""}</td>
-            <td>${formatearDNI(registro.dni) || ""}</td>
-            <td>${registro.domicilio || ""}</td>
-            <td>${registro.telefono || ""}</td>
-            <td>${registro.nombreResponsable || ""}</td>
-            <td>${registro.adultoResponsable || ""}</td>
-          </tr>
-        `,
-      )
-      .join("");
+    const contactos = obtenerContactosRegistro(registro);
 
-    const ventana = window.open("", "_blank");
+    const contactosTexto =
+      contactos.length > 0
+        ? contactos
+            .map((contacto) => {
+              const vinculo =
+                contacto.vinculo === "OTRO"
+                  ? contacto.vinculoOtro || "Otro"
+                  : contacto.vinculo || "Sin informar";
 
-    ventana.document.write(`
-      <html>
-        <head>
-          <title>Domicilio y teléfono</title>
-          <style>
-            body { font-family: Arial, sans-serif; padding: 30px; color: #222; }
-            h2, p { text-align: center; }
-            h2 { color: #1e3a5f; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
-            th, td { border: 1px solid #444; padding: 7px; text-align: center; }
-            th { background: #1e3a5f; color: white; }
-            .fecha { text-align: right; color: #555; font-size: 13px; }
-          </style>
-        </head>
-        <body>
-          <h2>Domicilio y teléfono</h2>
-          <p>E.E.S. N° 140 "Florencio Molina Campos"</p>
-          <p>${cursoSeleccionado ? `Curso: ${cursoSeleccionado}` : "Todos los cursos"}</p>
-          <p class="fecha">Fecha de impresión: ${new Date().toLocaleString("es-AR")}</p>
+              return `${contacto.nombreResponsable || "Sin nombre"} (${vinculo}): ${
+                contacto.telefono || "Sin teléfono"
+              }`;
+            })
+            .join(" | ")
+        : "";
 
-          <table>
-            <thead>
-              <tr>
-                <th>N°</th>
-                <th>Curso</th>
-                <th>Apellido y Nombre</th>
-                <th>DNI</th>
-                <th>Domicilio</th>
-                <th>Teléfono</th>
-                <th>Adulto responsable</th>
-                <th>Vínculo</th>
-              </tr>
-            </thead>
-            <tbody>${filas}</tbody>
-          </table>
-        </body>
-      </html>
-    `);
+    return {
+      Curso: alumno.curso || "",
+      "Apellido y Nombre": nombreCompletoAlumno(alumno),
+      "DNI estudiante": alumno.dni || "",
+      Domicilio: registro.domicilio || "",
+      "Contactos de referencia": contactosTexto,
+    };
+  });
 
-    ventana.document.close();
-    ventana.print();
-  }
+  const hoja = XLSX.utils.json_to_sheet(datos);
+  const libro = XLSX.utils.book_new();
 
-  function exportarPlantillaExcel() {
-    if (!cursoSeleccionado) {
-      alert("Primero seleccioná un curso.");
-      return;
-    }
+  XLSX.utils.book_append_sheet(
+    libro,
+    hoja,
+    "Domicilios",
+  );
 
-    const datos = alumnosDelCurso.map((alumno) => {
-      const registro = registrosPorAlumno[alumno._id] || {};
-
-      return {
-        Curso: alumno.curso || "",
-        "Apellido y Nombre": nombreCompletoAlumno(alumno),
-        "DNI estudiante": alumno.dni || "",
-        Domicilio: registro.domicilio || "",
-        Teléfono: registro.telefono || "",
-        "Nombre adulto responsable": registro.nombreResponsable || "",
-        "Vínculo responsable": registro.adultoResponsable || "MADRE",
-      };
-    });
-
-    const hoja = XLSX.utils.json_to_sheet(datos);
-    const libro = XLSX.utils.book_new();
-
-    XLSX.utils.book_append_sheet(libro, hoja, "Domicilios");
-    XLSX.writeFile(libro, `Domicilio_Telefono_${cursoSeleccionado}.xlsx`);
-  }
+  XLSX.writeFile(
+    libro,
+    `Domicilio_Telefono_${cursoSeleccionado}.xlsx`,
+  );
+}
 
   function normalizarTexto(texto = "") {
     return String(texto)
@@ -620,188 +1046,142 @@ h3{
     });
   }
 
- async function importarExcel(evento) {
-  if (!esAdmin) {
-    alert("Solo el administrador puede importar.");
-    return;
-  }
-
-  const archivo = evento.target.files[0];
-  if (!archivo) return;
-
-  try {
-    const datos = await archivo.arrayBuffer();
-    const libro = XLSX.read(datos);
-    const hoja = libro.Sheets[libro.SheetNames[0]];
-    const filas = XLSX.utils.sheet_to_json(hoja, { defval: "" });
-
-    for (const fila of filas) {
-      const nombreFila = normalizarTexto(
-        fila.Estudiante ||
-          fila["Apellido y Nombre"] ||
-          fila.Alumno ||
-          "",
-      );
-
-      const dniFila = String(
-        fila["DNI estudiante"] ||
-          fila.DNI ||
-          "",
-      ).replace(/\D/g, "");
-
-      const alumno = alumnosActivos.find((item) => {
-        const dniAlumno = String(
-          item.dni || "",
-        ).replace(/\D/g, "");
-
-        if (
-          dniFila &&
-          dniAlumno &&
-          dniAlumno === dniFila
-        ) {
-          return true;
-        }
-
-        return coincideNombre(
-          nombreAlumnoParaComparar(item),
-          nombreFila,
-        );
-      });
-
-      if (!alumno) {
-        console.log(
-          "No encontrado:",
-          nombreFila,
-          "Fila Excel:",
-          fila.Estudiante ||
-            fila["Apellido y Nombre"] ||
-            fila.Alumno,
-        );
-
-        continue;
-      }
-
-      const registroExistente =
-        registrosPorAlumno[alumno._id];
-
-      const domicilioExcel =
-        fila.Domicilio ||
-        fila.domicilio ||
-        "";
-
-      const telefonoExcel =
-        fila["Teléfono"] ||
-        fila.Telefono ||
-        fila["teléfono"] ||
-        fila.telefono ||
-        "";
-
-      const nombreResponsableExcel =
-        fila["Adulto responsable"] ||
-        fila["adulto responsable"] ||
-        fila["Adulto Responsable"] ||
-        fila["Madre / Responsable"] ||
-        fila["Nombre adulto responsable"] ||
-        "";
-
-      const vinculoExcel =
-        fila["Vínculo"] ||
-        fila.Vinculo ||
-        fila["vínculo"] ||
-        fila.vinculo ||
-        fila["Vínculo responsable"] ||
-        fila["Vinculo responsable"] ||
-        "MADRE";
-
-      const datosAGuardar = {
-        alumnoId: alumno._id,
-        curso: alumno.curso || fila.Curso || "",
-        apellidoNombre:
-          nombreCompletoAlumno(alumno),
-        dni: alumno.dni || "",
-
-        domicilio: domicilioExcel,
-        telefono: telefonoExcel,
-
-        nombreResponsable:
-          nombreResponsableExcel,
-
-        adultoResponsable:
-          vinculoExcel,
-      };
-
-      const tieneDatosParaGuardar =
-        datosAGuardar.domicilio ||
-        datosAGuardar.telefono ||
-        datosAGuardar.nombreResponsable ||
-        datosAGuardar.adultoResponsable;
-
-      if (!tieneDatosParaGuardar) {
-        console.log(
-          "Sin datos para guardar:",
-          datosAGuardar.apellidoNombre,
-        );
-
-        continue;
-      }
-
-      console.log(
-        "DATOS A GUARDAR:",
-        datosAGuardar,
-      );
-
-      try {
-        if (registroExistente?._id) {
-          await axios.put(
-            `/api/domicilios/${registroExistente._id}`,
-            datosAGuardar,
-          );
-        } else {
-          await axios.post(
-            "/api/domicilios",
-            datosAGuardar,
-          );
-        }
-      } catch (errorRegistro) {
-        console.error(
-          "ERROR EN REGISTRO:",
-          datosAGuardar,
-        );
-
-        console.error(
-          "RESPUESTA BACKEND:",
-          JSON.stringify(
-            errorRegistro.response?.data,
-            null,
-            2,
-          ),
-        );
-      }
+  async function importarExcel(evento) {
+    if (!esAdmin) {
+      alert("Solo el administrador puede importar.");
+      return;
     }
 
-    await obtenerRegistros();
+    const archivo = evento.target.files[0];
+    if (!archivo) return;
 
-    alert("Archivo importado correctamente.");
-  } catch (error) {
-    console.error(
-      "ERROR IMPORTANDO:",
-      error,
-    );
+    try {
+      const datos = await archivo.arrayBuffer();
+      const libro = XLSX.read(datos);
+      const hoja = libro.Sheets[libro.SheetNames[0]];
+      const filas = XLSX.utils.sheet_to_json(hoja, { defval: "" });
 
-    console.error(
-      "RESPUESTA BACKEND:",
-      JSON.stringify(
-        error.response?.data,
-        null,
-        2,
-      ),
-    );
+      for (const fila of filas) {
+        const nombreFila = normalizarTexto(
+          fila.Estudiante || fila["Apellido y Nombre"] || fila.Alumno || "",
+        );
 
-    alert("Error al importar el archivo.");
+        const dniFila = String(
+          fila["DNI estudiante"] || fila.DNI || "",
+        ).replace(/\D/g, "");
+
+        const alumno = alumnosActivos.find((item) => {
+          const dniAlumno = String(item.dni || "").replace(/\D/g, "");
+
+          if (dniFila && dniAlumno && dniAlumno === dniFila) {
+            return true;
+          }
+
+          return coincideNombre(nombreAlumnoParaComparar(item), nombreFila);
+        });
+
+        if (!alumno) {
+          console.log(
+            "No encontrado:",
+            nombreFila,
+            "Fila Excel:",
+            fila.Estudiante || fila["Apellido y Nombre"] || fila.Alumno,
+          );
+
+          continue;
+        }
+
+        const registroExistente = registrosPorAlumno[alumno._id];
+
+        const domicilioExcel = fila.Domicilio || fila.domicilio || "";
+
+        const telefonoExcel =
+          fila["Teléfono"] ||
+          fila.Telefono ||
+          fila["teléfono"] ||
+          fila.telefono ||
+          "";
+
+        const nombreResponsableExcel =
+          fila["Adulto responsable"] ||
+          fila["adulto responsable"] ||
+          fila["Adulto Responsable"] ||
+          fila["Madre / Responsable"] ||
+          fila["Nombre adulto responsable"] ||
+          "";
+
+        const vinculoExcel =
+          fila["Vínculo"] ||
+          fila.Vinculo ||
+          fila["vínculo"] ||
+          fila.vinculo ||
+          fila["Vínculo responsable"] ||
+          fila["Vinculo responsable"] ||
+          "MADRE";
+
+        const datosAGuardar = {
+          alumnoId: alumno._id,
+          curso: alumno.curso || fila.Curso || "",
+          apellidoNombre: nombreCompletoAlumno(alumno),
+          dni: alumno.dni || "",
+
+          domicilio: domicilioExcel,
+          telefono: telefonoExcel,
+
+          nombreResponsable: nombreResponsableExcel,
+
+          adultoResponsable: vinculoExcel,
+        };
+
+        const tieneDatosParaGuardar =
+          datosAGuardar.domicilio ||
+          datosAGuardar.telefono ||
+          datosAGuardar.nombreResponsable ||
+          datosAGuardar.adultoResponsable;
+
+        if (!tieneDatosParaGuardar) {
+          console.log("Sin datos para guardar:", datosAGuardar.apellidoNombre);
+
+          continue;
+        }
+
+        console.log("DATOS A GUARDAR:", datosAGuardar);
+
+        try {
+          if (registroExistente?._id) {
+            await axios.put(
+              `/api/domicilios/${registroExistente._id}`,
+              datosAGuardar,
+            );
+          } else {
+            await axios.post("/api/domicilios", datosAGuardar);
+          }
+        } catch (errorRegistro) {
+          console.error("ERROR EN REGISTRO:", datosAGuardar);
+
+          console.error(
+            "RESPUESTA BACKEND:",
+            JSON.stringify(errorRegistro.response?.data, null, 2),
+          );
+        }
+      }
+
+      await obtenerRegistros();
+
+      alert("Archivo importado correctamente.");
+    } catch (error) {
+      console.error("ERROR IMPORTANDO:", error);
+
+      console.error(
+        "RESPUESTA BACKEND:",
+        JSON.stringify(error.response?.data, null, 2),
+      );
+
+      alert("Error al importar el archivo.");
+    }
+
+    evento.target.value = "";
   }
-
-  evento.target.value = "";
-}
 
   const totalCurso = alumnosDelCurso.length;
   const completosCurso = alumnosDelCurso.filter((alumno) => {
@@ -862,7 +1242,7 @@ h3{
           style={botonSecundario}
           onClick={exportarPlantillaExcel}
         >
-         📥 Descargar Excel
+          📥 Descargar Excel
         </button>
 
         <label
@@ -882,20 +1262,21 @@ h3{
       <h3 style={subtituloTabla}>
         {cursoSeleccionado
           ? `Cargando domicilios de ${cursoSeleccionado}`
-          : "Seleccioná un curso para cargar cada estudiante "}
+          : "Seleccioná un curso para cargar cada estudiante"}
       </h3>
 
       <div style={tablaContenedor}>
         <table style={tabla}>
           <thead>
             <tr style={encabezado}>
-              <th style={celda}>Estudiante</th>
-              <th style={celda}>DNI</th>
-              <th style={celda}>Domicilio</th>
-              <th style={celda}>Teléfono</th>
-              <th style={celda}>Adulto responsable</th>
-              <th style={celda}>Vínculo</th>
-              <th style={celda}>Acciones</th>
+              <th style={celdaEncabezadoFija}>Estudiante</th>
+              <th style={celdaEncabezadoFija}>DNI</th>
+              <th style={celdaEncabezadoFija}>Domicilio</th>
+              <th style={celdaEncabezadoFija}>Teléfono</th>
+              <th style={celdaEncabezadoFija}>Adulto responsable</th>
+              <th style={celdaEncabezadoFija}>Vínculo</th>
+              <th style={celdaEncabezadoFija}>Acciones</th>
+              <th style={celdaEncabezadoFija}>Contactos cargados</th>
             </tr>
           </thead>
 
@@ -904,6 +1285,7 @@ h3{
               alumnosDelCurso.map((alumno) => {
                 const borrador = obtenerBorrador(alumno);
                 const registro = registrosPorAlumno[alumno._id];
+                const contactos = obtenerContactosRegistro(registro);
 
                 return (
                   <tr key={alumno._id} className="fila-tabla">
@@ -975,7 +1357,30 @@ h3{
                         <option value="MADRE">MADRE</option>
                         <option value="PADRE">PADRE</option>
                         <option value="TUTOR">TUTOR</option>
+                        <option value="ABUELA">ABUELA</option>
+                        <option value="ABUELO">ABUELO</option>
+                        <option value="HERMANA">HERMANA</option>
+                        <option value="HERMANO">HERMANO</option>
+                        <option value="TIA">TÍA</option>
+                        <option value="TIO">TÍO</option>
+                        <option value="OTRO">OTRO</option>
                       </select>
+
+                      {borrador.adultoResponsable === "OTRO" && (
+                        <input
+                          style={{ ...inputTabla, marginTop: "6px" }}
+                          value={borrador.vinculoOtro || ""}
+                          onChange={(e) =>
+                            cambiarBorrador(
+                              alumno._id,
+                              "vinculoOtro",
+                              e.target.value,
+                            )
+                          }
+                          disabled={!esAdmin}
+                          placeholder="Especificar vínculo"
+                        />
+                      )}
                     </td>
 
                     <td style={celda}>
@@ -988,10 +1393,27 @@ h3{
                         }}
                         disabled={!esAdmin}
                         onClick={() => guardarAlumno(alumno)}
-                        title="Guardar"
+                        title={
+                          contactoEditando[alumno._id]
+                            ? "Guardar cambios del contacto"
+                            : "Guardar domicilio / agregar contacto"
+                        }
                       >
                         💾
                       </button>
+
+                      {contactoEditando[alumno._id] && (
+                        <button
+                          type="button"
+                          className="boton-accion"
+                          style={botonCancelarEdicion}
+                          disabled={!esAdmin}
+                          onClick={() => cancelarEdicionContacto(alumno)}
+                          title="Cancelar edición del contacto"
+                        >
+                          ✖️
+                        </button>
+                      )}
 
                       {registro?._id && (
                         <button
@@ -999,7 +1421,7 @@ h3{
                           style={botonEliminar}
                           disabled={!esAdmin}
                           onClick={() => eliminarRegistro(registro._id)}
-                          title="Eliminar"
+                          title="Eliminar domicilio y contactos"
                         >
                           🗑️
                         </button>
@@ -1027,13 +1449,88 @@ h3{
                         📝
                       </button>
                     </td>
+
+                    <td style={celdaContactos}>
+                      {contactos.length === 0 ? (
+                        <span style={sinContactos}>Sin contactos cargados</span>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            style={botonDesplegarContactos}
+                            onClick={() => alternarContactos(alumno._id)}
+                          >
+                            {contactosDesplegados[alumno._id] ? "▲" : "▼"}{" "}
+                            {contactos.length}{" "}
+                            {contactos.length === 1 ? "contacto" : "contactos"}
+                          </button>
+
+                          {contactosDesplegados[alumno._id] && (
+                            <div style={contenedorContactos}>
+                              {contactos.map((contacto, indiceContacto) => (
+                                <div
+                                  key={
+                                    contacto._id ||
+                                    `contacto-${alumno._id}-${indiceContacto}`
+                                  }
+                                  style={tarjetaContacto}
+                                >
+                                  <strong style={nombreContacto}>
+                                    {contacto.nombreResponsable ||
+                                      "Adulto sin nombre"}
+                                  </strong>
+
+                                  <div>
+                                    <strong>Vínculo:</strong>{" "}
+                                    {contacto.vinculo === "OTRO"
+                                      ? contacto.vinculoOtro || "Otro"
+                                      : contacto.vinculo || "Sin informar"}
+                                  </div>
+
+                                  <div>
+                                    <strong>Teléfono:</strong>{" "}
+                                    {contacto.telefono || "Sin informar"}
+                                  </div>
+
+                                  {esAdmin && (
+                                    <div style={accionesContacto}>
+                                      <button
+                                        type="button"
+                                        style={botonEditarContacto}
+                                        onClick={() =>
+                                          editarContacto(alumno, contacto, indiceContacto)
+                                        }
+                                      >
+                                        ✏️ Editar
+                                      </button>
+
+                                      {contacto._id && (
+                                        <button
+                                          type="button"
+                                          style={botonEliminarContacto}
+                                          onClick={() =>
+                                            eliminarContacto(alumno, contacto._id)
+                                          }
+                                        >
+                                          🗑️ Eliminar
+                                        </button>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </td>
                   </tr>
                 );
               })}
 
             {!cursoSeleccionado && (
               <tr>
-                <td style={celda} colSpan="7">
+                <td style={celda} colSpan="8">
                   Seleccioná un curso para ver la lista completa de estudiantes.
                 </td>
               </tr>
@@ -1060,7 +1557,7 @@ const titulo = {
   marginTop: 0,
 };
 
-const subtitulo = { 
+const subtitulo = {
   textAlign: "center",
   color: "#5f6f7a",
   marginBottom: "22px",
@@ -1122,6 +1619,9 @@ const subtituloTabla = {
 
 const tablaContenedor = {
   overflowX: "auto",
+  overflowY: "auto",
+  maxHeight: "65vh",
+
   borderRadius: "14px",
   border: "1px solid #d6e4ea",
   backgroundColor: "white",
@@ -1149,6 +1649,17 @@ const celdaNombre = {
   minWidth: "190px",
   fontWeight: "600",
   color: "#4f4a68",
+};
+
+const celdaEncabezadoFija = {
+  ...celda,
+  position: "sticky",
+  top: 0,
+  zIndex: 3,
+  background: "#eaf3f1",
+  color: "#1e3a5f",
+  fontWeight: "700",
+  boxShadow: "0 1px 0 #cfdedb",
 };
 
 const inputTabla = {
@@ -1189,9 +1700,94 @@ const botonMapa = {
   cursor: "pointer",
 };
 
+const celdaContactos = {
+  ...celda,
+  minWidth: "220px",
+  textAlign: "left",
+};
+
+const botonDesplegarContactos = {
+  width: "100%",
+  padding: "7px 10px",
+  border: "1px solid #c7dde3",
+  borderRadius: "999px",
+  backgroundColor: "#eef5f7",
+  color: "#1e3a5f",
+  fontWeight: "700",
+  cursor: "pointer",
+};
+
+const contenedorContactos = {
+  display: "flex",
+  flexDirection: "column",
+  gap: "7px",
+  marginTop: "8px",
+};
+
+const tarjetaContacto = {
+  padding: "8px",
+  border: "1px solid #d6e4ea",
+  borderRadius: "10px",
+  backgroundColor: "#ffffff",
+  color: "#4f4a68",
+  boxShadow: "0 2px 7px rgba(22,58,95,.07)",
+};
+
+const nombreContacto = {
+  display: "block",
+  marginBottom: "4px",
+  color: "#1e3a5f",
+};
+
+const accionesContacto = {
+  display: "flex",
+  gap: "6px",
+  flexWrap: "wrap",
+  marginTop: "7px",
+};
+
+const botonEditarContacto = {
+  padding: "4px 7px",
+  border: "none",
+  borderRadius: "999px",
+  backgroundColor: "#e4eef9",
+  color: "#24527a",
+  fontSize: "11px",
+  cursor: "pointer",
+};
+
+const botonEliminarContacto = {
+  padding: "4px 7px",
+  border: "none",
+  borderRadius: "999px",
+  backgroundColor: "#f7dede",
+  color: "#8b2e2e",
+  fontSize: "11px",
+  cursor: "pointer",
+};
+
+const botonCancelarEdicion = {
+  backgroundColor: "#fff3cd",
+  color: "#7a5b00",
+  border: "none",
+  padding: "6px 8px",
+  borderRadius: "10px",
+  cursor: "pointer",
+  marginRight: "4px",
+};
+
+const sinContactos = {
+  color: "#777",
+  fontSize: "12px",
+  fontStyle: "italic",
+};
+
 const botonVolver = {
   backgroundColor: "#9e7ac0",
   color: "white",
   border: "none",
   marginBottom: "12px",
 };
+
+export default DomicilioTelefono;
+

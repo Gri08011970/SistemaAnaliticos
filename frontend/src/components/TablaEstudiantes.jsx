@@ -266,7 +266,7 @@ export default function TablaEstudiantes({
 
               <th style={{ ...estiloCelda, width: "235px" }}>
                 Apellido y Nombre
-              </th>
+              </th> 
 
               <th style={{ ...estiloCelda, width: "80px" }}>DNI</th>
               <th style={{ ...estiloCelda, width: "35px" }}>Libro</th>
@@ -531,7 +531,7 @@ const estiloCelda = {
   border: "1px solid #ddd",
   padding: "8px",
   textAlign: "center",
-  fontSize: "14px",
+  fontSize: "12px",
 };
 
 const mensajeNoEncontrado = {
