@@ -1082,13 +1082,6 @@ const avisoSinResultados = {
   fontWeight: "700",
 };
 
-const ayudaBusqueda = {
-  marginTop: "10px",
-  color: "#718791",
-  fontSize: "12px",
-  lineHeight: 1.4,
-};
-
 const accionesFormulario = {
   display: "flex",
   gap: "10px",

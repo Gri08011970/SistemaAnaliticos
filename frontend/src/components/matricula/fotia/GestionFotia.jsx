@@ -6,6 +6,33 @@ import GestionDocentesFotia from "./GestionDocentesFotia";
 import HistorialAcreditacionesFotia from "./HistorialAcreditacionesFotia";
 import EstadisticasFotia from "./EstadisticasFotia";
 
+  const normalizarTextoForte = (valor = "") =>
+    String(valor)
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+
+  const esPreviaRealForte = (materia) => {
+    const asignatura = normalizarTextoForte(
+      materia?.asignatura || materia?.materia || "",
+    );
+
+    const valoresSinMateria = [
+      "",
+      "-",
+      "----------",
+      "---------",
+      "--------",
+      "ninguna",
+      "sin previas",
+      "sin previa",
+      "no posee",
+    ];
+
+    return !valoresSinMateria.includes(asignatura);
+  };
+
 export default function GestionFotia({
   alumnosMatricula = [],
   alumnosParaExamen = [],
@@ -40,32 +67,7 @@ export default function GestionFotia({
     Array.isArray(alumnosMatricula) && alumnosMatricula.length > 0
       ? alumnosMatricula
       : alumnosParaExamen;
-  const normalizarTextoForte = (valor = "") =>
-    String(valor)
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase()
-      .trim();
 
-  const esPreviaRealForte = (materia) => {
-    const asignatura = normalizarTextoForte(
-      materia?.asignatura || materia?.materia || "",
-    );
-
-    const valoresSinMateria = [
-      "",
-      "-",
-      "----------",
-      "---------",
-      "--------",
-      "ninguna",
-      "sin previas",
-      "sin previa",
-      "no posee",
-    ];
-
-    return !valoresSinMateria.includes(asignatura);
-  };
 
   const inscripcionesForteAutomaticas = useMemo(() => {
     return fuenteAlumnos.flatMap((alumno) => {

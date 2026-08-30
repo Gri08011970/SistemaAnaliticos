@@ -73,7 +73,7 @@ export default function BuscadorGeneralMatricula({
                     editarAlumno(alumno);
                   }}
                 >
-                  ✏️
+                  ✏️ Editar
                 </button>
 
                 <button
@@ -91,7 +91,7 @@ export default function BuscadorGeneralMatricula({
                     }, 100);
                   }}
                 >
-                  📖
+                  📖 Ficha Estudiante
                 </button>
               </div>
             );

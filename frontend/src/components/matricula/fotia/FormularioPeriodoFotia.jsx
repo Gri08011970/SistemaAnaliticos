@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const estadoInicial = {
   nombre: "",
@@ -10,56 +10,52 @@ const estadoInicial = {
   observaciones: "",
 };
 
+function crearEstadoFormulario(periodoEditar) {
+  if (!periodoEditar?._id) {
+    return { ...estadoInicial };
+  }
+
+  return {
+    nombre: periodoEditar.nombre || "",
+
+    cicloLectivo:
+      periodoEditar.cicloLectivo ||
+      new Date().getFullYear(),
+
+    fechaInicio: periodoEditar.fechaInicio
+      ? String(periodoEditar.fechaInicio).slice(0, 10)
+      : "",
+
+    fechaFin: periodoEditar.fechaFin
+      ? String(periodoEditar.fechaFin).slice(0, 10)
+      : "",
+
+    estado:
+      periodoEditar.estado || "Planificado",
+
+    descripcion:
+      periodoEditar.descripcion || "",
+
+    observaciones:
+      periodoEditar.observaciones || "",
+  };
+}
+
 export default function FormularioPeriodoFotia({
   periodoEditar = null,
   onCancelar,
   onPeriodoCreado,
   onPeriodoActualizado,
 }) {
-  const [formulario, setFormulario] =
-    useState(estadoInicial);
+  const [formulario, setFormulario] = useState(() =>
+    crearEstadoFormulario(periodoEditar),
+  );
 
-  const [guardando, setGuardando] =
-    useState(false);
+  const [guardando, setGuardando] = useState(false);
 
   const [error, setError] = useState("");
 
   const editando = Boolean(periodoEditar?._id);
-
-  useEffect(() => {
-    if (periodoEditar?._id) {
-      setFormulario({
-        nombre: periodoEditar.nombre || "",
-        cicloLectivo:
-          periodoEditar.cicloLectivo ||
-          new Date().getFullYear(),
-        fechaInicio:
-          periodoEditar.fechaInicio
-            ? String(periodoEditar.fechaInicio).slice(
-                0,
-                10,
-              )
-            : "",
-        fechaFin:
-          periodoEditar.fechaFin
-            ? String(periodoEditar.fechaFin).slice(
-                0,
-                10,
-              )
-            : "",
-        estado:
-          periodoEditar.estado || "Planificado",
-        descripcion:
-          periodoEditar.descripcion || "",
-        observaciones:
-          periodoEditar.observaciones || "",
-      });
-
-      return;
-    }
-
-    setFormulario(estadoInicial);
-  }, [periodoEditar]);
 
   const actualizarCampo = (evento) => {
     const { name, value } = evento.target;

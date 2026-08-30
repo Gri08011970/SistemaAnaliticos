@@ -653,12 +653,6 @@ const celdaAmplia = {
   textAlign: "left",
 };
 
-const celdaObservaciones = {
-  ...celda,
-  minWidth: "240px",
-  maxWidth: "240px",
-};
-
 const lineaEscritura = {
   height: "18px",
   borderBottom: "1px dotted #79838b",

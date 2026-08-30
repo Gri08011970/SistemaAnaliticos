@@ -20,11 +20,10 @@ export default function FormularioAlumnoMatricula({
 
   return (
     <div
-      id="formulario-matricula"
-      className="formulario-alumno-matricula"
-      style={estilos.formularioAlumno}
-      className="no-print"
-    >
+  id="formulario-matricula"
+  className="formulario-alumno-matricula no-print"
+  style={estilos.formularioAlumno}
+>
       <input placeholder="Apellido" style={estilos.inputAlumno} value={nuevoAlumno.apellido} onChange={(e) => setNuevoAlumno({ ...nuevoAlumno, apellido: e.target.value })} />
       <input placeholder="Nombre" style={estilos.inputAlumno} value={nuevoAlumno.nombre} onChange={(e) => setNuevoAlumno({ ...nuevoAlumno, nombre: e.target.value })} />
       <input placeholder="DNI" style={estilos.inputAlumno} value={nuevoAlumno.dni} onChange={(e) => setNuevoAlumno({ ...nuevoAlumno, dni: e.target.value })} />
