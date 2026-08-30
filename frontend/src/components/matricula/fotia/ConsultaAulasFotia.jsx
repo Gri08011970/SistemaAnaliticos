@@ -477,8 +477,10 @@ const resumen = {
 const grilla = {
   display: "grid",
   gridTemplateColumns:
-    "repeat(auto-fit, minmax(min(100%, 310px), 1fr))",
+    "repeat(auto-fill, minmax(min(100%, 330px), 330px))",
   gap: "18px",
+  justifyContent: "start",
+  alignItems: "stretch",
 };
 
 const tarjeta = {

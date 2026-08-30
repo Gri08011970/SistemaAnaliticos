@@ -832,7 +832,7 @@ export default function AulaAsignaturaFotia({ inscripcion, volver }) {
                                 📎
                               </div>
 
-                              <div
+                              <div 
                                 style={{
                                   color: "#173f68",
                                   fontWeight: "800",
