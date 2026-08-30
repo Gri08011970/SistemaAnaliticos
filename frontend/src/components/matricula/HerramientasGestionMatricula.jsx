@@ -1,4 +1,4 @@
-import { useState} from "react";
+import { useState } from "react";
 
 import SeguimientoPedagogico from "./SeguimientoPedagogico/SeguimientoPedagogico";
 import GestionFotia from "./fotia/GestionFotia";
@@ -13,7 +13,7 @@ import TurnosCursosMatricula from "./TurnosCursosMatricula";
 import TarjetaModulo from "./TarjetaModulo";
 import PlanillaReinscripcion from "./PlanillaReinscripcion";
 
-export default function HerramientasGestionMatricula({ 
+export default function HerramientasGestionMatricula({
   esAdmin,
   alumnosMatricula,
 
@@ -218,16 +218,12 @@ export default function HerramientasGestionMatricula({
           </button>
 
           <BotonesHerramientasMatricula
-            verPlanillaPrevias={verPlanillaPrevias}
             setVerPlanillaPrevias={setVerPlanillaPrevias}
             setMateriaExamen={setMateriaExamen}
             setAnioExamen={setAnioExamen}
             setTurnoExamen={setTurnoExamen}
-            mostrarRelevamiento={mostrarRelevamiento}
             setMostrarRelevamiento={setMostrarRelevamiento}
-            verRecursantes={verRecursantes}
             setVerRecursantes={setVerRecursantes}
-            imprimirRecursantes={imprimirRecursantes}
             estilos={{ botonImprimir }}
           />
 
@@ -271,12 +267,15 @@ export default function HerramientasGestionMatricula({
 
           <RecursantesMatricula
             verRecursantes={verRecursantes}
+            setVerRecursantes={setVerRecursantes}
             alumnosRecursantes={alumnosRecursantes}
             formatearDNI={formatearDNI}
+            imprimirRecursantes={imprimirRecursantes}
             estilos={{
               detalleCurso,
               tabla,
               celda,
+              botonVolver,
             }}
           />
         </div>
@@ -378,7 +377,7 @@ export default function HerramientasGestionMatricula({
             setMostrarTurnoTarde={setMostrarTurnoTarde}
             fotosPreceptores={fotosPreceptores}
             contarAlumnos={contarAlumnos}
-            setCursoSeleccionado={setCursoSeleccionado} 
+            setCursoSeleccionado={setCursoSeleccionado}
             estilos={{
               contenedorTurnos,
               bloqueTurno,

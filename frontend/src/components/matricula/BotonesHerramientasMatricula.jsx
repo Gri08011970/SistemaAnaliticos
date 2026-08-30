@@ -1,14 +1,10 @@
 export default function BotonesHerramientasMatricula({
-  verPlanillaPrevias,
   setVerPlanillaPrevias,
   setMateriaExamen,
   setAnioExamen,
   setTurnoExamen,
-  mostrarRelevamiento,
   setMostrarRelevamiento,
-  verRecursantes,
   setVerRecursantes,
-  imprimirRecursantes,
   estilos,
 }) {
   const estiloContenedor = {
@@ -32,57 +28,34 @@ export default function BotonesHerramientasMatricula({
         type="button"
         style={estiloBoton}
         onClick={() => {
-          setVerPlanillaPrevias(!verPlanillaPrevias);
+          setVerPlanillaPrevias(true);
           setMateriaExamen("");
           setAnioExamen("");
           setTurnoExamen("");
         }}
       >
-        📝{" "}
-        {verPlanillaPrevias
-          ? "Ocultar Planilla Previas"
-          : "Ver Planilla Previas"}
+        📝 Ver Previas
       </button>
 
       <button
         type="button"
         style={estiloBoton}
-        onClick={() =>
-          setMostrarRelevamiento(!mostrarRelevamiento)
-        }
+        onClick={() => {
+          setMostrarRelevamiento(true);
+        }}
       >
-        {mostrarRelevamiento
-          ? "📊 Ocultar relevamiento"
-          : "📊 Mostrar relevamiento"}
+        📊 Mostrar relevamiento
       </button>
 
       <button
         type="button"
         style={estiloBoton}
-        onClick={() =>
-          setVerRecursantes(!verRecursantes)
-        }
+        onClick={() => {
+          setVerRecursantes(true);
+        }}
       >
-        🔁{" "}
-        {verRecursantes
-          ? "Ocultar recursantes"
-          : "Ver recursantes"}
+        🔁 Ver recursantes
       </button>
-
-      {verRecursantes && (
-        <button
-          type="button"
-          style={{
-            ...estiloBoton,
-            backgroundColor: "#f5f0fb",
-            border: "2px solid #d4c3e7",
-            color: "#5e3f78",
-          }}
-          onClick={imprimirRecursantes}
-        >
-          🖨️ Imprimir recursantes
-        </button>
-      )}
     </div>
   );
-} 
+}

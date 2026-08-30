@@ -18,9 +18,23 @@ export default function PlanillaPreviasMatricula({
 
   return (
     <div style={estilos.detalleCurso}>
-      <h3 style={{ color: "#1e3a5f" }}>📋 Planilla de examen: PREVIAS</h3>
+      <h3
+        style={{
+          color: "#1e3a5f",
+          textAlign: "center",
+        }}
+      >
+        📋 Planilla de examen: PREVIAS
+      </h3>
 
-      <div  className="filtros-previas-responsive" style={{ display: "flex", gap: "10px", marginBottom: "15px" }}>
+      <div
+        className="filtros-previas-responsive"
+        style={{
+          display: "flex",
+          gap: "10px",
+          marginBottom: "15px",
+        }}
+      >
         <select
           className="select-previas-responsive"
           style={estilos.inputAlumno}
@@ -28,6 +42,7 @@ export default function PlanillaPreviasMatricula({
           onChange={(e) => setMateriaExamen(e.target.value)}
         >
           <option value="">Seleccionar asignatura</option>
+
           {asignaturas.map((asignatura) => (
             <option key={asignatura} value={asignatura}>
               {asignatura}
@@ -42,6 +57,7 @@ export default function PlanillaPreviasMatricula({
           onChange={(e) => setAnioExamen(e.target.value)}
         >
           <option value="">Seleccionar año</option>
+
           {aniosMateria.map((anio) => (
             <option key={anio} value={anio}>
               {anio}
@@ -62,9 +78,99 @@ export default function PlanillaPreviasMatricula({
       </div>
 
       <div id="planilla-previas-imprimir">
-        <h3 style={{ color: "#1e3a5f" }}>📋 Planilla de examen: PREVIAS</h3>
+        <div
+          className="no-print"
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: "16px",
+            flexWrap: "wrap",
+            margin: "18px 0 16px",
+            padding: "14px 16px",
+            border: "1px solid #c9dce8",
+            borderRadius: "12px",
+            background: "#f8fbfd",
+          }}
+        >
+          <div>
+            <strong
+              style={{
+                display: "block",
+                color: "#1e3a5f",
+                fontSize: "16px",
+                marginBottom: "4px",
+              }}
+            >
+              Resultados de la planilla
+            </strong>
 
-        <p>Cantidad de estudiantes: {alumnosParaExamen.length}</p>
+            <span
+              style={{
+                color: "#607080",
+                fontSize: "14px",
+              }}
+            >
+              {alumnosParaExamen.length} estudiantes encontrados
+            </span>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              gap: "10px",
+              flexWrap: "wrap",
+            }}
+          >
+            <button
+              type="button"
+              style={{
+                padding: "8px 14px",
+                minWidth: "135px",
+                minHeight: "42px",
+                border: "1px solid #c8d6e2",
+                borderRadius: "10px",
+                background: "#f4f7f9",
+                color: "#445b6e",
+                fontSize: "14px",
+                fontWeight: "700",
+                cursor: "pointer",
+              }}
+              onClick={imprimirPlanillaPrevias}
+            >
+              🖨️ Imprimir
+            </button>
+
+            <button
+              type="button"
+              style={{
+                padding: "8px 14px",
+                minWidth: "120px",
+                minHeight: "42px",
+                border: "1px solid #c8d6e2",
+                borderRadius: "10px",
+                background: "#f4f7f9",
+                color: "#445b6e",
+                fontSize: "14px",
+                fontWeight: "700",
+                cursor: "pointer",
+              }}
+              onClick={cerrarPlanillaPrevias}
+            >
+              Ocultar
+            </button>
+          </div>
+        </div>
+
+        <p
+          className="solo-print"
+          style={{
+            textAlign: "center",
+            marginBottom: "14px",
+          }}
+        >
+          Cantidad de estudiantes: {alumnosParaExamen.length}
+        </p>
 
         {alumnosParaExamen.length === 0 && (
           <p style={estilos.mensajeNoEncontrado}>
@@ -93,7 +199,8 @@ export default function PlanillaPreviasMatricula({
                   const coincideMateria =
                     !materiaExamen || previa.asignatura === materiaExamen;
 
-                  const coincideAnio = !anioExamen || previa.anio === anioExamen;
+                  const coincideAnio =
+                    !anioExamen || previa.anio === anioExamen;
 
                   return coincideMateria && coincideAnio;
                 })
@@ -102,33 +209,21 @@ export default function PlanillaPreviasMatricula({
                     <td style={estilos.celda}>
                       {alumno.apellido}, {alumno.nombre}
                     </td>
+
                     <td style={estilos.celda}>{formatearDNI(alumno.dni)}</td>
+
                     <td style={estilos.celda}>{alumno.curso}</td>
+
                     <td style={estilos.celda}>{alumno.turno}</td>
+
                     <td style={estilos.celda}>{previa.asignatura}</td>
+
                     <td style={estilos.celda}>{previa.anio}</td>
                   </tr>
-                ))
+                )),
             )}
           </tbody>
         </table>
-      </div>
-
-      <div
-        style={{
-          display: "flex",
-          gap: "12px",
-          justifyContent: "center",
-          marginTop: "10px",
-        }}
-      >
-        <button style={estilos.botonImprimir} onClick={imprimirPlanillaPrevias}>
-          🖨️ Imprimir planilla
-        </button>
-
-        <button style={estilos.botonVolver} onClick={cerrarPlanillaPrevias}>
-          Cerrar planilla
-        </button>
       </div>
     </div>
   );

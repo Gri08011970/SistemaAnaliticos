@@ -306,143 +306,192 @@ export default function RelevamientoInspeccionMatricula({
   };
 
   return (
-    <div style={estilos.bloqueHerramienta}>
+  <div style={estilos.bloqueHerramienta}>
+    <h3
+      style={{
+        margin: "0 0 14px",
+        color: "#1e3a5f",
+        textAlign: "center",
+      }}
+    >
+      📊 Relevamiento para Inspección (Cuadernillo)
+    </h3>
+
+    <div
+      className="no-print"
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        gap: "16px",
+        flexWrap: "wrap",
+        margin: "0 0 16px",
+        padding: "14px 16px",
+        border: "1px solid #c9dce8",
+        borderRadius: "12px",
+        background: "#f8fbfd",
+      }}
+    >
+      <div>
+        <strong
+          style={{
+            display: "block",
+            color: "#1e3a5f",
+            fontSize: "16px",
+            marginBottom: "7px",
+          }}
+        >
+          Año del relevamiento
+        </strong>
+
+        <select
+          value={anioRelevamiento}
+          onChange={(evento) =>
+            setAnioRelevamiento(evento.target.value)
+          }
+          style={{
+            ...estilos.inputAlumno,
+            minWidth: "160px",
+          }}
+        >
+          <option value="1">1° año</option>
+          <option value="2">2° año</option>
+          <option value="3">3° año</option>
+          <option value="4">4° año</option>
+          <option value="5">5° año</option>
+          <option value="6">6° año</option>
+        </select>
+      </div>
+
       <div
         style={{
           display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
           gap: "10px",
-          marginBottom: "10px",
           flexWrap: "wrap",
         }}
       >
-        <h3 style={{ margin: 0 }}>
-          📊 Relevamiento para Inspección
-        </h3>
-
-        <div
+        <button
+          type="button"
           style={{
-            display: "flex",
-            gap: "8px",
-            flexWrap: "wrap",
+            padding: "8px 14px",
+            minWidth: "150px",
+            minHeight: "42px",
+            border: "1px solid #c8d6e2",
+            borderRadius: "10px",
+            background: "#f4f7f9",
+            color: "#445b6e",
+            fontSize: "14px",
+            fontWeight: "700",
+            cursor: "pointer",
           }}
+          onClick={imprimirRelevamiento}
         >
-          <button
-            type="button"
-            style={estilos.botonImprimir}
-            onClick={imprimirRelevamiento}
-          >
-            🖨️ Imprimir relevamiento
-          </button>
+          🖨️ Imprimir
+        </button>
 
-          <button
-            type="button"
-            style={estilos.botonImprimir}
-            onClick={() => setMostrarRelevamiento(false)}
-          >
-            Ocultar
-          </button>
-        </div>
-      </div>
-
-      <select
-        value={anioRelevamiento}
-        onChange={(evento) =>
-          setAnioRelevamiento(evento.target.value)
-        }
-        style={estilos.inputAlumno}
-      >
-        <option value="1">1° año</option>
-        <option value="2">2° año</option>
-        <option value="3">3° año</option>
-        <option value="4">4° año</option>
-        <option value="5">5° año</option>
-        <option value="6">6° año</option>
-      </select>
-
-      <div
-        style={{
-          marginTop: "12px",
-          textAlign: "left",
-          lineHeight: "1.8",
-        }}
-      >
-        <p>
-          ✅ Promocionaron sin deber materias:{" "}
-          <strong>
-            {relevamientoInspeccion.promocionaron}
-          </strong>
-        </p>
-
-        <p>
-          📘 Adeudan 1 o 2 materias:{" "}
-          <strong>{relevamientoInspeccion.unaODos}</strong>
-        </p>
-
-        <p>
-          📙 Adeudan 3 o 4 materias:{" "}
-          <strong>
-            {relevamientoInspeccion.tresOCuatro}
-          </strong>
-        </p>
-
-        <p>
-          📕 Adeudan 5 o más materias:{" "}
-          <strong>{relevamientoInspeccion.cincoOMas}</strong>
-        </p>
-
-        <p>
-          ⚠️ Adeudan todas las materias:{" "}
-          <strong>{relevamientoInspeccion.todas}</strong>
-        </p>
-
-        <hr style={{ margin: "12px 0" }} />
-
-        <p>
-          🌎 Extranjeros:{" "}
-          <strong>{relevamientoInspeccion.extranjeros}</strong>
-        </p>
-
-        <p>
-          Boliviana:{" "}
-          <strong>{relevamientoInspeccion.boliviana}</strong>
-        </p>
-
-        <p>
-          Paraguaya:{" "}
-          <strong>{relevamientoInspeccion.paraguaya}</strong>
-        </p>
-
-        <p>
-          Peruana:{" "}
-          <strong>{relevamientoInspeccion.peruana}</strong>
-        </p>
-
-        <p>
-          Chilena:{" "}
-          <strong>{relevamientoInspeccion.chilena}</strong>
-        </p>
-
-        <p>
-          Otros:{" "}
-          <strong>{relevamientoInspeccion.otros}</strong>
-        </p>
-
-        <hr style={{ margin: "12px 0" }} />
-
-        <p>
-          🔁 Recursantes:{" "}
-          <strong>{relevamientoInspeccion.recursantes}</strong>
-        </p>
-
-        <p>
-          👦 Recursantes varones:{" "}
-          <strong>
-            {relevamientoInspeccion.recursantesVarones}
-          </strong>
-        </p>
+        <button
+          type="button"
+          style={{
+            padding: "8px 14px",
+            minWidth: "120px",
+            minHeight: "42px",
+            border: "1px solid #c8d6e2",
+            borderRadius: "10px",
+            background: "#f4f7f9",
+            color: "#445b6e",
+            fontSize: "14px",
+            fontWeight: "700",
+            cursor: "pointer",
+          }}
+          onClick={() => setMostrarRelevamiento(false)}
+        >
+          Ocultar
+        </button>
       </div>
     </div>
-  );
+
+    <div
+      style={{
+        marginTop: "12px",
+        textAlign: "left",
+        lineHeight: "1.8",
+      }}
+    >
+      <p>
+        ✅ Promocionaron sin deber materias:{" "}
+        <strong>
+          {relevamientoInspeccion.promocionaron}
+        </strong>
+      </p>
+
+      <p>
+        📘 Adeudan 1 o 2 materias:{" "}
+        <strong>{relevamientoInspeccion.unaODos}</strong>
+      </p>
+
+      <p>
+        📙 Adeudan 3 o 4 materias:{" "}
+        <strong>
+          {relevamientoInspeccion.tresOCuatro}
+        </strong>
+      </p>
+
+      <p>
+        📕 Adeudan 5 o más materias:{" "}
+        <strong>{relevamientoInspeccion.cincoOMas}</strong>
+      </p>
+
+      <p>
+        ⚠️ Adeudan todas las materias:{" "}
+        <strong>{relevamientoInspeccion.todas}</strong>
+      </p>
+
+      <hr style={{ margin: "12px 0" }} />
+
+      <p>
+        🌎 Extranjeros:{" "}
+        <strong>{relevamientoInspeccion.extranjeros}</strong>
+      </p>
+
+      <p>
+        Boliviana:{" "}
+        <strong>{relevamientoInspeccion.boliviana}</strong>
+      </p>
+
+      <p>
+        Paraguaya:{" "}
+        <strong>{relevamientoInspeccion.paraguaya}</strong>
+      </p>
+
+      <p>
+        Peruana:{" "}
+        <strong>{relevamientoInspeccion.peruana}</strong>
+      </p>
+
+      <p>
+        Chilena:{" "}
+        <strong>{relevamientoInspeccion.chilena}</strong>
+      </p>
+
+      <p>
+        Otros:{" "}
+        <strong>{relevamientoInspeccion.otros}</strong>
+      </p>
+
+      <hr style={{ margin: "12px 0" }} />
+
+      <p>
+        🔁 Recursantes:{" "}
+        <strong>{relevamientoInspeccion.recursantes}</strong>
+      </p>
+
+      <p>
+        👦 Recursantes varones:{" "}
+        <strong>
+          {relevamientoInspeccion.recursantesVarones}
+        </strong>
+      </p>
+    </div>
+  </div>
+);
 }
