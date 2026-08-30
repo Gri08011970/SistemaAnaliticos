@@ -110,9 +110,11 @@ export default function HerramientasGestionMatricula({
   } = estilos;
 
   const [seccionActiva, setSeccionActiva] = useState("");
+  const [seccionLegajosActiva, setSeccionLegajosActiva] = useState("");
 
   const volverATablero = () => {
     setSeccionActiva("");
+    setSeccionLegajosActiva("");
   };
 
   return (
@@ -283,7 +285,21 @@ export default function HerramientasGestionMatricula({
 
       {seccionActiva === "legajos" && (
         <div style={{ width: "100%" }}>
-          <button type="button" onClick={volverATablero} style={botonVolver}>
+          <button
+            type="button"
+            onClick={() => {
+              if (seccionLegajosActiva) {
+                setSeccionLegajosActiva("");
+                setAnioLegajoFiltro("");
+                setLibroMatrizFiltro("");
+                setMostrarLegajosArchivo(false);
+                setMostrarMatrizArchivo(false);
+              } else {
+                volverATablero();
+              }
+            }}
+            style={botonVolver}
+          >
             ← Volver
           </button>
 
@@ -307,61 +323,273 @@ export default function HerramientasGestionMatricula({
               🧾 Legajos y matriz
             </h2>
 
-            <FiltrosLegajoMatrizMatricula
-              anioLegajoFiltro={anioLegajoFiltro}
-              setAnioLegajoFiltro={setAnioLegajoFiltro}
-              libroMatrizFiltro={libroMatrizFiltro}
-              setLibroMatrizFiltro={setLibroMatrizFiltro}
-              aniosLegajoDisponibles={aniosLegajoDisponibles}
-              librosMatrizDisponibles={librosMatrizDisponibles}
-              estilos={{
-                bloqueHerramienta,
-                inputAlumno,
-              }}
-            />
+            {!seccionLegajosActiva && (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                  gap: "18px",
+                  maxWidth: "760px",
+                  margin: "24px auto 8px",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    minHeight: "220px",
+                    padding: "24px 22px 20px",
+                    border: "2px solid #b9d5ef",
+                    borderRadius: "15px",
+                    background: "#ffffff",
+                    boxShadow: "0 4px 12px rgba(30, 58, 95, 0.08)",
+                    textAlign: "center",
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        fontSize: "34px",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      🧾
+                    </div>
 
-            <ListadoLegajosMatricula
-              anioLegajoFiltro={anioLegajoFiltro}
-              alumnosPorLegajo={alumnosPorLegajo}
-              formatearDNI={formatearDNI}
-              estilos={{
-                detalleCurso,
-                tabla,
-                celda,
-              }}
-            />
+                    <h3
+                      style={{
+                        margin: "0 0 10px",
+                        color: "#123b6d",
+                        fontSize: "20px",
+                      }}
+                    >
+                      Legajos
+                    </h3>
 
-            <ArchivoLegajoMatrizMatricula
-              anioLegajoFiltro={anioLegajoFiltro}
-              libroMatrizFiltro={libroMatrizFiltro}
-              mostrarLegajosArchivo={mostrarLegajosArchivo}
-              setMostrarLegajosArchivo={setMostrarLegajosArchivo}
-              mostrarMatrizArchivo={mostrarMatrizArchivo}
-              setMostrarMatrizArchivo={setMostrarMatrizArchivo}
-              obtenerLegajosFaltantes={obtenerLegajosFaltantes}
-              obtenerFoliosFaltantes={obtenerFoliosFaltantes}
-              alumnosPorMatriz={alumnosPorMatriz}
-              formatearDNI={formatearDNI}
-              estilos={{
-                bloqueHerramienta,
-                botonImprimir,
-                detalleCurso,
-                tabla,
-                celda,
-                cajaArchivo: {
-                  marginTop: "12px",
-                  padding: "12px",
-                  border: "1px solid #c7dde3",
-                  borderRadius: "10px",
-                  backgroundColor: "#f7fafb",
-                  marginBottom: "16px",
-                },
-              }}
-            />
+                    <p
+                      style={{
+                        margin: "0 0 20px",
+                        color: "#607080",
+                        fontSize: "15px",
+                        lineHeight: "1.5",
+                      }}
+                    >
+                      Consultá legajos por año, controlá la numeración y detectá
+                      legajos faltantes.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSeccionLegajosActiva("legajos");
+                      setAnioLegajoFiltro("");
+                      setLibroMatrizFiltro("");
+                      setMostrarLegajosArchivo(false);
+                      setMostrarMatrizArchivo(false);
+                    }}
+                    style={{
+                      minWidth: "120px",
+                      padding: "9px 20px",
+                      border: "none",
+                      borderRadius: "10px",
+                      background: "#15978f",
+                      color: "#ffffff",
+                      fontSize: "14px",
+                      fontWeight: "700",
+                      cursor: "pointer",
+                      boxShadow: "0 4px 8px rgba(21, 151, 143, 0.18)",
+                    }}
+                  >
+                    Entrar
+                  </button>
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    minHeight: "220px",
+                    padding: "24px 22px 20px",
+                    border: "2px solid #b9d5ef",
+                    borderRadius: "15px",
+                    background: "#ffffff",
+                    boxShadow: "0 4px 12px rgba(30, 58, 95, 0.08)",
+                    textAlign: "center",
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        fontSize: "34px",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      📖
+                    </div>
+
+                    <h3
+                      style={{
+                        margin: "0 0 10px",
+                        color: "#123b6d",
+                        fontSize: "20px",
+                      }}
+                    >
+                      Libro matriz
+                    </h3>
+
+                    <p
+                      style={{
+                        margin: "0 0 20px",
+                        color: "#607080",
+                        fontSize: "15px",
+                        lineHeight: "1.5",
+                      }}
+                    >
+                      Consultá registros por libro, verificá los folios
+                      utilizados y detectá folios faltantes.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSeccionLegajosActiva("matriz");
+                      setAnioLegajoFiltro("");
+                      setLibroMatrizFiltro("");
+                      setMostrarLegajosArchivo(false);
+                      setMostrarMatrizArchivo(false);
+                    }}
+                    style={{
+                      minWidth: "120px",
+                      padding: "9px 20px",
+                      border: "none",
+                      borderRadius: "10px",
+                      background: "#15978f",
+                      color: "#ffffff",
+                      fontSize: "14px",
+                      fontWeight: "700",
+                      cursor: "pointer",
+                      boxShadow: "0 4px 8px rgba(21, 151, 143, 0.18)",
+                    }}
+                  >
+                    Entrar
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {seccionLegajosActiva === "legajos" && (
+              <>
+                <FiltrosLegajoMatrizMatricula
+                  modo="legajos"
+                  anioLegajoFiltro={anioLegajoFiltro}
+                  setAnioLegajoFiltro={setAnioLegajoFiltro}
+                  libroMatrizFiltro={libroMatrizFiltro}
+                  setLibroMatrizFiltro={setLibroMatrizFiltro}
+                  aniosLegajoDisponibles={aniosLegajoDisponibles}
+                  librosMatrizDisponibles={librosMatrizDisponibles}
+                  estilos={{
+                    bloqueHerramienta,
+                    inputAlumno,
+                  }}
+                />
+
+                <ArchivoLegajoMatrizMatricula
+                  modo="legajos"
+                  anioLegajoFiltro={anioLegajoFiltro}
+                  libroMatrizFiltro={libroMatrizFiltro}
+                  mostrarLegajosArchivo={mostrarLegajosArchivo}
+                  setMostrarLegajosArchivo={setMostrarLegajosArchivo}
+                  mostrarMatrizArchivo={mostrarMatrizArchivo}
+                  setMostrarMatrizArchivo={setMostrarMatrizArchivo}
+                  obtenerLegajosFaltantes={obtenerLegajosFaltantes}
+                  obtenerFoliosFaltantes={obtenerFoliosFaltantes}
+                  alumnosPorMatriz={alumnosPorMatriz}
+                  formatearDNI={formatearDNI}
+                  estilos={{
+                    bloqueHerramienta,
+                    botonImprimir,
+                    detalleCurso,
+                    tabla,
+                    celda,
+                    cajaArchivo: {
+                      marginTop: "12px",
+                      padding: "12px",
+                      border: "1px solid #c7dde3",
+                      borderRadius: "10px",
+                      backgroundColor: "#f7fafb",
+                      marginBottom: "16px",
+                    },
+                  }}
+                />
+
+                <ListadoLegajosMatricula
+                  anioLegajoFiltro={anioLegajoFiltro}
+                  alumnosPorLegajo={alumnosPorLegajo}
+                  formatearDNI={formatearDNI}
+                  estilos={{
+                    detalleCurso,
+                    tabla,
+                    celda,
+                  }}
+                />
+              </>
+            )}
+
+            {seccionLegajosActiva === "matriz" && (
+              <>
+                <FiltrosLegajoMatrizMatricula
+                  modo="matriz"
+                  anioLegajoFiltro={anioLegajoFiltro}
+                  setAnioLegajoFiltro={setAnioLegajoFiltro}
+                  libroMatrizFiltro={libroMatrizFiltro}
+                  setLibroMatrizFiltro={setLibroMatrizFiltro}
+                  aniosLegajoDisponibles={aniosLegajoDisponibles}
+                  librosMatrizDisponibles={librosMatrizDisponibles}
+                  estilos={{
+                    bloqueHerramienta,
+                    inputAlumno,
+                  }}
+                />
+
+                <ArchivoLegajoMatrizMatricula
+                  modo="matriz"
+                  anioLegajoFiltro={anioLegajoFiltro}
+                  libroMatrizFiltro={libroMatrizFiltro}
+                  mostrarLegajosArchivo={mostrarLegajosArchivo}
+                  setMostrarLegajosArchivo={setMostrarLegajosArchivo}
+                  mostrarMatrizArchivo={mostrarMatrizArchivo}
+                  setMostrarMatrizArchivo={setMostrarMatrizArchivo}
+                  obtenerLegajosFaltantes={obtenerLegajosFaltantes}
+                  obtenerFoliosFaltantes={obtenerFoliosFaltantes}
+                  alumnosPorMatriz={alumnosPorMatriz}
+                  formatearDNI={formatearDNI}
+                  estilos={{
+                    bloqueHerramienta,
+                    botonImprimir,
+                    detalleCurso,
+                    tabla,
+                    celda,
+                    cajaArchivo: {
+                      marginTop: "12px",
+                      padding: "12px",
+                      border: "1px solid #c7dde3",
+                      borderRadius: "10px",
+                      backgroundColor: "#f7fafb",
+                      marginBottom: "16px",
+                    },
+                  }}
+                />
+              </>
+            )}
           </div>
         </div>
       )}
-
       {seccionActiva === "cursos" && (
         <div style={{ width: "100%" }}>
           <button type="button" onClick={volverATablero} style={botonVolver}>

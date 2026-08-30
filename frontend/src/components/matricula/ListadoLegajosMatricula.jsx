@@ -16,38 +16,38 @@ export default function ListadoLegajosMatricula({
 
     const fechaEmision = new Date().toLocaleDateString("es-AR");
 
-    const alumnosOrdenados = [...alumnosPorLegajo].sort(
-      (alumnoA, alumnoB) => {
-        const numeroA = Number(alumnoA.legajoNumero);
-        const numeroB = Number(alumnoB.legajoNumero);
+    const alumnosOrdenados = [...alumnosPorLegajo].sort((alumnoA, alumnoB) => {
+      const numeroA = Number(alumnoA.legajoNumero);
+      const numeroB = Number(alumnoB.legajoNumero);
 
-        if (
-          !Number.isNaN(numeroA) &&
-          !Number.isNaN(numeroB) &&
-          numeroA !== numeroB
-        ) {
-          return numeroA - numeroB;
-        }
+      if (
+        !Number.isNaN(numeroA) &&
+        !Number.isNaN(numeroB) &&
+        numeroA !== numeroB
+      ) {
+        return numeroA - numeroB;
+      }
 
-        const comparacionApellido = String(
-          alumnoA.apellido || "",
-        ).localeCompare(String(alumnoB.apellido || ""), "es", {
+      const comparacionApellido = String(alumnoA.apellido || "").localeCompare(
+        String(alumnoB.apellido || ""),
+        "es",
+        {
           sensitivity: "base",
-        });
+        },
+      );
 
-        if (comparacionApellido !== 0) {
-          return comparacionApellido;
-        }
+      if (comparacionApellido !== 0) {
+        return comparacionApellido;
+      }
 
-        return String(alumnoA.nombre || "").localeCompare(
-          String(alumnoB.nombre || ""),
-          "es",
-          {
-            sensitivity: "base",
-          },
-        );
-      },
-    );
+      return String(alumnoA.nombre || "").localeCompare(
+        String(alumnoB.nombre || ""),
+        "es",
+        {
+          sensitivity: "base",
+        },
+      );
+    });
 
     const filas = alumnosOrdenados
       .map((alumno, indice) => {
@@ -56,19 +56,12 @@ export default function ListadoLegajosMatricula({
             ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
             : "—";
 
-        const nombreCompleto = [
-          alumno.apellido,
-          alumno.nombre,
-        ]
+        const nombreCompleto = [alumno.apellido, alumno.nombre]
           .filter(Boolean)
           .join(", ");
 
         const matriz =
-          String(
-            alumno.folioMatriz ||
-              alumno.libroMatriz ||
-              "",
-          ).trim() || "—";
+          String(alumno.folioMatriz || alumno.libroMatriz || "").trim() || "—";
 
         return `
           <tr>
@@ -352,15 +345,20 @@ export default function ListadoLegajosMatricula({
           onClick={imprimirListadoLegajos}
           disabled={alumnosPorLegajo.length === 0}
           style={{
-            ...estilos.botonImprimir,
+            padding: "8px 14px",
+            minWidth: "120px",
+            minHeight: "42px",
+            border: "1px solid #c8d6e2",
+            borderRadius: "10px",
+            background: "#f4f7f9",
+            color: "#445b6e",
+            fontSize: "14px",
+            fontWeight: "700",
             opacity: alumnosPorLegajo.length === 0 ? 0.55 : 1,
-            cursor:
-              alumnosPorLegajo.length === 0
-                ? "not-allowed"
-                : "pointer",
+            cursor: alumnosPorLegajo.length === 0 ? "not-allowed" : "pointer",
           }}
         >
-          🖨️ Imprimir Legajos–Matriz
+          🖨️ Imprimir
         </button>
       </div>
 
@@ -389,15 +387,11 @@ export default function ListadoLegajosMatricula({
             <thead>
               <tr>
                 <th style={estilos.celda}>Legajo</th>
-                <th style={estilos.celda}>
-                  Apellido y Nombre
-                </th>
+                <th style={estilos.celda}>Apellido y Nombre</th>
                 <th style={estilos.celda}>DNI</th>
                 <th style={estilos.celda}>Curso</th>
                 <th style={estilos.celda}>Turno</th>
-                <th style={estilos.celda}>
-                  Libro / Folio matriz
-                </th>
+                <th style={estilos.celda}>Libro / Folio matriz</th>
               </tr>
             </thead>
 
@@ -405,8 +399,7 @@ export default function ListadoLegajosMatricula({
               {alumnosPorLegajo.map((alumno) => (
                 <tr key={alumno._id}>
                   <td style={estilos.celda}>
-                    {alumno.legajoNumero &&
-                    alumno.legajoAnio
+                    {alumno.legajoNumero && alumno.legajoAnio
                       ? `${alumno.legajoNumero}/${alumno.legajoAnio}`
                       : "—"}
                   </td>
@@ -415,23 +408,15 @@ export default function ListadoLegajosMatricula({
                     {alumno.apellido}, {alumno.nombre}
                   </td>
 
-                  <td style={estilos.celda}>
-                    {formatearDNI(alumno.dni)}
-                  </td>
+                  <td style={estilos.celda}>{formatearDNI(alumno.dni)}</td>
 
-                  <td style={estilos.celda}>
-                    {alumno.curso || "—"}
-                  </td>
+                  <td style={estilos.celda}>{alumno.curso || "—"}</td>
 
-                  <td style={estilos.celda}>
-                    {alumno.turno || "—"}
-                  </td>
+                  <td style={estilos.celda}>{alumno.turno || "—"}</td>
 
                   <td style={estilos.celda}>
                     {String(
-                      alumno.folioMatriz ||
-                        alumno.libroMatriz ||
-                        "",
+                      alumno.folioMatriz || alumno.libroMatriz || "",
                     ).trim() || "—"}
                   </td>
                 </tr>
