@@ -277,7 +277,7 @@ export default function PortalEstudianteFotia({
 
                     <div style={datosAsignatura}>
                       <div style={filaDato}>
-                        <span style={etiquetaDato}>👩‍🏫 Docente</span>
+                        <span style={etiquetaDato}>📋 Docente</span>
 
                         <strong style={valorDato}>
                           {obtenerNombreDocente(inscripcion.docenteId)}

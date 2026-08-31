@@ -424,7 +424,7 @@ export default function GestionAccesos({ volver }) {
                     >
                       <option value="consulta">👤 Usuario de consulta</option>
                       <option value="admin">🛡️ Administrador</option>
-                      <option value="docente">👩‍🏫 Docente</option>
+                      <option value="docente">📋 Docente</option>
                       <option value="estudiante">🎓 Estudiante</option>
                     </select>
                   </label>
@@ -443,7 +443,7 @@ export default function GestionAccesos({ volver }) {
                 {nuevoUsuario.rol === "docente" && !cargandoVinculos && (
                   <div style={bloqueVinculo}>
                     <div style={cabeceraVinculo}>
-                      <div style={iconoAvisoVinculo}>👩‍🏫</div>
+                      <div style={iconoAvisoVinculo}>📋</div>
                       <div>
                         <strong style={tituloAvisoVinculo}>
                           Vincular cuenta docente
@@ -656,7 +656,7 @@ export default function GestionAccesos({ volver }) {
                         {usuario.rol === "admin"
                           ? "🛡️"
                           : usuario.rol === "docente"
-                            ? "👩‍🏫"
+                            ? "📋"
                             : usuario.rol === "estudiante"
                               ? "🎓"
                               : "👤"}
@@ -705,7 +705,7 @@ export default function GestionAccesos({ volver }) {
 
                     {usuario.docenteId && (
                       <div style={vinculo}>
-                        👩‍🏫 Cuenta vinculada a un docente
+                        📋 Cuenta vinculada a un docente
                       </div>
                     )}
 

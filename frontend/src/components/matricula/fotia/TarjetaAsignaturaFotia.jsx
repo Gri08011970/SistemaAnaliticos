@@ -24,6 +24,13 @@ const CONFIGURACION_ESTADOS = {
     borde: "#b7ddd3",
   },
 
+  "Objetivo alcanzado": {
+    icono: "✅",
+    fondo: "#eef8f5",
+    color: "#256b61",
+    borde: "#b7ddd3",
+  },
+
   Suspendida: {
     icono: "⏸️",
     fondo: "#f3f4f6",
@@ -55,11 +62,15 @@ const formatearFecha = (fecha) => {
 
 export default function TarjetaAsignaturaFotia({
   asignatura,
+  programaSeleccionado = "FORTE",
   docentesFotia = [],
   esAdmin = false,
   onRetirar,
   onActualizada,
 }) {
+  const esFotia = programaSeleccionado === "FOTIA";
+  const esForte = programaSeleccionado === "FORTE";
+
   const configuracionEstado =
     CONFIGURACION_ESTADOS[asignatura.estado] ||
     CONFIGURACION_ESTADOS.Incorporada;
@@ -122,6 +133,69 @@ export default function TarjetaAsignaturaFotia({
   const tieneIntervencionGuardada =
     Boolean(asignatura._id) && !String(asignatura._id).startsWith("forte-");
 
+  const marcarObjetivoAlcanzado = async () => {
+  if (!esFotia) return;
+
+  const confirmar = window.confirm(
+    "¿Confirmás que el estudiante alcanzó el objetivo de alfabetización?\n\n" +
+      "Esta acción no acredita ninguna materia ni modifica Matrícula.",
+  );
+
+  if (!confirmar) return;
+
+  try {
+    const respuesta = await fetch(
+      `/api/fotia/inscripciones/${asignatura._id}/objetivo-alcanzado`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem(
+            "tokenUsuario",
+          )}`,
+        },
+        body: JSON.stringify({
+          fechaObjetivoAlcanzado: new Date()
+            .toISOString()
+            .slice(0, 10),
+          docenteId:
+            asignatura.docenteId?._id ||
+            asignatura.docenteId ||
+            null,
+          observaciones:
+            asignatura.observaciones || "",
+        }),
+      },
+    );
+
+    const datos = await respuesta.json();
+
+    if (!respuesta.ok) {
+      throw new Error(
+        datos.mensaje ||
+          "No se pudo registrar el objetivo alcanzado.",
+      );
+    }
+
+    onActualizada?.(datos.inscripcion);
+
+    window.alert(
+      datos.mensaje ||
+        "El objetivo de alfabetización fue registrado correctamente.",
+    );
+  } catch (error) {
+    console.error(
+      "Error al marcar objetivo alcanzado:",
+      error,
+    );
+
+    window.alert(
+      error.message ||
+        "No se pudo registrar el objetivo alcanzado.",
+    );
+  }
+}; 
+
   return (
     <article
       style={{
@@ -158,7 +232,9 @@ export default function TarjetaAsignaturaFotia({
               letterSpacing: "0.06em",
             }}
           >
-            Área de fortalecimiento
+            {esFotia
+              ? "Trayectoria de alfabetización"
+              : "Área de fortalecimiento"}
           </span>
 
           <h5
@@ -169,7 +245,7 @@ export default function TarjetaAsignaturaFotia({
               fontWeight: "700",
             }}
           >
-            📚 {asignatura.asignatura}
+            {esFotia ? "📖" : "📚"} {asignatura.asignatura}
           </h5>
 
           <p
@@ -245,10 +321,20 @@ export default function TarjetaAsignaturaFotia({
           />
         )}
 
-        {asignatura.estado === "Acreditada" && (
+        {esForte && asignatura.estado === "Acreditada" && (
           <Dato
             etiqueta="Fecha de acreditación"
             valor={formatearFecha(asignatura.fechaAcreditacion)}
+          />
+        )}
+
+        {esFotia && asignatura.estado === "Objetivo alcanzado" && (
+          <Dato
+            etiqueta="Fecha de objetivo alcanzado"
+            valor={formatearFecha(
+              asignatura.fechaObjetivoAlcanzado ||
+                asignatura.fechaActualizacion,
+            )}
           />
         )}
       </div>
@@ -301,11 +387,11 @@ export default function TarjetaAsignaturaFotia({
                 cursor: "pointer",
               }}
             >
-              ⏸️ Retirar de FOTIA
+              {esFotia ? "⏸️ Retirar de FOTIA" : "⏸️ Retirar de FORTE"}
             </button>
           )}
 
-          {tieneIntervencionGuardada && (
+          {esForte && tieneIntervencionGuardada && (
             <button
               type="button"
               onClick={() => {
@@ -325,6 +411,26 @@ export default function TarjetaAsignaturaFotia({
               ✅ Acreditar
             </button>
           )}
+
+          {esFotia &&
+  tieneIntervencionGuardada &&
+  asignatura.estado !== "Objetivo alcanzado" && (
+    <button
+      type="button"
+      onClick={marcarObjetivoAlcanzado}
+      style={{
+        padding: "8px 12px",
+        border: "1px solid #70b7a8",
+        borderRadius: "8px",
+        background: "#eef8f5",
+        color: "#256b61",
+        fontWeight: "700",
+        cursor: "pointer",
+      }}
+    >
+      ✅ Marcar objetivo alcanzado
+    </button>
+  )}
         </div>
       )}
 
@@ -374,8 +480,7 @@ export default function TarjetaAsignaturaFotia({
           />
         </div>
       )}
-
-      {esAdmin && modoAcreditacion && (
+      {esAdmin && esForte && modoAcreditacion && (
         <FormularioAcreditacionFotia
           inscripcion={asignatura}
           docentesFotia={docentesFotia}

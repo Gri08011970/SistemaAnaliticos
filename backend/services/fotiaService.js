@@ -830,6 +830,13 @@ export const acreditarInscripcion = async (
         throw crearError("La inscripción de FOTIA no fue encontrada", 404);
       }
 
+      if (inscripcion.tipoOrigen !== "Previa") {
+        throw crearError(
+          "Esta acción está reservada para acreditaciones FORTE de asignaturas previas.",
+          400,
+        );
+      }
+
       if (inscripcion.estado === "Acreditada") {
         throw crearError("Esta asignatura ya fue acreditada", 409);
       }
@@ -851,20 +858,16 @@ export const acreditarInscripcion = async (
         throw crearError("El estudiante de Matrícula no fue encontrado", 404);
       }
 
-      let materiaPendiente = null;
+      const materiaPendiente = obtenerMateriaPendiente(
+        alumno,
+        inscripcion.materiaPendienteId,
+      );
 
-      if (inscripcion.tipoOrigen === "Previa") {
-        materiaPendiente = obtenerMateriaPendiente(
-          alumno,
-          inscripcion.materiaPendienteId,
+      if (!materiaPendiente) {
+        throw crearError(
+          "La asignatura ya no figura entre las previas del estudiante",
+          409,
         );
-
-        if (!materiaPendiente) {
-          throw crearError(
-            "La asignatura ya no figura entre las previas del estudiante",
-            409,
-          );
-        }
       }
 
       inscripcion.estado = "Acreditada";
@@ -881,32 +884,192 @@ export const acreditarInscripcion = async (
         session,
       });
 
-      if (inscripcion.tipoOrigen === "Previa") {
-        alumno.materiasPendientes = alumno.materiasPendientes.filter(
-          (materia) =>
-            String(materia._id) !== String(inscripcion.materiaPendienteId),
-        );
+      alumno.materiasPendientes = alumno.materiasPendientes.filter(
+        (materia) =>
+          String(materia._id) !== String(inscripcion.materiaPendienteId),
+      );
 
-        alumnoActualizado = await alumno.save({
-          session,
-        });
-      } else {
-        alumnoActualizado = alumno;
-      }
+      alumnoActualizado = await alumno.save({
+        session,
+      });
 
       inscripcionAcreditada = inscripcion;
     });
 
-   return {
-  mensaje:
-    inscripcionAcreditada.tipoOrigen === "Previa"
-      ? "La asignatura fue acreditada y dejó de figurar como previa institucional."
-      : "La asignatura del año fue acreditada correctamente en FOTIA.",
+    return {
+      mensaje:
+        "La asignatura fue acreditada y dejó de figurar como previa institucional.",
+      inscripcion: inscripcionAcreditada,
+      alumno: alumnoActualizado,
+    };
 
-  inscripcion: inscripcionAcreditada,
-  alumno: alumnoActualizado,
-};
   } finally {
     await session.endSession();
   }
+};
+  // =====================================================
+// FOTIA - OBJETIVO DE ALFABETIZACIÓN ALCANZADO
+// =====================================================
+
+// Marca como alcanzado el objetivo de alfabetización.
+//
+// IMPORTANTE:
+// - Sólo admite inscripciones FOTIA de materias "En curso".
+// - No acredita asignaturas.
+// - No modifica materiasPendientes.
+// - No modifica Matrícula.
+// - No genera una acreditación FORTE.
+export const marcarObjetivoAlcanzado = async (
+  inscripcionId,
+  { fechaObjetivoAlcanzado, docenteId, observaciones },
+) => {
+  if (!fechaObjetivoAlcanzado) {
+    throw crearError(
+      "La fecha en que se alcanzó el objetivo es obligatoria",
+      400,
+    );
+  }
+
+  const inscripcion =
+    await FotiaInscripcion.findById(inscripcionId);
+
+  if (!inscripcion) {
+    throw crearError(
+      "La inscripción FOTIA no fue encontrada",
+      404,
+    );
+  }
+
+  // Seguridad: esta acción jamás puede utilizarse
+  // para una asignatura previa de FORTE.
+  if (inscripcion.tipoOrigen !== "En curso") {
+    throw crearError(
+      "Esta acción corresponde únicamente al seguimiento FOTIA.",
+      400,
+    );
+  }
+
+  const asignaturaNormalizada = String(
+    inscripcion.asignatura || "",
+  )
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+
+  // FOTIA alfabetización trabaja exclusivamente
+  // con Prácticas del Lenguaje.
+  if (asignaturaNormalizada !== "practicas del lenguaje") {
+    throw crearError(
+      "El objetivo de alfabetización sólo puede registrarse para Prácticas del Lenguaje.",
+      400,
+    );
+  }
+
+  if (inscripcion.estado === "Objetivo alcanzado") {
+    throw crearError(
+      "El estudiante ya figura con el objetivo de alfabetización alcanzado.",
+      409,
+    );
+  }
+
+  // El docente es opcional al marcar el objetivo.
+  // Si viene informado, verificamos que exista y esté activo.
+  if (docenteId) {
+    const docente = await FotiaDocente.findById(docenteId);
+
+    if (!docente || !docente.activo) {
+      throw crearError(
+        "El docente seleccionado no existe o no está activo",
+        404,
+      );
+    }
+
+    inscripcion.docenteId = docente._id;
+    inscripcion.docenteNombre =
+      `${docente.apellido} ${docente.nombre}`;
+  }
+
+  inscripcion.estado = "Objetivo alcanzado";
+  inscripcion.fechaObjetivoAlcanzado =
+    fechaObjetivoAlcanzado;
+
+  inscripcion.activo = true;
+
+  if (observaciones !== undefined) {
+    inscripcion.observaciones = observaciones;
+  }
+
+  await inscripcion.save();
+
+  return {
+    mensaje:
+      "El estudiante alcanzó el objetivo de alfabetización.",
+    inscripcion,
+  };
+}; 
+// =====================================================
+// FOTIA - REABRIR SEGUIMIENTO DE ALFABETIZACIÓN
+// =====================================================
+
+// Reabre una trayectoria FOTIA marcada previamente
+// como "Objetivo alcanzado".
+//
+// IMPORTANTE:
+// - No modifica Matrícula.
+// - No modifica materiasPendientes.
+// - No altera acreditaciones FORTE.
+export const reabrirSeguimientoFotia = async (
+  inscripcionId,
+) => {
+  const inscripcion =
+    await FotiaInscripcion.findById(inscripcionId);
+
+  if (!inscripcion) {
+    throw crearError(
+      "La inscripción FOTIA no fue encontrada",
+      404,
+    );
+  }
+
+  if (inscripcion.tipoOrigen !== "En curso") {
+    throw crearError(
+      "Esta acción corresponde únicamente a trayectorias FOTIA.",
+      400,
+    );
+  }
+
+  const asignaturaNormalizada = String(
+    inscripcion.asignatura || "",
+  )
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+
+  if (asignaturaNormalizada !== "practicas del lenguaje") {
+    throw crearError(
+      "Sólo pueden reabrirse trayectorias FOTIA de Prácticas del Lenguaje.",
+      400,
+    );
+  }
+
+  if (inscripcion.estado !== "Objetivo alcanzado") {
+    throw crearError(
+      "La trayectoria no se encuentra finalizada como objetivo alcanzado.",
+      409,
+    );
+  }
+
+  inscripcion.estado = "En proceso";
+  inscripcion.fechaObjetivoAlcanzado = "";
+  inscripcion.activo = true;
+
+  await inscripcion.save();
+
+  return {
+    mensaje:
+      "El seguimiento FOTIA fue reabierto correctamente.",
+    inscripcion,
+  };
 };

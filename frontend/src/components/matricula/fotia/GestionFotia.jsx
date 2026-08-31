@@ -5,33 +5,34 @@ import ListadoInscripcionesFotia from "./ListadoInscripcionesFotia";
 import GestionDocentesFotia from "./GestionDocentesFotia";
 import HistorialAcreditacionesFotia from "./HistorialAcreditacionesFotia";
 import EstadisticasFotia from "./EstadisticasFotia";
+import HistorialAlfabetizacionFotia from "./HistorialAlfabetizacionFotia";
 
-  const normalizarTextoForte = (valor = "") =>
-    String(valor)
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase()
-      .trim();
+const normalizarTextoForte = (valor = "") =>
+  String(valor)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
 
-  const esPreviaRealForte = (materia) => {
-    const asignatura = normalizarTextoForte(
-      materia?.asignatura || materia?.materia || "",
-    );
+const esPreviaRealForte = (materia) => {
+  const asignatura = normalizarTextoForte(
+    materia?.asignatura || materia?.materia || "",
+  );
 
-    const valoresSinMateria = [
-      "",
-      "-",
-      "----------",
-      "---------",
-      "--------",
-      "ninguna",
-      "sin previas",
-      "sin previa",
-      "no posee",
-    ];
+  const valoresSinMateria = [
+    "",
+    "-",
+    "----------",
+    "---------",
+    "--------",
+    "ninguna",
+    "sin previas",
+    "sin previa",
+    "no posee",
+  ];
 
-    return !valoresSinMateria.includes(asignatura);
-  };
+  return !valoresSinMateria.includes(asignatura);
+};
 
 export default function GestionFotia({
   alumnosMatricula = [],
@@ -44,6 +45,8 @@ export default function GestionFotia({
 
   const [inscripcionesFotia, setInscripcionesFotia] = useState([]);
 
+  const [acreditacionesFotia, setAcreditacionesFotia] = useState([]);
+
   const [docentesFotia, setDocentesFotia] = useState([]);
 
   const [cargandoFotia, setCargandoFotia] = useState(false);
@@ -52,22 +55,113 @@ export default function GestionFotia({
 
   const listadoFotiaRef = useRef(null);
 
-  const cambiarPrograma = (programa) => {
-    setFiltroPrograma(programa);
+  const reabrirSeguimientoFotia = async (inscripcion) => {
+    const confirmar = window.confirm(
+      `¿Querés reabrir el seguimiento de alfabetización de ${[
+        inscripcion.apellido,
+        inscripcion.nombre,
+      ]
+        .filter(Boolean)
+        .join(
+          " ",
+        )}?\n\nEl estudiante volverá a figurar en el seguimiento activo de FOTIA.`,
+    );
 
-    setTimeout(() => {
-      listadoFotiaRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }, 100);
+    if (!confirmar) {
+      return;
+    }
+
+    try {
+      const token =
+        localStorage.getItem("tokenUsuario") ||
+        localStorage.getItem("token");
+
+      const respuesta = await fetch(
+        `/api/fotia/inscripciones/${inscripcion._id}/reabrir-seguimiento`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const datos = await respuesta.json();
+
+      if (!respuesta.ok) {
+        throw new Error(
+          datos.mensaje ||
+            "No se pudo reabrir el seguimiento FOTIA.",
+        );
+      }
+
+      setInscripcionesFotia((anteriores) =>
+        anteriores.map((item) =>
+          String(item._id) === String(inscripcion._id)
+            ? datos.inscripcion
+            : item,
+        ),
+      );
+
+      window.alert(
+        datos.mensaje ||
+          "El seguimiento FOTIA fue reabierto correctamente.",
+      );
+    } catch (error) {
+      console.error(
+        "Error al reabrir seguimiento FOTIA:",
+        error,
+      );
+
+      window.alert(
+        error.message ||
+          "No se pudo reabrir el seguimiento FOTIA.",
+      );
+    }
   };
+
+  useEffect(() => {
+    let componenteActivo = true;
+
+    const cargarAcreditaciones = async () => {
+      try {
+        const respuesta = await fetch(
+          "/api/fotia/acreditaciones",
+        );
+
+        const datos = await respuesta.json();
+
+        if (!respuesta.ok) {
+          throw new Error(
+            datos.mensaje ||
+              "No se pudieron obtener las acreditaciones.",
+          );
+        }
+
+        if (componenteActivo) {
+          setAcreditacionesFotia(
+            Array.isArray(datos) ? datos : [],
+          );
+        }
+      } catch (error) {
+        console.error(
+          "Error al cargar acreditaciones para estadísticas:",
+          error,
+        );
+      }
+    };
+    cargarAcreditaciones();
+
+    return () => {
+      componenteActivo = false;
+    };
+  }, []);
 
   const fuenteAlumnos =
     Array.isArray(alumnosMatricula) && alumnosMatricula.length > 0
       ? alumnosMatricula
       : alumnosParaExamen;
-
 
   const inscripcionesForteAutomaticas = useMemo(() => {
     return fuenteAlumnos.flatMap((alumno) => {
@@ -153,6 +247,59 @@ export default function GestionFotia({
   );
 
   console.log("TOTAL ESTUDIANTES FORTE:", estudiantesForteUnicos.size);
+
+  const totalDocentesForte = useMemo(() => {
+    const docentes = new Set();
+
+    // Docentes con intervenciones FORTE actualmente activas
+    inscripcionesForteAutomaticas.forEach((inscripcion) => {
+      const docenteId = inscripcion.docenteId?._id || inscripcion.docenteId;
+
+      if (docenteId) {
+        docentes.add(`id:${String(docenteId)}`);
+      }
+    });
+
+    // Docentes que ya participaron acreditando previas
+    acreditacionesFotia
+      .filter((acreditacion) => {
+        if (acreditacion.tipoOrigen !== "Previa") {
+          return false;
+        }
+
+        if (!periodoActivo?._id) {
+          return true;
+        }
+
+        const periodoId =
+          acreditacion.periodoId && typeof acreditacion.periodoId === "object"
+            ? acreditacion.periodoId._id || acreditacion.periodoId.id
+            : acreditacion.periodoId;
+
+        return String(periodoId || "") === String(periodoActivo._id);
+      })
+      .forEach((acreditacion) => {
+        const docenteId =
+          acreditacion.docenteId && typeof acreditacion.docenteId === "object"
+            ? acreditacion.docenteId._id || acreditacion.docenteId.id
+            : acreditacion.docenteId;
+
+        if (docenteId) {
+          docentes.add(`id:${String(docenteId)}`);
+          return;
+        }
+
+        const docenteNombre = String(acreditacion.docenteNombre || "")
+          .trim()
+          .toLowerCase();
+
+        if (docenteNombre) {
+          docentes.add(`nombre:${docenteNombre}`);
+        }
+      });
+
+    return docentes.size;
+  }, [inscripcionesForteAutomaticas, acreditacionesFotia, periodoActivo]);
 
   const inscripcionesActivas = useMemo(
     () =>
@@ -289,34 +436,93 @@ export default function GestionFotia({
   );
 
   console.log("FILTRO PROGRAMA:", filtroPrograma);
+  const inscripcionesFotiaAlfabetizacion = useMemo(() => {
+    return inscripcionesFotia.filter((inscripcion) => {
+      const asignatura = normalizarTextoForte(inscripcion.asignatura);
+
+      return (
+        inscripcion.activo !== false &&
+        inscripcion.tipoOrigen === "En curso" &&
+        asignatura === "practicas del lenguaje"
+      );
+    });
+  }, [inscripcionesFotia]);
+
+  const inscripcionesFotiaActivas = useMemo(() => {
+    return inscripcionesFotiaAlfabetizacion.filter(
+      (inscripcion) => inscripcion.estado !== "Objetivo alcanzado",
+    );
+  }, [inscripcionesFotiaAlfabetizacion]);
+
+  const inscripcionesFotiaObjetivoAlcanzado = useMemo(() => {
+    return inscripcionesFotiaAlfabetizacion.filter(
+      (inscripcion) => inscripcion.estado === "Objetivo alcanzado",
+    );
+  }, [inscripcionesFotiaAlfabetizacion]);
 
   const inscripcionesSegunPrograma = useMemo(() => {
-    const inscripcionesFotiaAlfabetizacion = inscripcionesFotia.filter(
-      (inscripcion) => {
-        const asignatura = normalizarTextoForte(inscripcion.asignatura);
+    if (filtroPrograma === "FOTIA") {
+      return inscripcionesFotiaActivas;
+    }
 
-        return (
-          inscripcion.activo !== false &&
-          inscripcion.estado !== "Suspendida" &&
-          inscripcion.tipoOrigen === "En curso" &&
-          asignatura === "practicas del lenguaje"
-        );
-      },
+    return inscripcionesForteAutomaticas;
+  }, [
+    filtroPrograma,
+    inscripcionesFotiaActivas,
+    inscripcionesForteAutomaticas,
+  ]);
+
+  const totalEstudiantesFotia = useMemo(() => {
+    const estudiantes = new Set(
+      inscripcionesFotiaAlfabetizacion
+        .map((inscripcion) =>
+          String(inscripcion.alumnoId?._id || inscripcion.alumnoId || ""),
+        )
+        .filter(Boolean),
     );
 
-    if (filtroPrograma === "FOTIA") {
-      return inscripcionesFotiaAlfabetizacion;
-    }
+    return estudiantes.size;
+  }, [inscripcionesFotiaAlfabetizacion]);
 
-    if (filtroPrograma === "FORTE") {
-      return inscripcionesForteAutomaticas;
-    }
+  const totalFotiaEnSeguimiento = useMemo(() => {
+    const estudiantes = new Set(
+      inscripcionesFotiaActivas
+        .map((inscripcion) =>
+          String(inscripcion.alumnoId?._id || inscripcion.alumnoId || ""),
+        )
+        .filter(Boolean),
+    );
 
-    return [
-      ...inscripcionesFotiaAlfabetizacion,
-      ...inscripcionesForteAutomaticas,
-    ];
-  }, [filtroPrograma, inscripcionesFotia, inscripcionesForteAutomaticas]);
+    return estudiantes.size;
+  }, [inscripcionesFotiaActivas]);
+
+  const totalFotiaObjetivoAlcanzado = useMemo(() => {
+    const estudiantes = new Set(
+      inscripcionesFotiaObjetivoAlcanzado
+        .map((inscripcion) =>
+          String(inscripcion.alumnoId?._id || inscripcion.alumnoId || ""),
+        )
+        .filter(Boolean),
+    );
+
+    return estudiantes.size;
+  }, [inscripcionesFotiaObjetivoAlcanzado]);
+
+  const totalDocentesFotia = useMemo(() => {
+    const docentes = new Set(
+      inscripcionesFotiaAlfabetizacion
+        .map((inscripcion) =>
+          String(inscripcion.docenteId?._id || inscripcion.docenteId || ""),
+        )
+        .filter(Boolean),
+    );
+
+    return docentes.size;
+  }, [inscripcionesFotiaAlfabetizacion]);
+  const totalEstudiantesForte = estudiantesForteUnicos.size;
+
+  const totalMateriasForte = inscripcionesForteAutomaticas.length;
+
   console.log(
     "RESULTADO DEL FILTRO:",
     inscripcionesSegunPrograma.map((i) => ({
@@ -461,35 +667,33 @@ export default function GestionFotia({
     }
   };
 
- const actualizarInscripcionEnPantalla = (inscripcionActualizada) => {
-  if (!inscripcionActualizada?._id) return;
+  const actualizarInscripcionEnPantalla = (inscripcionActualizada) => {
+    if (!inscripcionActualizada?._id) return;
 
-  setInscripcionesFotia((anteriores) => {
-    const indiceExistente = anteriores.findIndex(
-      (inscripcion) =>
-        String(inscripcion._id) ===
-        String(inscripcionActualizada._id),
-    );
-
-    // Si ya existía, la actualizamos.
-    if (indiceExistente !== -1) {
-      return anteriores.map((inscripcion) =>
-        String(inscripcion._id) ===
-        String(inscripcionActualizada._id)
-          ? {
-              ...inscripcion,
-              ...inscripcionActualizada,
-            }
-          : inscripcion,
+    setInscripcionesFotia((anteriores) => {
+      const indiceExistente = anteriores.findIndex(
+        (inscripcion) =>
+          String(inscripcion._id) === String(inscripcionActualizada._id),
       );
-    }
 
-    // Si es una intervención FORTE recién creada,
-    // todavía no existía en inscripcionesFotia:
-    // la agregamos inmediatamente al estado.
-    return [...anteriores, inscripcionActualizada];
-  });
-};
+      // Si ya existía, la actualizamos.
+      if (indiceExistente !== -1) {
+        return anteriores.map((inscripcion) =>
+          String(inscripcion._id) === String(inscripcionActualizada._id)
+            ? {
+                ...inscripcion,
+                ...inscripcionActualizada,
+              }
+            : inscripcion,
+        );
+      }
+
+      // Si es una intervención FORTE recién creada,
+      // todavía no existía en inscripcionesFotia:
+      // la agregamos inmediatamente al estado.
+      return [...anteriores, inscripcionActualizada];
+    });
+  };
 
   const [periodoEnEdicion, setPeriodoEnEdicion] = useState(null);
 
@@ -541,6 +745,65 @@ export default function GestionFotia({
           >
             <div
               style={{
+                border: "2px solid #9bd8cb",
+                borderRadius: "14px",
+                padding: "20px",
+                background: "#ffffff",
+                boxShadow: "0 4px 10px rgba(0,0,0,.06)",
+                display: "flex",
+                flexDirection: "column",
+                minHeight: "245px",
+              }}
+            >
+              <h3
+                style={{
+                  margin: "0 0 14px",
+                  color: "#23436d",
+                  textAlign: "center",
+                  fontSize: "21px",
+                }}
+              >
+                📖 FOTIA · Alfabetización
+              </h3>
+
+              <p
+                style={{
+                  color: "#666",
+                  lineHeight: 1.55,
+                  textAlign: "center",
+                  margin: 0,
+                }}
+              >
+                Seguimiento de estudiantes que participan del dispositivo de
+                alfabetización en Prácticas del Lenguaje.
+              </p>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setFiltroPrograma("FOTIA");
+                  setVistaActiva("acreditaciones");
+                }}
+                style={{
+                  marginTop: "auto",
+                  alignSelf: "center",
+                  padding: "10px 18px",
+                  border: "none",
+                  borderRadius: "10px",
+                  background: "#148c84",
+                  color: "#fff",
+                  fontWeight: "700",
+                  cursor: "pointer",
+                  minWidth: "118px",
+                  boxShadow: "0 4px 10px rgba(20, 140, 132, 0.18)",
+                }}
+              >
+                Entrar
+              </button>
+            </div>
+
+            <div
+              style={{
                 border: "2px solid #8fb5d9",
                 borderRadius: "14px",
                 padding: "20px",
@@ -559,7 +822,7 @@ export default function GestionFotia({
                   fontSize: "21px",
                 }}
               >
-                ✓ Gestión del fortalecimiento
+                📚 FORTE · Intensificación
               </h3>
 
               <p
@@ -570,13 +833,16 @@ export default function GestionFotia({
                   margin: 0,
                 }}
               >
-                Administración de asignaturas pendientes, estados, fechas y
-                docentes responsables.
+                Fortalecimiento y acreditación de asignaturas previas con
+                seguimiento docente.
               </p>
 
               <button
                 type="button"
-                onClick={() => setVistaActiva("acreditaciones")}
+                onClick={() => {
+                  setFiltroPrograma("FORTE");
+                  setVistaActiva("acreditaciones");
+                }}
                 style={{
                   marginTop: "auto",
                   alignSelf: "center",
@@ -707,10 +973,21 @@ export default function GestionFotia({
 
             {[
               {
-                titulo: "Historial",
+                titulo: "Historial FOTIA",
                 icono: "📖",
-                descripcion: "Consulta de acreditaciones realizadas.",
-                onClick: abrirHistorialFotia,
+                descripcion:
+                  "Trayectorias de alfabetización que alcanzaron el objetivo.",
+                onClick: () => setVistaActiva("historialFotia"),
+              },
+              {
+                titulo: "Historial FORTE",
+                icono: "✅",
+                descripcion:
+                  "Consulta de asignaturas previas acreditadas durante el fortalecimiento.",
+                onClick: () => {
+                  setFiltroPrograma("FORTE");
+                  abrirHistorialFotia();
+                },
               },
               {
                 titulo: "Estadísticas",
@@ -779,6 +1056,38 @@ export default function GestionFotia({
           </div>
         </>
       )}
+
+      {vistaActiva === "historialFotia" && (
+  <div
+    style={{
+      width: "100%",
+      minWidth: 0,
+    }}
+  >
+    <button
+      type="button"
+      onClick={volverAlInicioFotia}
+      style={{
+        marginBottom: "20px",
+        padding: "9px 14px",
+        border: "1px solid #bfd4df",
+        borderRadius: "9px",
+        background: "#f3f8fa",
+        color: "#315f6f",
+        cursor: "pointer",
+        fontWeight: "700",
+      }}
+    >
+      ← Volver a FOTIA-FORTE
+    </button>
+
+    <HistorialAlfabetizacionFotia
+      inscripciones={inscripcionesFotia}
+      esAdmin={esAdmin}
+      onReabrir={reabrirSeguimientoFotia}
+    />
+  </div>
+)}
 
       {vistaActiva === "periodos" && (
         <div
@@ -1035,7 +1344,9 @@ export default function GestionFotia({
                   textTransform: "uppercase",
                 }}
               >
-                FOTIA - FORTE
+                {filtroPrograma === "FOTIA"
+                  ? "FOTIA · ALFABETIZACIÓN"
+                  : "FORTE · INTENSIFICACIÓN"}
               </p>
 
               <h2
@@ -1045,7 +1356,9 @@ export default function GestionFotia({
                   fontSize: "clamp(22px, 3vw, 27px)",
                 }}
               >
-                Gestión del fortalecimiento
+                {filtroPrograma === "FOTIA"
+                  ? "Seguimiento de alfabetización"
+                  : "Gestión del fortalecimiento"}
               </h2>
 
               <p
@@ -1056,8 +1369,9 @@ export default function GestionFotia({
                   lineHeight: 1.5,
                 }}
               >
-                Administración de estudiantes, áreas, docentes y trayectorias
-                dentro del período de fortalecimiento.
+                {filtroPrograma === "FOTIA"
+                  ? "Seguimiento de estudiantes que participan del dispositivo de alfabetización en Prácticas del Lenguaje."
+                  : "Administración de asignaturas previas, docentes responsables y trayectorias de intensificación."}
               </p>
             </div>
 
@@ -1124,35 +1438,68 @@ export default function GestionFotia({
                 gap: "14px",
               }}
             >
-              {[
-                {
-                  icono: "👨‍🎓",
-                  titulo: "Estudiantes incorporados",
-                  valor: totalEstudiantesIncorporados,
-                  descripcion:
-                    "Participan del período activo de fortalecimiento.",
-                },
-                {
-                  icono: "📚",
-                  titulo: "Áreas en fortalecimiento",
-                  valor: totalAsignaturasFortalecimiento,
-                  descripcion:
-                    "Asignaturas seleccionadas para trabajar en FOTIA.",
-                },
-                {
-                  icono: "👩‍🏫",
-                  titulo: "Docentes participantes",
-                  valor: totalDocentesParticipantes,
-                  descripcion:
-                    "Docentes asignados a intervenciones del período.",
-                },
-                {
-                  icono: "✅",
-                  titulo: "Acreditaciones",
-                  valor: totalAcreditaciones,
-                  descripcion: "Asignaturas acreditadas durante el período.",
-                },
-              ].map((tarjeta) => (
+              {(filtroPrograma === "FOTIA"
+                ? [
+                    {
+                      icono: "🎓",
+                      titulo: "Estudiantes FOTIA",
+                      valor: totalEstudiantesFotia,
+                      descripcion:
+                        "Participan del dispositivo de alfabetización.",
+                    },
+                    {
+                      icono: "📖",
+                      titulo: "En alfabetización",
+                      valor: totalFotiaEnSeguimiento,
+                      descripcion:
+                        "Continúan actualmente con seguimiento de alfabetización.",
+                    },
+                    {
+                      icono: "✅",
+                      titulo: "Objetivo alcanzado",
+                      valor: totalFotiaObjetivoAlcanzado,
+                      descripcion:
+                        "Estudiantes que alcanzaron el objetivo de alfabetización.",
+                    },
+                    {
+                      icono: "📋",
+                      titulo: "Docentes participantes",
+                      valor: totalDocentesFotia,
+                      descripcion:
+                        "Docentes asignados al acompañamiento de alfabetización.",
+                    },
+                  ]
+                : [
+                    {
+                      icono: "🎓",
+                      titulo: "Estudiantes FORTE",
+                      valor: totalEstudiantesForte,
+                      descripcion:
+                        "Estudiantes con asignaturas previas en intensificación.",
+                    },
+                    {
+                      icono: "📚",
+                      titulo: "Materias en fortalecimiento",
+                      valor: totalMateriasForte,
+                      descripcion:
+                        "Asignaturas previas actualmente en proceso de fortalecimiento.",
+                    },
+                    {
+                      icono: "📋",
+                      titulo: "Docentes participantes",
+                      valor: totalDocentesForte,
+                      descripcion:
+                        "Docentes responsables de las intervenciones FORTE.",
+                    },
+                    {
+                      icono: "✅",
+                      titulo: "Acreditaciones",
+                      valor: totalAcreditaciones,
+                      descripcion:
+                        "Asignaturas previas acreditadas durante el período.",
+                    },
+                  ]
+              ).map((tarjeta) => (
                 <div
                   key={tarjeta.titulo}
                   style={{
@@ -1344,45 +1691,6 @@ export default function GestionFotia({
                   </button>
                 </div>
               )}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                flexWrap: "wrap",
-                gap: "10px",
-                margin: "22px 0 18px",
-              }}
-            >
-              {[
-                { valor: "Todos", texto: "Todos" },
-                { valor: "FOTIA", texto: "FOTIA · Alfabetización" },
-                { valor: "FORTE", texto: "FORTE · Intensificación" },
-              ].map((opcion) => {
-                const seleccionado = filtroPrograma === opcion.valor;
-
-                return (
-                  <button
-                    key={opcion.valor}
-                    type="button"
-                    onClick={() => cambiarPrograma(opcion.valor)}
-                    style={{
-                      padding: "10px 16px",
-                      border: seleccionado
-                        ? "2px solid #148c84"
-                        : "1px solid #bfd4df",
-                      borderRadius: "10px",
-                      background: seleccionado ? "#e8f6f3" : "#ffffff",
-                      color: seleccionado ? "#126f69" : "#49657d",
-                      fontWeight: "700",
-                      cursor: "pointer",
-                    }}
-                  >
-                    {opcion.texto}
-                  </button>
-                );
-              })}
-            </div>
 
             <div
               ref={listadoFotiaRef}

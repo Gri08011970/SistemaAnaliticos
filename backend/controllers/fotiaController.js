@@ -17,6 +17,9 @@ import {
   eliminarEstudianteDelPeriodoFotia,
   listarAcreditaciones,
   acreditarInscripcion,
+  marcarObjetivoAlcanzado,
+  reabrirSeguimientoFotia,
+
 } from "../services/fotiaService.js";
 
 // =====================================================
@@ -368,6 +371,51 @@ export const acreditarInscripcionController = async (
           req.body.observaciones,
       },
     );
+
+    res.json(resultado);
+  } catch (error) {
+    responderError(res, error);
+  }
+};
+
+// =====================================================
+// FOTIA - OBJETIVO DE ALFABETIZACIÓN ALCANZADO
+// =====================================================
+
+export const marcarObjetivoAlcanzadoController = async (
+  req,
+  res,
+) => {
+  try {
+    const resultado = await marcarObjetivoAlcanzado(
+      req.params.id,
+      {
+        fechaObjetivoAlcanzado:
+          req.body.fechaObjetivoAlcanzado,
+        docenteId: req.body.docenteId,
+        observaciones:
+          req.body.observaciones,
+      },
+    );
+
+    res.json(resultado);
+  } catch (error) {
+    responderError(res, error);
+  }
+};
+// =====================================================
+// FOTIA - REABRIR SEGUIMIENTO
+// =====================================================
+
+export const reabrirSeguimientoFotiaController = async (
+  req,
+  res,
+) => {
+  try {
+    const resultado =
+      await reabrirSeguimientoFotia(
+        req.params.id,
+      );
 
     res.json(resultado);
   } catch (error) {

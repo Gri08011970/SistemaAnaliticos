@@ -196,7 +196,7 @@ export default function EstadisticasFotia({
 
   const tarjetasPrincipales = [
     {
-      icono: "👨‍🎓",
+      icono: "🎓",
       titulo: "Estudiantes",
       valor: datos.resumen.estudiantes,
       detalle: "Participan del período activo.",
@@ -232,7 +232,7 @@ export default function EstadisticasFotia({
       color: "#8a5a16",
     },
     {
-      icono: "👩‍🏫",
+      icono: "📋",
       titulo: "Docentes",
       valor: datos.resumen.docentes,
       detalle: "Con áreas asignadas.",

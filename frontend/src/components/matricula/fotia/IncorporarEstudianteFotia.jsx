@@ -362,7 +362,7 @@ export default function IncorporarEstudianteFotia({
               fontSize: "22px",
             }}
           >
-            👨‍🎓 Incorporar estudiante
+            🎓 Incorporar estudiante
           </h3>
 
           <p
@@ -635,7 +635,7 @@ export default function IncorporarEstudianteFotia({
                   fontSize: "18px",
                 }}
               >
-                👩‍🏫 Docente responsable por asignatura
+                📋 Docente responsable por asignatura
               </h4>
 
               <p

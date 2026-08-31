@@ -26,7 +26,7 @@ const fotiaInscripcionSchema = new mongoose.Schema(
 
     nombre: {
       type: String,
-       default: "",
+      default: "",
       trim: true,
     },
 
@@ -92,6 +92,7 @@ const fotiaInscripcionSchema = new mongoose.Schema(
         "Acreditada",
         "Suspendida",
         "Finalizada sin acreditar",
+         "Objetivo alcanzado",
       ],
       default: "Incorporada",
     },
@@ -102,6 +103,11 @@ const fotiaInscripcionSchema = new mongoose.Schema(
     },
 
     fechaAcreditacion: {
+      type: String,
+      default: "",
+    },
+
+    fechaObjetivoAlcanzado: {
       type: String,
       default: "",
     },
@@ -133,13 +139,13 @@ const fotiaInscripcionSchema = new mongoose.Schema(
 fotiaInscripcionSchema.index(
   {
     periodoId: 1,
-    alumnoId: 1, 
+    alumnoId: 1,
     tipoOrigen: 1,
     asignatura: 1,
     anio: 1,
   },
   {
-    unique: true,
+    unique: true, 
   },
 );
 

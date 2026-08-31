@@ -168,7 +168,7 @@ export default function AulaAsignaturaFotia({ inscripcion, volver }) {
 
         <section style={resumen}>
           <div style={dato}>
-            <span style={etiquetaDato}>👩‍🏫 Docente</span>
+            <span style={etiquetaDato}>📋 Docente</span>
 
             <strong style={valorDato}>{docente}</strong>
           </div>

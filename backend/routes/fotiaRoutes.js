@@ -35,6 +35,8 @@ import {
 
   // Acreditación
   acreditarInscripcionController,
+  marcarObjetivoAlcanzadoController,
+  reabrirSeguimientoFotiaController,
 } from "../controllers/fotiaController.js";
 
 import {
@@ -289,5 +291,20 @@ router.post(
   soloAdmin,
   acreditarInscripcionController,
 );
+// ======================================================
+// FOTIA - OBJETIVO DE ALFABETIZACIÓN
+// ======================================================
 
+router.put(
+  "/inscripciones/:id/objetivo-alcanzado",
+  verificarToken,
+  soloAdmin,
+  marcarObjetivoAlcanzadoController,
+);
 export default router;
+router.put(
+  "/inscripciones/:id/reabrir-seguimiento",
+  verificarToken,
+  soloAdmin,
+  reabrirSeguimientoFotiaController,
+);

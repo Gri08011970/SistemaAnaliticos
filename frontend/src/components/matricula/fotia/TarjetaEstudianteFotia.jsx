@@ -3,12 +3,15 @@ import TarjetaAsignaturaFotia from "./TarjetaAsignaturaFotia";
 
 export default function TarjetaEstudianteFotia({
   estudiante,
+  programaSeleccionado = "FORTE",
   docentesFotia = [],
   esAdmin = false,
   onRetirar,
   onActualizada,
   onEliminarEstudiante,
 }) {
+  const esFotia = programaSeleccionado === "FOTIA";
+  const esForte = programaSeleccionado === "FORTE";
   const [expandida, setExpandida] = useState(false);
 
   const asignaturas = estudiante?.asignaturas || [];
@@ -86,13 +89,12 @@ export default function TarjetaEstudianteFotia({
                 textTransform: "uppercase",
               }}
             >
-              {esSoloForteAutomatico
-                ? "Estudiante FORTE · previa automática"
-                : tieneAsignaturasForteAutomaticas
-                  ? "Estudiante FOTIA-FORTE"
-                  : "Estudiante incorporado"}
+              {esFotia
+                ? "Estudiante FOTIA · alfabetización"
+                : esSoloForteAutomatico
+                  ? "Estudiante FORTE · previa automática"
+                  : "Estudiante FORTE"}
             </span>
-
             <h4
               style={{
                 margin: "0 0 7px",
@@ -144,15 +146,18 @@ export default function TarjetaEstudianteFotia({
             }}
           >
             <Indicador
-              texto={`${cantidadAsignaturas} ${
-                cantidadAsignaturas === 1 ? "área" : "áreas"
-              }`}
-              icono="📚"
+              texto={
+                esFotia
+                  ? "Alfabetización"
+                  : `${cantidadAsignaturas} ${
+                      cantidadAsignaturas === 1 ? "materia" : "materias"
+                    }`
+              }
+              icono={esFotia ? "📖" : "📚"}
               fondo="#eef5fb"
               color="#365f82"
               borde="#c8dceb"
             />
-
             {cantidadIncorporadas > 0 && (
               <Indicador
                 texto={`${cantidadIncorporadas} ${
@@ -175,7 +180,7 @@ export default function TarjetaEstudianteFotia({
               />
             )}
 
-            {cantidadAcreditadas > 0 && (
+            {esForte && cantidadAcreditadas > 0 && (
               <Indicador
                 texto={`${cantidadAcreditadas} ${
                   cantidadAcreditadas === 1 ? "acreditada" : "acreditadas"
@@ -196,7 +201,13 @@ export default function TarjetaEstudianteFotia({
                 textAlign: "right",
               }}
             >
-              {expandida ? "▲ Ocultar áreas" : "▼ Ver áreas"}
+              {esFotia
+                ? expandida
+                  ? "▲ Ocultar seguimiento"
+                  : "▼ Ver seguimiento"
+                : expandida
+                  ? "▲ Ocultar materias"
+                  : "▼ Ver materias"}
             </span>
           </div>
         </div>
@@ -223,7 +234,7 @@ export default function TarjetaEstudianteFotia({
               cursor: "pointer",
             }}
           >
-            🗑️ Eliminar de FOTIA
+            {esFotia ? "🗑️ Eliminar de FOTIA" : "🗑️ Eliminar de FORTE"}
           </button>
         </div>
       )}
@@ -247,6 +258,7 @@ export default function TarjetaEstudianteFotia({
               <TarjetaAsignaturaFotia
                 key={asignatura._id || asignatura.materiaPendienteId}
                 asignatura={asignatura}
+                programaSeleccionado={programaSeleccionado}
                 docentesFotia={docentesFotia}
                 esAdmin={esAdmin}
                 onRetirar={onRetirar}

@@ -760,7 +760,7 @@ export default function ListadoInscripcionesFotia({
             fontSize: "21px",
           }}
         >
-          👨‍🎓 Estudiantes del período
+          🎓 Estudiantes del período
         </h3>
 
         <p
@@ -1102,6 +1102,7 @@ export default function ListadoInscripcionesFotia({
             >
               <TarjetaEstudianteFotia
                 estudiante={estudiante}
+                programaSeleccionado={programaSeleccionado}
                 docentesFotia={docentesFotia}
                 esAdmin={esAdmin}
                 onRetirar={onRetirar}
@@ -1209,7 +1210,7 @@ export default function ListadoInscripcionesFotia({
                               : inscripcion.estado === "En proceso"
                                 ? "#eef5fb"
                                 : inscripcion.estado === "Acreditada"
-                                  ?"#e8f6ef"
+                                  ? "#e8f6ef"
                                   : indice % 2 === 0
                                     ? "#ffffff"
                                     : "#f8fbfd",
@@ -1340,6 +1341,7 @@ export default function ListadoInscripcionesFotia({
                             >
                               <TarjetaAsignaturaFotia
                                 asignatura={inscripcion}
+                                programaSeleccionado={programaSeleccionado}
                                 docentesFotia={docentesFotia}
                                 esAdmin={esAdmin}
                                 onRetirar={onRetirar}
