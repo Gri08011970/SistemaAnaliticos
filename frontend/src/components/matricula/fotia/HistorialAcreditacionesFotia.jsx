@@ -11,7 +11,7 @@ const formatearFechaFotia = (fecha) => {
     return `${dia}/${mes}/${anio}`;
   }
 
-  const fechaConvertida = new Date(fecha); 
+  const fechaConvertida = new Date(fecha);
 
   if (Number.isNaN(fechaConvertida.getTime())) {
     return String(fecha);
@@ -61,7 +61,9 @@ const normalizarTexto = (valor) =>
 
 export default function HistorialAcreditacionesFotia({
   periodoActivo,
+  esAdmin = false,
   onVolver,
+  onAcreditacionRevertida,
 }) {
   const [acreditaciones, setAcreditaciones] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -262,6 +264,66 @@ export default function HistorialAcreditacionesFotia({
 
     return estudiantes.size;
   }, [acreditacionesFiltradas]);
+
+  const revertirAcreditacion = async (acreditacion) => {
+    if (!esAdmin) return;
+
+    const estudiante = obtenerNombreEstudiante(acreditacion);
+
+    const confirmar = window.confirm(
+      `¿Confirmás que querés revertir la acreditación de ${acreditacion.asignatura || "esta asignatura"} de ${estudiante}?\n\n` +
+        "La asignatura volverá a figurar como previa institucional en Matrícula y regresará al seguimiento activo de FORTE.\n\n" +
+        "El docente y las observaciones de la intervención se conservarán.",
+    );
+
+    if (!confirmar) {
+      return;
+    }
+
+    try {
+      const token =
+        localStorage.getItem("tokenUsuario") || localStorage.getItem("token");
+
+      const respuesta = await fetch(
+        `/api/fotia/inscripciones/${acreditacion._id}/revertir-acreditacion`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const datos = await respuesta.json();
+
+      if (!respuesta.ok) {
+        throw new Error(
+          datos.mensaje || "No se pudo revertir la acreditación FORTE.",
+        );
+      }
+
+      // Sale inmediatamente del historial porque
+      // ya dejó de estar acreditada.
+      setAcreditaciones((anteriores) =>
+        anteriores.filter(
+          (item) => String(item._id) !== String(acreditacion._id),
+        ),
+      );
+
+      onAcreditacionRevertida?.(datos.inscripcion, datos.alumno);
+
+      window.alert(
+        datos.mensaje || "La acreditación FORTE fue revertida correctamente.",
+      );
+    } catch (error) {
+      console.error("Error al revertir acreditación FORTE:", error);
+
+      window.alert(
+        error.message || "No se pudo revertir la acreditación FORTE.",
+      );
+    }
+  };
 
   const limpiarFiltros = () => {
     setBusqueda("");
@@ -889,7 +951,7 @@ export default function HistorialAcreditacionesFotia({
                 <label
                   className="fotia-filtro-buscar"
                   style={{
-                    display: "grid", 
+                    display: "grid",
                     gap: "6px",
                     color: "#41566c",
                     fontSize: "13px",
@@ -944,9 +1006,7 @@ export default function HistorialAcreditacionesFotia({
                   >
                     <option value="">Todos </option>
                     <option value="Previa">Previa</option>
-                    <option value="En curso">
-                      En curso
-                    </option>
+                    <option value="En curso">En curso</option>
                   </select>
                 </label>
 
@@ -1224,6 +1284,7 @@ export default function HistorialAcreditacionesFotia({
                     "Docente",
                     "Período",
                     "Observaciones",
+                    ...(esAdmin ? ["Acción"] : []),
                   ].map((titulo) => (
                     <th
                       key={titulo}
@@ -1383,6 +1444,45 @@ export default function HistorialAcreditacionesFotia({
                     >
                       {acreditacion.observaciones || "Sin observaciones"}
                     </td>
+                    {esAdmin && (
+                      <td
+                        style={{
+                          padding: "10px 9px",
+                          borderBottom: "1px solid #d7e1e8",
+                          minWidth: "175px",
+                          textAlign: "center",
+                        }}
+                      >
+                        {acreditacion.tipoOrigen === "Previa" ? (
+                          <button
+                            type="button"
+                            onClick={() => revertirAcreditacion(acreditacion)}
+                            style={{
+                              padding: "8px 12px",
+                              border: "1px solid #c8d6e2",
+                              borderRadius: "8px",
+                              background: "#f4f7f9",
+                              color: "#445b6e",
+                              fontSize: "13px",
+                              fontWeight: "700",
+                              cursor: "pointer",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            ↩ Revertir acreditación
+                          </button>
+                        ) : (
+                          <span
+                            style={{
+                              color: "#8a98a5",
+                              fontSize: "12px",
+                            }}
+                          >
+                            —
+                          </span>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

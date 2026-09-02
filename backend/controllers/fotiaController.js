@@ -19,6 +19,7 @@ import {
   acreditarInscripcion,
   marcarObjetivoAlcanzado,
   reabrirSeguimientoFotia,
+  revertirAcreditacionForte,
 
 } from "../services/fotiaService.js";
 
@@ -370,6 +371,25 @@ export const acreditarInscripcionController = async (
         observaciones:
           req.body.observaciones,
       },
+    );
+
+    res.json(resultado);
+  } catch (error) {
+    responderError(res, error);
+  }
+};
+
+// =====================================================
+// FORTE - REVERTIR ACREDITACIÓN
+// =====================================================
+
+export const revertirAcreditacionForteController = async (
+  req,
+  res,
+) => {
+  try {
+    const resultado = await revertirAcreditacionForte(
+      req.params.id,
     );
 
     res.json(resultado);

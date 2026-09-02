@@ -907,6 +907,147 @@ export const acreditarInscripcion = async (
     await session.endSession();
   }
 };
+// =====================================================
+// FORTE - REVERTIR ACREDITACIÓN
+// =====================================================
+
+// Revierte una acreditación FORTE realizada por error.
+//
+// IMPORTANTE:
+// - Sólo funciona con asignaturas previas.
+// - Restaura la materia en materiasPendientes de Matrícula.
+// - La inscripción vuelve a "En proceso".
+// - Conserva docente y observaciones.
+// - No duplica una previa que ya exista.
+// - Actualiza materiaPendienteId con el nuevo _id generado.
+export const revertirAcreditacionForte = async (
+  inscripcionId,
+) => {
+  const session = await mongoose.startSession();
+
+  try {
+    let inscripcionReabierta;
+    let alumnoActualizado;
+
+    await session.withTransaction(async () => {
+      const inscripcion =
+        await FotiaInscripcion.findById(
+          inscripcionId,
+        ).session(session);
+
+      if (!inscripcion) {
+        throw crearError(
+          "La inscripción FORTE no fue encontrada",
+          404,
+        );
+      }
+
+      // Esta acción es exclusivamente para FORTE.
+      if (inscripcion.tipoOrigen !== "Previa") {
+        throw crearError(
+          "Esta acción sólo puede utilizarse para acreditaciones FORTE.",
+          400,
+        );
+      }
+
+      if (inscripcion.estado !== "Acreditada") {
+        throw crearError(
+          "La asignatura no se encuentra acreditada.",
+          409,
+        );
+      }
+
+      const alumno =
+        await MatriculaAlumno.findById(
+          inscripcion.alumnoId,
+        ).session(session);
+
+      if (!alumno) {
+        throw crearError(
+          "El estudiante de Matrícula no fue encontrado",
+          404,
+        );
+      }
+
+      if (!Array.isArray(alumno.materiasPendientes)) {
+        alumno.materiasPendientes = [];
+      }
+
+      const normalizar = (valor = "") =>
+        String(valor)
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase()
+          .trim();
+
+      // Evitamos restaurar la misma previa dos veces.
+      const previaYaExiste =
+        alumno.materiasPendientes.some(
+          (materia) => {
+            const mismaAsignatura =
+              normalizar(materia.asignatura) ===
+              normalizar(inscripcion.asignatura);
+
+            const mismoAnio =
+              String(materia.anio || "") ===
+              String(inscripcion.anio || "");
+
+            return mismaAsignatura && mismoAnio;
+          },
+        );
+
+      if (previaYaExiste) {
+        throw crearError(
+          "La asignatura ya figura entre las previas del estudiante. No se realizó la reversión para evitar duplicados.",
+          409,
+        );
+      }
+
+      // Restauramos la previa institucional.
+      alumno.materiasPendientes.push({
+        asignatura: inscripcion.asignatura,
+        anio: inscripcion.anio || "",
+      });
+
+      // El subdocumento recién agregado ya recibe un nuevo _id.
+      const nuevaPrevia =
+        alumno.materiasPendientes[
+          alumno.materiasPendientes.length - 1
+        ];
+
+      alumnoActualizado = await alumno.save({
+        session,
+      });
+
+      // La inscripción FORTE vuelve a seguimiento activo.
+      inscripcion.estado = "En proceso";
+      inscripcion.fechaAcreditacion = "";
+      inscripcion.activo = true;
+
+      // MUY IMPORTANTE:
+      // enlazamos nuevamente la inscripción FORTE
+      // con la previa restaurada en Matrícula.
+      inscripcion.materiaPendienteId =
+        nuevaPrevia._id;
+
+      await inscripcion.save({
+        session,
+      });
+
+      inscripcionReabierta = inscripcion;
+    });
+
+    return {
+      mensaje:
+        "La acreditación FORTE fue revertida. La asignatura volvió a figurar como previa institucional y regresó al seguimiento.",
+      inscripcion: inscripcionReabierta,
+      alumno: alumnoActualizado,
+    };
+  } finally {
+    await session.endSession();
+  }
+};
+
   // =====================================================
 // FOTIA - OBJETIVO DE ALFABETIZACIÓN ALCANZADO
 // =====================================================
@@ -1040,6 +1181,7 @@ export const reabrirSeguimientoFotia = async (
   }
 
   const asignaturaNormalizada = String(
+
     inscripcion.asignatura || "",
   )
     .normalize("NFD")

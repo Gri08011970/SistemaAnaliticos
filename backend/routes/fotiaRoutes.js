@@ -37,6 +37,7 @@ import {
   acreditarInscripcionController,
   marcarObjetivoAlcanzadoController,
   reabrirSeguimientoFotiaController,
+  revertirAcreditacionForteController,
 } from "../controllers/fotiaController.js";
 
 import {
@@ -290,6 +291,17 @@ router.post(
   verificarToken,
   soloAdmin,
   acreditarInscripcionController,
+);
+
+// ======================================================
+// FORTE - REVERTIR ACREDITACIÓN
+// ======================================================
+
+router.put(
+  "/inscripciones/:id/revertir-acreditacion",
+  verificarToken,
+  soloAdmin,
+  revertirAcreditacionForteController,
 );
 // ======================================================
 // FOTIA - OBJETIVO DE ALFABETIZACIÓN

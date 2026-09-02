@@ -73,8 +73,7 @@ export default function GestionFotia({
 
     try {
       const token =
-        localStorage.getItem("tokenUsuario") ||
-        localStorage.getItem("token");
+        localStorage.getItem("tokenUsuario") || localStorage.getItem("token");
 
       const respuesta = await fetch(
         `/api/fotia/inscripciones/${inscripcion._id}/reabrir-seguimiento`,
@@ -91,8 +90,7 @@ export default function GestionFotia({
 
       if (!respuesta.ok) {
         throw new Error(
-          datos.mensaje ||
-            "No se pudo reabrir el seguimiento FOTIA.",
+          datos.mensaje || "No se pudo reabrir el seguimiento FOTIA.",
         );
       }
 
@@ -105,19 +103,12 @@ export default function GestionFotia({
       );
 
       window.alert(
-        datos.mensaje ||
-          "El seguimiento FOTIA fue reabierto correctamente.",
+        datos.mensaje || "El seguimiento FOTIA fue reabierto correctamente.",
       );
     } catch (error) {
-      console.error(
-        "Error al reabrir seguimiento FOTIA:",
-        error,
-      );
+      console.error("Error al reabrir seguimiento FOTIA:", error);
 
-      window.alert(
-        error.message ||
-          "No se pudo reabrir el seguimiento FOTIA.",
-      );
+      window.alert(error.message || "No se pudo reabrir el seguimiento FOTIA.");
     }
   };
 
@@ -126,23 +117,18 @@ export default function GestionFotia({
 
     const cargarAcreditaciones = async () => {
       try {
-        const respuesta = await fetch(
-          "/api/fotia/acreditaciones",
-        );
+        const respuesta = await fetch("/api/fotia/acreditaciones");
 
         const datos = await respuesta.json();
 
         if (!respuesta.ok) {
           throw new Error(
-            datos.mensaje ||
-              "No se pudieron obtener las acreditaciones.",
+            datos.mensaje || "No se pudieron obtener las acreditaciones.",
           );
         }
 
         if (componenteActivo) {
-          setAcreditacionesFotia(
-            Array.isArray(datos) ? datos : [],
-          );
+          setAcreditacionesFotia(Array.isArray(datos) ? datos : []);
         }
       } catch (error) {
         console.error(
@@ -1058,36 +1044,36 @@ export default function GestionFotia({
       )}
 
       {vistaActiva === "historialFotia" && (
-  <div
-    style={{
-      width: "100%",
-      minWidth: 0,
-    }}
-  >
-    <button
-      type="button"
-      onClick={volverAlInicioFotia}
-      style={{
-        marginBottom: "20px",
-        padding: "9px 14px",
-        border: "1px solid #bfd4df",
-        borderRadius: "9px",
-        background: "#f3f8fa",
-        color: "#315f6f",
-        cursor: "pointer",
-        fontWeight: "700",
-      }}
-    >
-      ← Volver a FOTIA-FORTE
-    </button>
+        <div
+          style={{
+            width: "100%",
+            minWidth: 0,
+          }}
+        >
+          <button
+            type="button"
+            onClick={volverAlInicioFotia}
+            style={{
+              marginBottom: "20px",
+              padding: "9px 14px",
+              border: "1px solid #bfd4df",
+              borderRadius: "9px",
+              background: "#f3f8fa",
+              color: "#315f6f",
+              cursor: "pointer",
+              fontWeight: "700",
+            }}
+          >
+            ← Volver a FOTIA-FORTE
+          </button>
 
-    <HistorialAlfabetizacionFotia
-      inscripciones={inscripcionesFotia}
-      esAdmin={esAdmin}
-      onReabrir={reabrirSeguimientoFotia}
-    />
-  </div>
-)}
+          <HistorialAlfabetizacionFotia
+            inscripciones={inscripcionesFotia}
+            esAdmin={esAdmin}
+            onReabrir={reabrirSeguimientoFotia}
+          />
+        </div>
+      )}
 
       {vistaActiva === "periodos" && (
         <div
@@ -1744,7 +1730,21 @@ export default function GestionFotia({
       {vistaActiva === "historial" && (
         <HistorialAcreditacionesFotia
           periodoActivo={periodoActivo}
+          esAdmin={esAdmin}
           onVolver={volverAlInicioFotia}
+          onAcreditacionRevertida={(inscripcionReabierta) => {
+            // Actualizamos las inscripciones que utiliza FORTE.
+            actualizarInscripcionEnPantalla(inscripcionReabierta);
+
+            // También quitamos esa acreditación del
+            // resumen estadístico superior.
+            setAcreditacionesFotia((anteriores) =>
+              anteriores.filter(
+                (acreditacion) =>
+                  String(acreditacion._id) !== String(inscripcionReabierta._id),
+              ),
+            );
+          }}
         />
       )}
 
