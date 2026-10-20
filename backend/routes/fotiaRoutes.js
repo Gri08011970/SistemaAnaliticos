@@ -319,4 +319,4 @@ router.put(
   verificarToken,
   soloAdmin,
   reabrirSeguimientoFotiaController,
-);
+); 

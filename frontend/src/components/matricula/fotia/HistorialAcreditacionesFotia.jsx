@@ -407,7 +407,7 @@ export default function HistorialAcreditacionesFotia({
       <head>
         <meta charset="UTF-8" />
 
-        <title>Historial de acreditaciones FOTIA</title>
+        <title>Historial de acreditaciones FORTE</title>
 
         <style>
           * {
@@ -585,7 +585,7 @@ export default function HistorialAcreditacionesFotia({
             “Florencio Molina Campos”
           </p>
 
-          <h1>Historial de acreditaciones FOTIA</h1>
+          <h1>Historial de acreditaciones FORTE</h1>
 
           <p class="subtitulo">
             Registro institucional de asignaturas acreditadas mediante

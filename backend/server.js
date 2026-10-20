@@ -14,7 +14,10 @@ import AcompanamientoInstitucional
   from "./models/AcompanamientoInstitucional.js"; 
 import fotiaRoutes from "./routes/fotiaRoutes.js";
 import usuarioRoutes from "./routes/usuarioRoutes.js";
+import presentismoRoutes from "./routes/presentismoRoutes.js";
+
 import jwt from "jsonwebtoken";
+
 
 
 dotenv.config();
@@ -26,8 +29,14 @@ const __dirname = path.dirname(__filename);
 
 app.use(cors());
 app.use(express.json());
+
 app.use("/api/fotia", fotiaRoutes);
 app.use("/api/usuarios", usuarioRoutes);
+app.use(
+  "/api/presentismo",
+  presentismoRoutes,
+);
+
 app.use(
   "/uploads/fotia",
   express.static(
@@ -38,6 +47,8 @@ app.use(
     ),
   ),
 );
+
+
 
 mongoose
   .connect(process.env.MONGO_URI)

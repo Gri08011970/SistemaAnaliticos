@@ -12,6 +12,7 @@ import RecursantesMatricula from "./RecursantesMatricula";
 import TurnosCursosMatricula from "./TurnosCursosMatricula";
 import TarjetaModulo from "./TarjetaModulo";
 import PlanillaReinscripcion from "./PlanillaReinscripcion";
+import PresentismoRealMatricula from "./PresentismoRealMatricula";
 
 export default function HerramientasGestionMatricula({
   esAdmin,
@@ -166,6 +167,13 @@ export default function HerramientasGestionMatricula({
             />
 
             <TarjetaModulo
+              titulo="📊 Presentismo real"
+              descripcion="Cálculo mensual del presentismo por curso y porcentaje institucional."
+              onEntrar={() => setSeccionActiva("presentismo")}
+              colorBorde="#e0b86a"
+            />
+
+            <TarjetaModulo
               titulo="🧾 Legajos y matriz"
               descripcion="Consulta por año, libro, folios y registros faltantes."
               onEntrar={() => setSeccionActiva("legajos")}
@@ -281,6 +289,13 @@ export default function HerramientasGestionMatricula({
             }}
           />
         </div>
+      )}
+
+      {seccionActiva === "presentismo" && (
+        <PresentismoRealMatricula
+          alumnosMatricula={alumnosMatricula}
+          onVolver={volverATablero}
+        />
       )}
 
       {seccionActiva === "legajos" && (
